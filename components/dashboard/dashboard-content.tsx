@@ -30,6 +30,7 @@ export function DashboardContent({ user }: DashboardContentProps) {
   },[session.user])
   const fetchData = async () => {
     // Get current user profile if logged in
+    //commit 
     if (session?.user) {
       const currentUserResponse = await fetch("/api/users/current")
       if (currentUserResponse.ok) {
