@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth/auth-config"
 import connectDB from "@/lib/mongodb/connection"
 import { Follow } from "@/lib/mongodb/models/Follow"
 import { User } from "@/lib/mongodb/models/User"
+import { isValidObjectId } from "mongoose"
 
 export async function POST(request: NextRequest, { params }: { params: { username: string } }) {
   try {
@@ -15,7 +16,15 @@ export async function POST(request: NextRequest, { params }: { params: { usernam
     await connectDB()
 
     const follower = await User.findOne({ email: session.user.email })
-    const following = await User.findOne({ username: params.username })
+    let following = null
+
+    // Accept either a MongoDB ObjectId or a username in the same param
+    if (isValidObjectId(params.username)) {
+      following = await User.findById(params.username)
+    }
+    if (!following) {
+      following = await User.findOne({ username: params.username })
+    }
 
     if (!follower || !following) {
       return NextResponse.json({ error: "User not found" }, { status: 404 })

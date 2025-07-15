@@ -4,6 +4,7 @@ import type React from "react"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
+import { signIn } from "next-auth/react" // Import signIn from next-auth/react
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -11,7 +12,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Progress } from "@/components/ui/progress"
-import { supabase } from "@/lib/supabase/client"
 import { signUpSchema, type SignUpData } from "@/lib/validations/auth"
 import { TermsAndConditions } from "@/components/auth/terms-and-conditions"
 import {
@@ -58,8 +58,8 @@ export default function SignUpPage() {
   const [messageType, setMessageType] = useState<"success" | "error">("error")
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
-  const [usernameAvailable, setUsernameAvailable] = useState<boolean | null>(null)
-  const [checkingUsername, setCheckingUsername] = useState(false)
+  const [usernameAvailable, setUsernameAvailable] = useState<boolean | null>(null) // Keep for potential future API check
+  const [checkingUsername, setCheckingUsername] = useState(false) // Keep for potential future API check
   const [showTerms, setShowTerms] = useState(false)
   const router = useRouter()
 
@@ -72,51 +72,25 @@ export default function SignUpPage() {
 
   const progress = (currentStep / steps.length) * 100
 
-  // Check username availability
+  // Removed Supabase specific checkUsernameAvailability
+  // If you need username availability check, you'll need to implement a new API route for it.
   const checkUsernameAvailability = async (username: string) => {
-    if (username.length < 3) {
-      setUsernameAvailable(null)
-      return
-    }
-
-    setCheckingUsername(true)
-    try {
-      const { data, error } = await supabase.rpc("check_username_availability", {
-        username_input: username,
-      })
-
-      if (error) {
-        console.error("Error checking username:", error)
-        setUsernameAvailable(null)
-      } else {
-        setUsernameAvailable(data)
-      }
-    } catch (error) {
-      console.error("Error checking username:", error)
-      setUsernameAvailable(null)
-    } finally {
-      setCheckingUsername(false)
-    }
+    // Placeholder for future API call
+    // For now, assume it's always available on client side until server validates
+    setUsernameAvailable(null)
   }
 
-  // Sign up with Google
+  // Sign up with Google using NextAuth.js
   const handleGoogleSignUp = async () => {
     setIsLoading(true)
+    setMessage("")
+    setMessageType("error")
     try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: "google",
-        options: {
-          redirectTo: `${window.location.origin}/dashboard`,
-        },
+      await signIn("google", {
+        callbackUrl: `${window.location.origin}/dashboard`,
       })
-
-      if (error) {
-        setMessage("Google দিয়ে সাইন আপ করতে সমস্যা হয়েছে")
-        setMessageType("error")
-      }
     } catch (error) {
       setMessage("Google দিয়ে সাইন আপ করতে সমস্যা হয়েছে")
-      setMessageType("error")
     } finally {
       setIsLoading(false)
     }
@@ -141,9 +115,9 @@ export default function SignUpPage() {
           stepErrors.username = "ইউজারনেম কমপক্ষে ৩ অক্ষরের হতে হবে"
         } else if (!/^[a-zA-Z0-9_]+$/.test(formData.username)) {
           stepErrors.username = "ইউজারনেমে শুধুমাত্র অক্ষর, সংখ্যা এবং আন্ডারস্কোর থাকতে পারে"
-        } else if (usernameAvailable === false) {
-          stepErrors.username = "এই ইউজারনেমটি ইতিমধ্যে ব্যবহৃত হয়েছে"
         }
+        // Removed client-side usernameAvailable check here, as it relies on Supabase RPC
+        // Server-side validation will catch duplicates.
 
         if (!formData.displayName) {
           stepErrors.displayName = "প্রদর্শনী নাম আবশ্যক"
@@ -198,6 +172,7 @@ export default function SignUpPage() {
 
     setIsLoading(true)
     setMessage("")
+    setMessageType("error") // Default to error type
 
     try {
       const validatedData = signUpSchema.parse({
@@ -207,28 +182,25 @@ export default function SignUpPage() {
         displayName: formData.displayName,
       })
 
-      const { data, error } = await supabase.auth.signUp({
-        email: validatedData.email,
-        password: validatedData.password,
-        options: {
-          data: {
-            username: validatedData.username,
-            display_name: validatedData.displayName,
-          },
+      const response = await fetch("/api/auth/signup", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
         },
+        body: JSON.stringify(validatedData),
       })
 
-      if (error) {
-        console.error("Signup error:", error)
-        if (error.message.includes("User already registered")) {
-          setMessage("এই ইমেইল ঠিকানা দিয়ে ইতিমধ্যে একটি অ্যাকাউন্ট রয়েছে")
-        } else {
-          setMessage(error.message || "অ্যাকাউন্ট তৈরি করতে সমস্যা হয়েছে")
-        }
+      const data = await response.json()
+
+      if (!response.ok) {
+        setMessage(data.error || "অ্যাকাউন্ট তৈরি করতে সমস্যা হয়েছে")
         setMessageType("error")
       } else {
         setMessage("সফলভাবে অ্যাকাউন্ট তৈরি হয়েছে! আপনার ইমেইল চেক করুন কনফার্মেশন লিঙ্কের জন্য")
         setMessageType("success")
+
+        // Optionally redirect to sign-in or dashboard after successful signup
+        // router.push("/auth/sign-in");
 
         // Reset form
         setFormData({
@@ -242,8 +214,22 @@ export default function SignUpPage() {
         setCurrentStep(1)
       }
     } catch (error) {
-      console.error("Form validation error:", error)
-      setMessage("ফর্ম পূরণে ত্রুটি রয়েছে")
+      console.error("Form submission error:", error)
+      if (error instanceof Error) {
+        try {
+          const zodError = JSON.parse(error.message)
+          const fieldErrors: Partial<SignUpData> = {}
+          zodError.forEach((err: any) => {
+            fieldErrors[err.path[0] as keyof SignUpData] = err.message
+          })
+          setErrors(fieldErrors)
+          setMessage("ফর্ম পূরণে ত্রুটি রয়েছে")
+        } catch (parseError) {
+          setMessage("An unexpected error occurred during form validation.")
+        }
+      } else {
+        setMessage("An unexpected error occurred.")
+      }
       setMessageType("error")
     } finally {
       setIsLoading(false)
@@ -259,10 +245,10 @@ export default function SignUpPage() {
       setErrors((prev) => ({ ...prev, [field]: undefined }))
     }
 
-    // Check username availability
+    // Placeholder for username availability check (if re-implemented via new API)
     if (field === "username" && value.length >= 3) {
       const timeoutId = setTimeout(() => {
-        checkUsernameAvailability(value)
+        // checkUsernameAvailability(value); // Call this if you implement a new API for it
       }, 500)
       return () => clearTimeout(timeoutId)
     } else if (field === "username") {
@@ -494,7 +480,7 @@ export default function SignUpPage() {
                   <strong>ইউজারনেম:</strong> @{formData.username}
                 </p>
                 <p>
-                  <strong>প্রদর্শনী নাম:</strong> {formData.displayName}
+                  <strong>প্র প্রদর্শনী নাম:</strong> {formData.displayName}
                 </p>
               </div>
             </div>
