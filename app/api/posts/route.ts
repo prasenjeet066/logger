@@ -4,51 +4,15 @@ import { authOptions } from "@/lib/auth/auth-config"
 import connectDB from "@/lib/mongodb/connection"
 import { Post } from "@/lib/mongodb/models/Post"
 import { User } from "@/lib/mongodb/models/User"
+import { Follow } from "@/lib/mongodb/models/Follow"
+import { createPostSchema } from "@/lib/validations/post"
+import { z } from "zod"
 
 export async function GET(request: NextRequest) {
   try {
-    await connectDB()
-
-    const posts = await Post.find().sort({ createdAt: -1 }).limit(20).lean()
-
-    // Get user details for each post
-    const postsWithUsers = await Promise.all(
-      posts.map(async (post) => {
-        const user = await User.findById(post.authorId).lean()
-        return {
-          ...post,
-          _id: post._id.toString(),
-          author: user
-            ? {
-                id: user._id.toString(),
-                username: user.username,
-                displayName: user.displayName,
-                avatarUrl: user.avatarUrl,
-                isVerified: user.isVerified,
-              }
-            : null,
-        }
-      }),
-    )
-
-    return NextResponse.json(postsWithUsers)
-  } catch (error) {
-    console.error("Error fetching posts:", error)
-    return NextResponse.json({ error: "Failed to fetch posts" }, { status: 500 })
-  }
-}
-
-export async function POST(request: NextRequest) {
-  try {
     const session = await getServerSession(authOptions)
-    if (!session?.user) {
+    if (!session?.user?.email) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-    }
-
-    const { content, replyToId, mediaUrls, mediaType } = await request.json()
-
-    if (!content || content.trim().length === 0) {
-      return NextResponse.json({ error: "Content is required" }, { status: 400 })
     }
 
     await connectDB()
@@ -58,39 +22,112 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "User not found" }, { status: 404 })
     }
 
-    const post = await Post.create({
-      content,
+    const { searchParams } = new URL(request.url)
+    const page = Number.parseInt(searchParams.get("page") || "1")
+    const limit = Number.parseInt(searchParams.get("limit") || "20")
+    const skip = (page - 1) * limit
+
+    // Get user's following list
+    const following = await Follow.find({ followerId: user._id }).select("followingId")
+    const followingIds = following.map((f) => f.followingId)
+    followingIds.push(user._id.toString()) // Include user's own posts
+
+    // Get posts from followed users and own posts
+    const posts = await Post.find({
+      authorId: { $in: followingIds },
+    })
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit)
+      .lean()
+
+    // Get author information for each post
+    const authorIds = [...new Set(posts.map((post) => post.authorId))]
+    const authors = await User.find({
+      _id: { $in: authorIds },
+    })
+      .select("_id username displayName avatarUrl isVerified")
+      .lean()
+
+    const authorMap = new Map(authors.map((author) => [author._id.toString(), author]))
+
+    // Format posts with author information
+    const formattedPosts = posts.map((post) => ({
+      ...post,
+      author: authorMap.get(post.authorId),
+      isLiked: false, // TODO: Check if current user liked this post
+      isReposted: false, // TODO: Check if current user reposted this post
+    }))
+
+    return NextResponse.json(formattedPosts)
+  } catch (error) {
+    console.error("Get posts error:", error)
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+  }
+}
+
+export async function POST(request: NextRequest) {
+  try {
+    const session = await getServerSession(authOptions)
+    if (!session?.user?.email) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+
+    await connectDB()
+
+    const user = await User.findOne({ email: session.user.email })
+    if (!user) {
+      return NextResponse.json({ error: "User not found" }, { status: 404 })
+    }
+
+    const body = await request.json()
+    const validatedData = createPostSchema.parse(body)
+
+    // Extract hashtags and mentions
+    const hashtags = (validatedData.content.match(/#[a-zA-Z0-9_\u0980-\u09FF]+/g) || []).map((tag) =>
+      tag.slice(1).toLowerCase(),
+    )
+
+    const mentions = (validatedData.content.match(/@[a-zA-Z0-9_]+/g) || []).map((mention) =>
+      mention.slice(1).toLowerCase(),
+    )
+
+    // Create new post
+    const post = new Post({
+      content: validatedData.content,
       authorId: user._id.toString(),
-      replyToId,
-      mediaUrls,
-      mediaType,
+      mediaUrls: body.mediaUrls || [],
+      mediaType: body.mediaType || null,
+      hashtags,
+      mentions,
     })
 
-    // Update user's posts count
+    await post.save()
+
+    // Update user's post count
     await User.findByIdAndUpdate(user._id, {
       $inc: { postsCount: 1 },
     })
 
-    // If this is a reply, update the parent post's replies count
-    if (replyToId) {
-      await Post.findByIdAndUpdate(replyToId, {
-        $inc: { repliesCount: 1 },
-      })
+    // Populate author information for response
+    const populatedPost = await Post.findById(post._id).lean()
+    const author = await User.findById(user._id).select("username displayName avatarUrl isVerified").lean()
+
+    const postResponse = {
+      ...populatedPost,
+      author,
+      isLiked: false,
+      isReposted: false,
     }
 
-    return NextResponse.json({
-      ...post.toObject(),
-      _id: post._id.toString(),
-      author: {
-        id: user._id.toString(),
-        username: user.username,
-        displayName: user.displayName,
-        avatarUrl: user.avatarUrl,
-        isVerified: user.isVerified,
-      },
-    })
+    return NextResponse.json(postResponse, { status: 201 })
   } catch (error) {
-    console.error("Error creating post:", error)
-    return NextResponse.json({ error: "Failed to create post" }, { status: 500 })
+    console.error("Create post error:", error)
+
+    if (error instanceof z.ZodError) {
+      return NextResponse.json({ error: "Invalid input data", details: error.errors }, { status: 400 })
+    }
+
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
 }

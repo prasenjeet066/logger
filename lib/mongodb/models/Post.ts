@@ -4,38 +4,95 @@ export interface IPost extends Document {
   _id: string
   content: string
   authorId: string
-  replyToId?: string
   mediaUrls?: string[]
   mediaType?: "image" | "video" | "gif"
   likesCount: number
-  repliesCount: number
   repostsCount: number
-  viewsCount: number
+  repliesCount: number
+  isRepost: boolean
+  originalPostId?: string
+  parentPostId?: string
+  hashtags: string[]
+  mentions: string[]
   isPinned: boolean
   createdAt: Date
   updatedAt: Date
 }
 
-const PostSchema = new Schema<IPost>(
+const postSchema = new Schema<IPost>(
   {
-    content: { type: String, required: true, maxlength: 280 },
-    authorId: { type: String, required: true },
-    replyToId: { type: String },
-    mediaUrls: [{ type: String }],
-    mediaType: { type: String, enum: ["image", "video", "gif"] },
-    likesCount: { type: Number, default: 0 },
-    repliesCount: { type: Number, default: 0 },
-    repostsCount: { type: Number, default: 0 },
-    viewsCount: { type: Number, default: 0 },
-    isPinned: { type: Boolean, default: false },
+    content: {
+      type: String,
+      required: true,
+      maxlength: 280,
+    },
+    authorId: {
+      type: String,
+      required: true,
+      ref: "User",
+    },
+    mediaUrls: [
+      {
+        type: String,
+      },
+    ],
+    mediaType: {
+      type: String,
+      enum: ["image", "video", "gif"],
+      default: null,
+    },
+    likesCount: {
+      type: Number,
+      default: 0,
+    },
+    repostsCount: {
+      type: Number,
+      default: 0,
+    },
+    repliesCount: {
+      type: Number,
+      default: 0,
+    },
+    isRepost: {
+      type: Boolean,
+      default: false,
+    },
+    originalPostId: {
+      type: String,
+      ref: "Post",
+      default: null,
+    },
+    parentPostId: {
+      type: String,
+      ref: "Post",
+      default: null,
+    },
+    hashtags: [
+      {
+        type: String,
+      },
+    ],
+    mentions: [
+      {
+        type: String,
+      },
+    ],
+    isPinned: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     timestamps: true,
   },
 )
 
-PostSchema.index({ authorId: 1, createdAt: -1 })
-PostSchema.index({ replyToId: 1 })
-PostSchema.index({ createdAt: -1 })
+// Indexes for performance
+postSchema.index({ authorId: 1, createdAt: -1 })
+postSchema.index({ createdAt: -1 })
+postSchema.index({ hashtags: 1 })
+postSchema.index({ mentions: 1 })
+postSchema.index({ originalPostId: 1 })
+postSchema.index({ parentPostId: 1 })
 
-export const Post = mongoose.models.Post || mongoose.model<IPost>("Post", PostSchema)
+export const Post = mongoose.models.Post || mongoose.model<IPost>("Post", postSchema)

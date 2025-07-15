@@ -1,23 +1,25 @@
-import React from 'react';
+"use client"
+
+import type React from "react"
 
 interface DotSpinnerProps {
-  size?: string;
-  speed?: string;
-  color?: string;
-  className?: string;
+  size?: string
+  speed?: string
+  color?: string
+  className?: string
 }
 
 const DotSpinner: React.FC<DotSpinnerProps> = ({
-  size = '2.8rem',
-  speed = '0.9s',
-  color = '#183153',
-  className = ''
+  size = "2.8rem",
+  speed = "0.9s",
+  color = "#183153",
+  className = "",
 }) => {
   const spinnerStyle = {
-    '--uib-size': size,
-    '--uib-speed': speed,
-    '--uib-color': color,
-  } as React.CSSProperties;
+    "--uib-size": size,
+    "--uib-speed": speed,
+    "--uib-color": color,
+  } as React.CSSProperties
 
   return (
     <>
@@ -134,7 +136,10 @@ const DotSpinner: React.FC<DotSpinnerProps> = ({
         <div className="dot-spinner__dot"></div>
       </div>
     </>
-  );
-};
+  )
+}
 export default DotSpinner
 // Demo component to show usage
+
+// Ensure named export compatibility
+export const Spinner = DotSpinner

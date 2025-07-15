@@ -1,29 +1,50 @@
 import mongoose, { type Document, Schema } from "mongoose"
 
 export interface INotification extends Document {
+  _id: string
   userId: string
-  type: "like" | "reply" | "follow" | "repost" | "mention"
   fromUserId: string
+  type: "like" | "follow" | "mention" | "reply" | "repost"
   postId?: string
   isRead: boolean
   createdAt: Date
 }
 
-const NotificationSchema = new Schema<INotification>(
+const notificationSchema = new Schema<INotification>(
   {
-    userId: { type: String, required: true },
-    type: { type: String, required: true, enum: ["like", "reply", "follow", "repost", "mention"] },
-    fromUserId: { type: String, required: true },
-    postId: { type: String },
-    isRead: { type: Boolean, default: false },
+    userId: {
+      type: String,
+      required: true,
+      ref: "User",
+    },
+    fromUserId: {
+      type: String,
+      required: true,
+      ref: "User",
+    },
+    type: {
+      type: String,
+      required: true,
+      enum: ["like", "follow", "mention", "reply", "repost"],
+    },
+    postId: {
+      type: String,
+      ref: "Post",
+      default: null,
+    },
+    isRead: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     timestamps: true,
   },
 )
 
-NotificationSchema.index({ userId: 1, createdAt: -1 })
-NotificationSchema.index({ userId: 1, isRead: 1 })
+// Indexes for performance
+notificationSchema.index({ userId: 1, createdAt: -1 })
+notificationSchema.index({ userId: 1, isRead: 1 })
 
 export const Notification =
-  mongoose.models.Notification || mongoose.model<INotification>("Notification", NotificationSchema)
+  mongoose.models.Notification || mongoose.model<INotification>("Notification", notificationSchema)

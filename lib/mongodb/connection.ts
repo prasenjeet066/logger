@@ -1,18 +1,27 @@
 import mongoose from "mongoose"
 
-const MONGODB_URI = process.env.MONGODB_URI!
+const MONGODB_URI = process.env.MONGODB_URI
 
 if (!MONGODB_URI) {
   throw new Error("Please define the MONGODB_URI environment variable inside .env.local")
 }
 
-let cached = global.mongoose
-
-if (!cached) {
-  cached = global.mongoose = { conn: null, promise: null }
+interface MongooseCache {
+  conn: typeof mongoose | null
+  promise: Promise<typeof mongoose> | null
 }
 
-async function connectDB() {
+declare global {
+  var myMongoose: MongooseCache | undefined
+}
+
+const cached: MongooseCache = global.myMongoose || { conn: null, promise: null }
+
+if (!global.myMongoose) {
+  global.myMongoose = cached
+}
+
+export async function connectDB(): Promise<typeof mongoose> {
   if (cached.conn) {
     return cached.conn
   }
@@ -22,8 +31,9 @@ async function connectDB() {
       bufferCommands: false,
     }
 
-    cached.promise = mongoose.connect(MONGODB_URI, opts).then((mongooseInstance) => {
-      return mongooseInstance
+    cached.promise = mongoose.connect(MONGODB_URI!, opts).then((mongoose) => {
+      console.log("Connected to MongoDB")
+      return mongoose
     })
   }
 
@@ -37,11 +47,5 @@ async function connectDB() {
   return cached.conn
 }
 
+// Provide both named and default exports
 export default connectDB
-
-declare global {
-  var mongoose: {
-    conn: any | null
-    promise: Promise<any> | null
-  }
-}

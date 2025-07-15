@@ -1,48 +1,61 @@
 import { type NextRequest, NextResponse } from "next/server"
-import bcrypt from "bcryptjs"
-import connectDB from "@/lib/mongodb/connection"
+import { connectDB } from "@/lib/mongodb/connection"
 import { User } from "@/lib/mongodb/models/User"
+import { signUpSchema } from "@/lib/validations/auth"
+import { z } from "zod"
 
 export async function POST(request: NextRequest) {
   try {
-    const { email, username, displayName, password } = await request.json()
-
-    if (!email || !username || !displayName || !password) {
-      return NextResponse.json({ error: "All fields are required" }, { status: 400 })
-    }
-
     await connectDB()
+
+    const body = await request.json()
+    const validatedData = signUpSchema.parse(body)
 
     // Check if user already exists
     const existingUser = await User.findOne({
-      $or: [{ email }, { username }],
+      $or: [{ email: validatedData.email }, { username: validatedData.username }],
     })
 
     if (existingUser) {
-      return NextResponse.json({ error: "User already exists" }, { status: 400 })
+      if (existingUser.email === validatedData.email) {
+        return NextResponse.json({ error: "User with this email already exists" }, { status: 400 })
+      }
+      if (existingUser.username === validatedData.username) {
+        return NextResponse.json({ error: "Username is already taken" }, { status: 400 })
+      }
     }
 
-    // Hash password
-    const hashedPassword = await bcrypt.hash(password, 12)
-
-    // Create user
-    const user = await User.create({
-      email,
-      username,
-      displayName,
+    // Create new user
+    const user = new User({
+      email: validatedData.email,
+      username: validatedData.username,
+      displayName: validatedData.displayName,
+      password: validatedData.password,
     })
 
-    return NextResponse.json({
-      message: "User created successfully",
-      user: {
-        id: user._id,
-        email: user.email,
-        username: user.username,
-        displayName: user.displayName,
+    await user.save()
+
+    // Return user without password
+    const userResponse = user.toJSON()
+
+    return NextResponse.json(
+      {
+        message: "User created successfully",
+        user: userResponse,
       },
-    })
+      { status: 201 },
+    )
   } catch (error) {
     console.error("Signup error:", error)
+
+    if (error instanceof z.ZodError) {
+      return NextResponse.json({ error: "Invalid input data", details: error.errors }, { status: 400 })
+    }
+
+    if (error instanceof Error && error.message.includes("duplicate key")) {
+      return NextResponse.json({ error: "User with this email or username already exists" }, { status: 400 })
+    }
+
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
 }

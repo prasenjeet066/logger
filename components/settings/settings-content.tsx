@@ -12,26 +12,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Separator } from "@/components/ui/separator"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { supabase } from "@/lib/supabase/client"
 import { useToast } from "@/hooks/use-toast"
 import { useMobile } from "@/hooks/use-mobile"
-import {
-  User,
-  Bell,
-  Shield,
-  Palette,
-  Smartphone,
-  Mail,
-  Camera,
-  Save,
-  ArrowLeft,
-  Settings,
-  Moon,
-  Sun,
-  Volume2,
-  VolumeX,
-  AlertCircle,
-} from "lucide-react"
+import { useSession, signOut } from "next-auth/react"
+import { User, Bell, Shield, Palette, Camera, Save, ArrowLeft, AlertCircle } from "lucide-react"
 
 interface SettingsContentProps {
   userId: string
@@ -41,6 +25,7 @@ export function SettingsContent({ userId }: SettingsContentProps) {
   const router = useRouter()
   const { toast } = useToast()
   const isMobile = useMobile()
+  const { data: session } = useSession()
 
   const [user, setUser] = useState<any>(null)
   const [profile, setProfile] = useState<any>(null)
@@ -70,31 +55,26 @@ export function SettingsContent({ userId }: SettingsContentProps) {
 
   useEffect(() => {
     fetchUserData()
-  }, [userId])
+  }, [userId, session])
 
   const fetchUserData = async () => {
+    if (!session?.user) return
+
     try {
       setLoading(true)
 
-      // Get auth user
-      const {
-        data: { user: authUser },
-      } = await supabase.auth.getUser()
-      setUser(authUser)
+      // Get current user profile
+      const response = await fetch("/api/users/current")
+      if (!response.ok) throw new Error("Failed to fetch user data")
 
-      // Get profile
-      const { data: profileData, error } = await supabase.from("profiles").select("*").eq("id", userId).single()
-
-      if (error) throw error
-
-      setProfile(profileData)
-      setDisplayName(profileData.display_name || "")
-      setBio(profileData.bio || "")
-      setLocation(profileData.location || "")
-      setWebsite(profileData.website || "")
-      setIsPrivate(profileData.is_private || false)
-      setAllowMessages(profileData.allow_messages !== false)
-      setShowEmail(profileData.show_email || false)
+      const userData = await response.json()
+      setUser(userData)
+      setProfile(userData)
+      setDisplayName(userData.displayName || "")
+      setBio(userData.bio || "")
+      setLocation(userData.location || "")
+      setWebsite(userData.website || "")
+      // Set other settings from user data if available
     } catch (error) {
       console.error("Error fetching user data:", error)
       toast({
@@ -110,20 +90,21 @@ export function SettingsContent({ userId }: SettingsContentProps) {
   const saveProfile = async () => {
     setSaving(true)
     try {
-      const { error } = await supabase
-        .from("profiles")
-        .update({
-          display_name: displayName,
-          bio: bio,
-          location: location,
-          website: website,
-          is_private: isPrivate,
-          allow_messages: allowMessages,
-          show_email: showEmail,
-        })
-        .eq("id", userId)
+      const response = await fetch("/api/users/profile", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          displayName,
+          bio,
+          location,
+          website,
+          isPrivate,
+          allowMessages,
+          showEmail,
+        }),
+      })
 
-      if (error) throw error
+      if (!response.ok) throw new Error("Failed to update profile")
 
       toast({
         title: "Success",
@@ -143,164 +124,130 @@ export function SettingsContent({ userId }: SettingsContentProps) {
 
   const handleSignOut = async () => {
     try {
-      await supabase.auth.signOut()
+      await signOut()
       router.push("/auth/sign-in")
     } catch (error) {
       console.error("Error signing out:", error)
     }
   }
 
-  const tabItems = [
-    { id: "profile", label: "Profile", icon: User },
-    { id: "privacy", label: "Privacy", icon: Shield },
-    { id: "notifications", label: "Notifications", icon: Bell },
-    { id: "appearance", label: "Appearance", icon: Palette },
-    { id: "account", label: "Account", icon: Settings },
-  ]
-
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      </div>
+    )
+  }
+
+  if (!user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>Failed to load user settings.</AlertDescription>
+        </Alert>
       </div>
     )
   }
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Mobile Header */}
-      {isMobile && (
-        <div className="sticky top-0 z-50 bg-white border-b px-4 py-3">
-          <div className="flex items-center gap-3">
-            <Button variant="ghost" size="sm" onClick={() => router.back()}>
-              <ArrowLeft className="h-4 w-4" />
-            </Button>
-            <div>
-              <h1 className="text-lg font-semibold">Settings</h1>
-              <p className="text-sm text-gray-500">Manage your account</p>
-            </div>
-          </div>
+      {/* Header */}
+      <div className="bg-white border-b px-4 py-3 flex items-center gap-4">
+        <Button variant="ghost" size="icon" onClick={() => router.back()}>
+          <ArrowLeft className="h-5 w-5" />
+        </Button>
+        <div>
+          <h1 className="text-xl font-bold">Settings</h1>
+          <p className="text-sm text-gray-500">Manage your account preferences</p>
         </div>
-      )}
+      </div>
 
       <div className="max-w-4xl mx-auto p-4">
-        {/* Desktop Header */}
-        {!isMobile && (
-          <div className="mb-6">
-            <h1 className="text-2xl font-bold text-gray-900 mb-2">Settings</h1>
-            <p className="text-gray-600">Manage your account settings and preferences</p>
-          </div>
-        )}
-
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          {/* Tab Navigation */}
-          {isMobile ? (
-            // Mobile: Bottom tabs
-            <div className="fixed bottom-0 left-0 right-0 bg-white border-t z-40">
-              <TabsList className="grid w-full grid-cols-5 h-16 bg-transparent">
-                {tabItems.map((item) => {
-                  const Icon = item.icon
-                  return (
-                    <TabsTrigger
-                      key={item.id}
-                      value={item.id}
-                      className="flex flex-col gap-1 h-full data-[state=active]:bg-blue-50 data-[state=active]:text-blue-600"
-                    >
-                      <Icon className="h-4 w-4" />
-                      <span className="text-xs">{item.label}</span>
-                    </TabsTrigger>
-                  )
-                })}
-              </TabsList>
-            </div>
-          ) : (
-            // Desktop: Side tabs
-            <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-              <div className="lg:col-span-1">
-                <TabsList className="flex flex-col h-auto w-full bg-white p-1 space-y-1">
-                  {tabItems.map((item) => {
-                    const Icon = item.icon
-                    return (
-                      <TabsTrigger
-                        key={item.id}
-                        value={item.id}
-                        className="w-full justify-start gap-3 h-12 data-[state=active]:bg-blue-50 data-[state=active]:text-blue-600"
-                      >
-                        <Icon className="h-4 w-4" />
-                        {item.label}
-                      </TabsTrigger>
-                    )
-                  })}
-                </TabsList>
-              </div>
+          <TabsList className="grid w-full grid-cols-4">
+            <TabsTrigger value="profile" className="flex items-center gap-2">
+              <User className="h-4 w-4" />
+              {!isMobile && "Profile"}
+            </TabsTrigger>
+            <TabsTrigger value="privacy" className="flex items-center gap-2">
+              <Shield className="h-4 w-4" />
+              {!isMobile && "Privacy"}
+            </TabsTrigger>
+            <TabsTrigger value="notifications" className="flex items-center gap-2">
+              <Bell className="h-4 w-4" />
+              {!isMobile && "Notifications"}
+            </TabsTrigger>
+            <TabsTrigger value="appearance" className="flex items-center gap-2">
+              <Palette className="h-4 w-4" />
+              {!isMobile && "Appearance"}
+            </TabsTrigger>
+          </TabsList>
 
-              <div className="lg:col-span-3">{/* Tab Content will go here */}</div>
-            </div>
-          )}
-
-          {/* Tab Contents */}
-          <div className={`space-y-6 ${isMobile ? "pb-20" : ""}`}>
-            {/* Profile Tab */}
-            <TabsContent value="profile" className="space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <User className="h-5 w-5" />
-                    Profile Information
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  {/* Avatar Section */}
-                  <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-                    <Avatar className="h-20 w-20">
-                      <AvatarImage src={user?.user_metadata?.avatar_url || "/placeholder.svg"} />
-                      <AvatarFallback className="text-lg">{displayName?.[0] || user?.email?.[0] || "U"}</AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1">
-                      <h3 className="font-medium text-gray-900">{displayName || "No display name"}</h3>
-                      <p className="text-sm text-gray-500">@{profile?.username || "username"}</p>
-                      <Button variant="outline" size="sm" className="mt-2 bg-transparent">
-                        <Camera className="h-4 w-4 mr-2" />
-                        Change Photo
-                      </Button>
-                    </div>
+          <TabsContent value="profile" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <User className="h-5 w-5" />
+                  Profile Information
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="flex items-center gap-4">
+                  <Avatar className="h-20 w-20">
+                    <AvatarImage src={user.avatarUrl || undefined} />
+                    <AvatarFallback className="text-lg">
+                      {user.displayName?.charAt(0)?.toUpperCase() || "U"}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <Button variant="outline" size="sm" className="flex items-center gap-2 bg-transparent">
+                      <Camera className="h-4 w-4" />
+                      Change Photo
+                    </Button>
+                    <p className="text-sm text-gray-500 mt-1">JPG, PNG or GIF. Max size 5MB.</p>
                   </div>
+                </div>
 
-                  <Separator />
-
-                  {/* Profile Fields */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="displayName">Display Name</Label>
-                      <Input
-                        id="displayName"
-                        value={displayName}
-                        onChange={(e) => setDisplayName(e.target.value)}
-                        placeholder="Your display name"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="location">Location</Label>
-                      <Input
-                        id="location"
-                        value={location}
-                        onChange={(e) => setLocation(e.target.value)}
-                        placeholder="Your location"
-                      />
-                    </div>
-                  </div>
-
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="bio">Bio</Label>
-                    <Textarea
-                      id="bio"
-                      value={bio}
-                      onChange={(e) => setBio(e.target.value)}
-                      placeholder="Tell us about yourself"
-                      className="min-h-[100px]"
+                    <Label htmlFor="displayName">Display Name</Label>
+                    <Input
+                      id="displayName"
+                      value={displayName}
+                      onChange={(e) => setDisplayName(e.target.value)}
+                      placeholder="Your display name"
                     />
                   </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="username">Username</Label>
+                    <Input id="username" value={user.username || ""} disabled className="bg-gray-50" />
+                    <p className="text-xs text-gray-500">Username cannot be changed</p>
+                  </div>
+                </div>
 
+                <div className="space-y-2">
+                  <Label htmlFor="bio">Bio</Label>
+                  <Textarea
+                    id="bio"
+                    value={bio}
+                    onChange={(e) => setBio(e.target.value)}
+                    placeholder="Tell us about yourself..."
+                    rows={3}
+                  />
+                  <p className="text-xs text-gray-500">{bio.length}/160 characters</p>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="location">Location</Label>
+                    <Input
+                      id="location"
+                      value={location}
+                      onChange={(e) => setLocation(e.target.value)}
+                      placeholder="Your location"
+                    />
+                  </div>
                   <div className="space-y-2">
                     <Label htmlFor="website">Website</Label>
                     <Input
@@ -308,228 +255,180 @@ export function SettingsContent({ userId }: SettingsContentProps) {
                       value={website}
                       onChange={(e) => setWebsite(e.target.value)}
                       placeholder="https://yourwebsite.com"
-                      type="url"
                     />
                   </div>
+                </div>
 
-                  <Button onClick={saveProfile} disabled={saving} className="w-full sm:w-auto">
-                    {saving ? (
-                      <>
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                        Saving...
-                      </>
-                    ) : (
-                      <>
-                        <Save className="h-4 w-4 mr-2" />
-                        Save Changes
-                      </>
-                    )}
-                  </Button>
-                </CardContent>
-              </Card>
-            </TabsContent>
+                <div className="space-y-2">
+                  <Label htmlFor="email">Email</Label>
+                  <Input id="email" value={user.email || ""} disabled className="bg-gray-50" />
+                  <p className="text-xs text-gray-500">Email cannot be changed</p>
+                </div>
 
-            {/* Privacy Tab */}
-            <TabsContent value="privacy" className="space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Shield className="h-5 w-5" />
-                    Privacy Settings
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                    <div>
-                      <h3 className="font-medium">Private Account</h3>
-                      <p className="text-sm text-gray-500">Only approved followers can see your posts</p>
-                    </div>
-                    <Switch checked={isPrivate} onCheckedChange={setIsPrivate} />
+                <Button onClick={saveProfile} disabled={saving} className="w-full md:w-auto">
+                  {saving ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                      Saving...
+                    </>
+                  ) : (
+                    <>
+                      <Save className="h-4 w-4 mr-2" />
+                      Save Changes
+                    </>
+                  )}
+                </Button>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="privacy" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Shield className="h-5 w-5" />
+                  Privacy Settings
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label htmlFor="private-account">Private Account</Label>
+                    <p className="text-sm text-gray-500">Only approved followers can see your posts</p>
                   </div>
+                  <Switch id="private-account" checked={isPrivate} onCheckedChange={setIsPrivate} />
+                </div>
 
-                  <Separator />
+                <Separator />
 
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                    <div>
-                      <h3 className="font-medium">Allow Direct Messages</h3>
-                      <p className="text-sm text-gray-500">Let others send you direct messages</p>
-                    </div>
-                    <Switch checked={allowMessages} onCheckedChange={setAllowMessages} />
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label htmlFor="allow-messages">Allow Direct Messages</Label>
+                    <p className="text-sm text-gray-500">Let others send you direct messages</p>
                   </div>
+                  <Switch id="allow-messages" checked={allowMessages} onCheckedChange={setAllowMessages} />
+                </div>
 
-                  <Separator />
+                <Separator />
 
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                    <div>
-                      <h3 className="font-medium">Show Email</h3>
-                      <p className="text-sm text-gray-500">Display your email on your profile</p>
-                    </div>
-                    <Switch checked={showEmail} onCheckedChange={setShowEmail} />
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label htmlFor="show-email">Show Email in Profile</Label>
+                    <p className="text-sm text-gray-500">Display your email address on your profile</p>
                   </div>
+                  <Switch id="show-email" checked={showEmail} onCheckedChange={setShowEmail} />
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
 
-                  <Button onClick={saveProfile} disabled={saving} className="w-full sm:w-auto">
-                    {saving ? "Saving..." : "Save Privacy Settings"}
-                  </Button>
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            {/* Notifications Tab */}
-            <TabsContent value="notifications" className="space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Bell className="h-5 w-5" />
-                    Notification Preferences
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                    <div className="flex items-center gap-3">
-                      <Mail className="h-5 w-5 text-gray-500" />
-                      <div>
-                        <h3 className="font-medium">Email Notifications</h3>
-                        <p className="text-sm text-gray-500">Receive notifications via email</p>
-                      </div>
-                    </div>
-                    <Switch checked={emailNotifications} onCheckedChange={setEmailNotifications} />
+          <TabsContent value="notifications" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Bell className="h-5 w-5" />
+                  Notification Preferences
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label htmlFor="email-notifications">Email Notifications</Label>
+                    <p className="text-sm text-gray-500">Receive notifications via email</p>
                   </div>
+                  <Switch
+                    id="email-notifications"
+                    checked={emailNotifications}
+                    onCheckedChange={setEmailNotifications}
+                  />
+                </div>
 
-                  <Separator />
+                <Separator />
 
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                    <div className="flex items-center gap-3">
-                      <Smartphone className="h-5 w-5 text-gray-500" />
-                      <div>
-                        <h3 className="font-medium">Push Notifications</h3>
-                        <p className="text-sm text-gray-500">Receive push notifications on your device</p>
-                      </div>
-                    </div>
-                    <Switch checked={pushNotifications} onCheckedChange={setPushNotifications} />
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label htmlFor="push-notifications">Push Notifications</Label>
+                    <p className="text-sm text-gray-500">Receive push notifications on your device</p>
                   </div>
+                  <Switch id="push-notifications" checked={pushNotifications} onCheckedChange={setPushNotifications} />
+                </div>
 
-                  <Separator />
+                <Separator />
 
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                    <div className="flex items-center gap-3">
-                      {soundEnabled ? (
-                        <Volume2 className="h-5 w-5 text-gray-500" />
-                      ) : (
-                        <VolumeX className="h-5 w-5 text-gray-500" />
-                      )}
-                      <div>
-                        <h3 className="font-medium">Sound Effects</h3>
-                        <p className="text-sm text-gray-500">Play sounds for notifications</p>
-                      </div>
-                    </div>
-                    <Switch checked={soundEnabled} onCheckedChange={setSoundEnabled} />
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label htmlFor="sound-enabled">Notification Sounds</Label>
+                    <p className="text-sm text-gray-500">Play sounds for notifications</p>
                   </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
+                  <Switch id="sound-enabled" checked={soundEnabled} onCheckedChange={setSoundEnabled} />
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
 
-            {/* Appearance Tab */}
-            <TabsContent value="appearance" className="space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Palette className="h-5 w-5" />
-                    Appearance Settings
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                    <div className="flex items-center gap-3">
-                      {darkMode ? (
-                        <Moon className="h-5 w-5 text-gray-500" />
-                      ) : (
-                        <Sun className="h-5 w-5 text-gray-500" />
-                      )}
-                      <div>
-                        <h3 className="font-medium">Dark Mode</h3>
-                        <p className="text-sm text-gray-500">Use dark theme across the app</p>
-                      </div>
-                    </div>
-                    <Switch checked={darkMode} onCheckedChange={setDarkMode} />
+          <TabsContent value="appearance" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Palette className="h-5 w-5" />
+                  Appearance Settings
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label htmlFor="dark-mode">Dark Mode</Label>
+                    <p className="text-sm text-gray-500">Use dark theme for the interface</p>
                   </div>
+                  <Switch id="dark-mode" checked={darkMode} onCheckedChange={setDarkMode} />
+                </div>
 
-                  <Separator />
+                <Separator />
 
-                  <div className="space-y-2">
-                    <Label htmlFor="language">Language</Label>
-                    <select
-                      id="language"
-                      value={language}
-                      onChange={(e) => setLanguage(e.target.value)}
-                      className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    >
-                      <option value="en">English</option>
-                      <option value="es">Español</option>
-                      <option value="fr">Français</option>
-                      <option value="de">Deutsch</option>
-                    </select>
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            {/* Account Tab */}
-            <TabsContent value="account" className="space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Settings className="h-5 w-5" />
-                    Account Settings
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  <div className="space-y-4">
-                    <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                      <Mail className="h-5 w-5 text-gray-500" />
-                      <div>
-                        <p className="font-medium">Email</p>
-                        <p className="text-sm text-gray-500">{user?.email}</p>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                      <User className="h-5 w-5 text-gray-500" />
-                      <div>
-                        <p className="font-medium">Username</p>
-                        <p className="text-sm text-gray-500">@{profile?.username}</p>
-                      </div>
-                    </div>
-                  </div>
-
-                  <Separator />
-
-                  <Alert>
-                    <AlertCircle className="h-4 w-4" />
-                    <AlertDescription>
-                      Account deletion is permanent and cannot be undone. All your posts, followers, and data will be
-                      permanently removed.
-                    </AlertDescription>
-                  </Alert>
-
-                  <div className="flex flex-col sm:flex-row gap-3">
-                    <Button variant="outline" className="flex-1 bg-transparent">
-                      Change Password
-                    </Button>
-                    <Button variant="destructive" className="flex-1">
-                      Delete Account
-                    </Button>
-                  </div>
-
-                  <Separator />
-
-                  <Button onClick={handleSignOut} variant="outline" className="w-full bg-transparent">
-                    Sign Out
-                  </Button>
-                </CardContent>
-              </Card>
-            </TabsContent>
-          </div>
+                <div className="space-y-2">
+                  <Label htmlFor="language">Language</Label>
+                  <select
+                    id="language"
+                    value={language}
+                    onChange={(e) => setLanguage(e.target.value)}
+                    className="w-full p-2 border border-gray-300 rounded-md"
+                  >
+                    <option value="en">English</option>
+                    <option value="es">Español</option>
+                    <option value="fr">Français</option>
+                    <option value="de">Deutsch</option>
+                  </select>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
         </Tabs>
+
+        {/* Account Actions */}
+        <Card className="mt-6">
+          <CardHeader>
+            <CardTitle className="text-red-600">Danger Zone</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <Label>Sign Out</Label>
+                <p className="text-sm text-gray-500">Sign out of your account</p>
+              </div>
+              <Button variant="outline" onClick={handleSignOut}>
+                Sign Out
+              </Button>
+            </div>
+            <Separator />
+            <div className="flex items-center justify-between">
+              <div>
+                <Label className="text-red-600">Delete Account</Label>
+                <p className="text-sm text-gray-500">Permanently delete your account and all data</p>
+              </div>
+              <Button variant="destructive">Delete Account</Button>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   )

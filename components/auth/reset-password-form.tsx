@@ -7,8 +7,8 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { supabase } from "@/lib/supabase/client"
 import { Loader2, Eye, EyeOff, CheckCircle } from "lucide-react"
+import { useSession } from "next-auth/react"
 
 export function ResetPasswordForm() {
   const [password, setPassword] = useState("")
@@ -22,16 +22,25 @@ export function ResetPasswordForm() {
   const [isSuccess, setIsSuccess] = useState(false)
   const router = useRouter()
   const searchParams = useSearchParams()
+  const { data: session } = useSession()
 
   useEffect(() => {
     const checkSession = async () => {
       try {
-        const {
-          data: { session },
-          error,
-        } = await supabase.auth.getSession()
+        const token = searchParams.get("token")
+        if (!token) {
+          setError("Invalid or expired reset link. Please request a new password reset.")
+          return
+        }
 
-        if (error || !session) {
+        // Verify the reset token
+        const response = await fetch("/api/auth/verify-reset-token", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ token }),
+        })
+
+        if (!response.ok) {
           setError("Invalid or expired reset link. Please request a new password reset.")
           return
         }
@@ -43,7 +52,7 @@ export function ResetPasswordForm() {
     }
 
     checkSession()
-  }, [])
+  }, [searchParams])
 
   const validatePassword = (pwd: string) => {
     const minLength = pwd.length >= 8
@@ -81,17 +90,22 @@ export function ResetPasswordForm() {
     }
 
     try {
-      const { error } = await supabase.auth.updateUser({
-        password: password,
+      const token = searchParams.get("token")
+      const response = await fetch("/api/auth/reset-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token, password }),
       })
 
-      if (error) {
-        setError(error.message)
+      const data = await response.json()
+
+      if (!response.ok) {
+        setError(data.error || "Failed to reset password")
       } else {
         setIsSuccess(true)
         setMessage("Password updated successfully!")
         setTimeout(() => {
-          router.push("/dashboard")
+          router.push("/auth/sign-in")
         }, 3000)
       }
     } catch (err) {
@@ -111,12 +125,12 @@ export function ResetPasswordForm() {
             </div>
             <CardTitle className="text-2xl text-green-600">Password Updated!</CardTitle>
             <CardDescription>
-              Your password has been successfully updated. You'll be redirected to your dashboard shortly.
+              Your password has been successfully updated. You'll be redirected to sign in shortly.
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Button onClick={() => router.push("/dashboard")} className="w-full">
-              Go to Dashboard
+            <Button onClick={() => router.push("/auth/sign-in")} className="w-full">
+              Go to Sign In
             </Button>
           </CardContent>
         </Card>

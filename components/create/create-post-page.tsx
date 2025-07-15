@@ -1,7 +1,5 @@
 "use client"
-import { supabase } from "@/lib/supabase/client"
 import { toast } from "sonner"
-import LinkPreview from "@/components/link-preview"
 import { createPostSchema } from "@/lib/validations/post"
 import { useState, useRef, useCallback, useEffect } from "react"
 import { Button } from "@/components/ui/button"
@@ -9,23 +7,16 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Input } from "@/components/ui/input"
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select"
-import { Progress } from "@/components/ui/progress"
 import { Separator } from "@/components/ui/separator"
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import { useSession } from "next-auth/react"
+import { useRouter } from "next/navigation"
 import {
-  ArrowLeft,
   ImageIcon,
-  Video,
   Smile,
-  Hash,
-  AtSign,
-  CircleCheck,
   X,
   Loader2,
   Sparkles,
-  Users,
-  Globe,
-  Lock,
   AlertCircle,
   Plus,
   Vote,
@@ -53,7 +44,7 @@ interface MediaFile {
   file: File
   preview: string
   type: "image" | "video"
-  uploading ? : boolean
+  uploading?: boolean
 }
 
 interface GiphyMedia {
@@ -63,95 +54,96 @@ interface GiphyMedia {
 }
 
 export default function CreatePostPage({ user }: CreatePostPageProps) {
-  const fileInputRef = useRef < HTMLInputElement > (null)
-  const contentEditableRef = useRef < HTMLDivElement > (null)
+  const { data: session } = useSession()
+  const router = useRouter()
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  const contentEditableRef = useRef<HTMLDivElement>(null)
   const [content, setContent] = useState("")
-  const [mediaFiles, setMediaFiles] = useState < MediaFile[] > ([])
-  const [giphyMedia, setGiphyMedia] = useState < GiphyMedia[] > ([])
-  const [gifs, setGifs] = useState < any[] > ([])
+  const [mediaFiles, setMediaFiles] = useState<MediaFile[]>([])
+  const [giphyMedia, setGiphyMedia] = useState<GiphyMedia[]>([])
+  const [gifs, setGifs] = useState<any[]>([])
   const [isPosting, setIsPosting] = useState(false)
   const [isUploadingMedia, setIsUploadingMedia] = useState(false)
   const [error, setError] = useState("")
   const [showGiphyPicker, setShowGiphyPicker] = useState(false)
-  const [selectedImage, setSelectedImage] = useState < string | null > (null)
-  const userx = user.user_metadata
+  const [selectedImage, setSelectedImage] = useState<string | null>(null)
   const [isEnhancingText, setIsEnhancingText] = useState(false)
-  const [enhancedTextSuggestion, setEnhancedTextSuggestion] = useState < string | null > (null)
+  const [enhancedTextSuggestion, setEnhancedTextSuggestion] = useState<string | null>(null)
   const [showEnhanceModal, setShowEnhanceModal] = useState(false)
   const [isPosted, setIsPosted] = useState(false)
   const [showPollCreator, setShowPollCreator] = useState(false)
   const [pollQuestion, setPollQuestion] = useState("")
-  const [pollOptions, setPollOptions] = useState < string[] > (["", ""])
+  const [pollOptions, setPollOptions] = useState<string[]>(["", ""])
   const [pollDuration, setPollDuration] = useState("1 day")
   const [showAddOptions, setShowAddOptions] = useState(false)
-  const cursorPositionRef = useRef < { node: Node | null;offset: number } | null > (null)
+  const cursorPositionRef = useRef<{ node: Node | null; offset: number } | null>(null)
   const [postUrl, setPostUrl] = useState()
-  
+
   const characterCount = content.length
   const isOverLimit = characterCount > MAX_CHARACTERS
   const progressPercentage = (characterCount / MAX_CHARACTERS) * 100
   const totalMediaCount = mediaFiles.length + giphyMedia.length
-  
+
   const getProgressColor = () => {
     if (progressPercentage < 70) return "bg-green-500"
     if (progressPercentage < 90) return "bg-yellow-500"
     return "bg-red-500"
   }
-  
+
   useEffect(() => {
     fetchTrending()
   }, [])
-  
+
   const fetchTrending = async () => {
     try {
-      const gifsResponse = await fetch(
-        `${GIPHY_BASE_URL}/gifs/trending?api_key=${GIPHY_API_KEY}&limit=20&rating=g`
-      )
+      const gifsResponse = await fetch(`${GIPHY_BASE_URL}/gifs/trending?api_key=${GIPHY_API_KEY}&limit=20&rating=g`)
       const gifsData = await gifsResponse.json()
-      setGifs(gifsData.data.map((gif: any) => ({
-        id: gif.id,
-        url: gif.images?.original?.url,
-      })) || [])
+      setGifs(
+        gifsData.data.map((gif: any) => ({
+          id: gif.id,
+          url: gif.images?.original?.url,
+        })) || [],
+      )
     } catch (error) {
       console.error("Error fetching trending media:", error)
       setError("Failed to load trending GIFs")
     }
   }
-  
+
   const validateMediaFile = (file: File): string | null => {
     const maxSize = 50 * 1024 * 1024 // 50MB
     const allowedImageTypes = ["image/jpeg", "image/jpg", "image/png", "image/gif", "image/webp"]
     const allowedVideoTypes = ["video/mp4", "video/webm", "video/mov", "video/avi"]
-    
+
     if (file.size > maxSize) {
       return "File size must be less than 50MB"
     }
-    
+
     if (!allowedImageTypes.includes(file.type) && !allowedVideoTypes.includes(file.type)) {
       return "Only images (JPEG, PNG, GIF, WebP) and videos (MP4, WebM, MOV, AVI) are allowed"
     }
-    
+
     return null
   }
-  
+
   const handleAddPollOption = () => {
     if (pollOptions.length < MAX_POLL_OPTIONS) {
       setPollOptions([...pollOptions, ""])
     }
   }
-  
+
   const handleRemovePollOption = (index: number) => {
     if (pollOptions.length > MIN_POLL_OPTIONS) {
       setPollOptions(pollOptions.filter((_, i) => i !== index))
     }
   }
-  
+
   const handlePollOptionChange = (index: number, value: string) => {
     const newOptions = [...pollOptions]
     newOptions[index] = value
     setPollOptions(newOptions)
   }
-  
+
   const handleCancelPoll = () => {
     setShowPollCreator(false)
     setPollQuestion("")
@@ -159,122 +151,103 @@ export default function CreatePostPage({ user }: CreatePostPageProps) {
     setPollDuration("1 day")
     setError("")
   }
-  
+
   const handleMediaUpload = useCallback(
     async (files: FileList) => {
-        if (files.length === 0) return
-        
-        const validationErrors: string[] = []
-        const validFiles: File[] = []
-        
-        Array.from(files).forEach((file, index) => {
-          const error = validateMediaFile(file)
-          if (error) {
-            validationErrors.push(`File ${index + 1}: ${error}`)
-          } else {
-            validFiles.push(file)
+      if (files.length === 0) return
+
+      const validationErrors: string[] = []
+      const validFiles: File[] = []
+
+      Array.from(files).forEach((file, index) => {
+        const error = validateMediaFile(file)
+        if (error) {
+          validationErrors.push(`File ${index + 1}: ${error}`)
+        } else {
+          validFiles.push(file)
+        }
+      })
+
+      if (validationErrors.length > 0) {
+        setError(validationErrors.join("; "))
+        return
+      }
+
+      if (totalMediaCount + validFiles.length > MAX_MEDIA_FILES) {
+        setError("You can only upload up to 4 media files")
+        return
+      }
+
+      setIsUploadingMedia(true)
+      setError("")
+
+      try {
+        const newMediaFiles: MediaFile[] = validFiles.map((file) => ({
+          id: Math.random().toString(36).substr(2, 9),
+          file,
+          preview: URL.createObjectURL(file),
+          type: file.type.startsWith("video/") ? "video" : "image",
+          uploading: true,
+        }))
+
+        setMediaFiles((prev) => [...prev, ...newMediaFiles])
+
+        // For now, we'll use local URLs. In production, you'd upload to a cloud storage service
+        const uploadPromises = validFiles.map(async (file, index) => {
+          try {
+            // Simulate upload delay
+            await new Promise((resolve) => setTimeout(resolve, 1000))
+
+            return {
+              originalIndex: mediaFiles.length + index,
+              publicUrl: URL.createObjectURL(file),
+            }
+          } catch (err) {
+            throw err
           }
         })
-        
-        if (validationErrors.length > 0) {
-          setError(validationErrors.join("; "))
-          return
-        }
-        
-        if (totalMediaCount + validFiles.length > MAX_MEDIA_FILES) {
-          setError("You can only upload up to 4 media files")
-          return
-        }
-        
-        setIsUploadingMedia(true)
-        setError("")
-        
-        try {
-          const newMediaFiles: MediaFile[] = validFiles.map((file) => ({
-            id: Math.random().toString(36).substr(2, 9),
-            file,
-            preview: URL.createObjectURL(file),
-            type: file.type.startsWith("video/") ? "video" : "image",
-            uploading: true,
-          }))
-          
-          setMediaFiles((prev) => [...prev, ...newMediaFiles])
-          
-          const uploadPromises = validFiles.map(async (file, index) => {
-            try {
-              const fileExt = file.name.split(".").pop()?.toLowerCase()
-              const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`
-              const filePath = `${user.id}/${fileName}`
-              
-              const { data, error: uploadError } = await supabase.storage
-                .from("post-media")
-                .upload(filePath, file, {
-                  cacheControl: "3600",
-                  upsert: false,
-                })
-              
-              if (uploadError) {
-                throw new Error(`Failed to upload ${file.name}: ${uploadError.message}`)
+
+        const uploadResults = await Promise.allSettled(uploadPromises)
+
+        setMediaFiles((prev) => {
+          const updated = [...prev]
+          uploadResults.forEach((result, index) => {
+            if (result.status === "fulfilled") {
+              const targetIndex = result.value.originalIndex
+              if (updated[targetIndex]) {
+                updated[targetIndex].uploading = false
               }
-              
-              const { data: urlData } = supabase.storage.from("post-media").getPublicUrl(filePath)
-              
-              if (!urlData?.publicUrl) {
-                throw new Error(`Failed to get public URL for ${file.name}`)
-              }
-              
-              return {
-                originalIndex: mediaFiles.length + index,
-                publicUrl: urlData.publicUrl,
-              }
-            } catch (err) {
-              throw err
             }
           })
-          
-          const uploadResults = await Promise.allSettled(uploadPromises)
-          
-          setMediaFiles((prev) => {
-            const updated = [...prev]
-            uploadResults.forEach((result, index) => {
-              if (result.status === "fulfilled") {
-                const targetIndex = result.value.originalIndex
-                if (updated[targetIndex]) {
-                  URL.revokeObjectURL(updated[targetIndex].preview)
-                  updated[targetIndex].preview = result.value.publicUrl
-                  updated[targetIndex].uploading = false
-                }
-              }
-            })
-            return updated
-          })
-          
-          const failedUploads = uploadResults.filter((result) => result.status === "rejected")
-          if (failedUploads.length > 0) {
-            const errorMessages = failedUploads.map((result: any, index) => `File ${index + 1}: ${result.reason}`)
-            setError(`Some uploads failed: ${errorMessages.join("; ")}`)
-          }
-        } catch (err: any) {
-          console.error("Media upload error:", err)
-          setError(err.message || "Failed to upload media. Please try again.")
-          
-          mediaFiles.forEach((media) => {
-            if (media.preview.startsWith("blob:")) {
-              URL.revokeObjectURL(media.preview)
-            }
-          })
-          
-          setMediaFiles([])
-        } finally {
-          setIsUploadingMedia(false)
-          if (fileInputRef.current) {
-            fileInputRef.current.value = ""
-          }
+          return updated
+        })
+
+        const failedUploads = uploadResults.filter((result) => result.status === "rejected")
+        if (failedUploads.length > 0) {
+          const errorMessages = failedUploads.map((result: any, index) => `File ${index + 1}: ${result.reason}`)
+          setError(`Some uploads failed: ${errorMessages.join("; ")}`)
         }
-      },
-      [mediaFiles.length, totalMediaCount, user.id]
+      } catch (err: any) {
+        console.error("Media upload error:", err)
+        setError(err.message || "Failed to upload media. Please try again.")
+
+        mediaFiles.forEach((media) => {
+          if (media.preview.startsWith("blob:")) {
+            URL.revokeObjectURL(media.preview)
+          }
+        })
+
+        setMediaFiles([])
+      } finally {
+        setIsUploadingMedia(false)
+        if (fileInputRef.current) {
+          fileInputRef.current.value = ""
+        }
+      }
+    },
+    [mediaFiles.length, totalMediaCount],
   )
-  
+
   const removeMediaFile = (id: string) => {
     setMediaFiles((prev) => {
       const file = prev.find((f) => f.id === id)
@@ -284,28 +257,28 @@ export default function CreatePostPage({ user }: CreatePostPageProps) {
       return prev.filter((f) => f.id !== id)
     })
   }
-  
+
   const handleGiphySelect = (gif: any, type: "gif" | "sticker") => {
     const giphyItem: GiphyMedia = {
       url: gif.url || "https://media.giphy.com/media/efg1234/giphy.gif",
       type,
       id: gif.id || Math.random().toString(36).substr(2, 9),
     }
-    
+
     if (totalMediaCount >= MAX_MEDIA_FILES) {
       setError("You can only add up to 4 media items")
       return
     }
-    
+
     setGiphyMedia((prev) => [...prev, giphyItem])
     setShowGiphyPicker(false)
     setError("")
   }
-  
+
   const removeGiphyMedia = (index: number) => {
     setGiphyMedia((prev) => prev.filter((_, i) => i !== index))
   }
-  
+
   const insertText = (text: string) => {
     if (contentEditableRef.current) {
       const selection = window.getSelection()
@@ -325,18 +298,18 @@ export default function CreatePostPage({ user }: CreatePostPageProps) {
       setContent(contentEditableRef.current.textContent || "")
     }
   }
-  
+
   const handlePost = async () => {
     if (!content.trim() && totalMediaCount === 0 && !showPollCreator) {
       setError("Please add some content, media, or a poll to your post.")
       return
     }
-    
+
     if (isOverLimit) {
       setError(`Please keep your post under ${MAX_CHARACTERS} characters.`)
       return
     }
-    
+
     if (showPollCreator) {
       if (!pollQuestion.trim()) {
         setError("Poll question cannot be empty.")
@@ -352,23 +325,22 @@ export default function CreatePostPage({ user }: CreatePostPageProps) {
         return
       }
     }
-    
+
     setIsPosting(true)
     setError("")
-    
+
     try {
       const validatedData = createPostSchema.parse({ content })
-      
+
       if (mediaFiles.some((media) => media.uploading)) {
         setError("Please wait for media uploads to complete")
         return
       }
-      
-      const hashtags = content.match(/#[a-zA-Z0-9_\u0980-\u09FF]+/g) || []
+
       const uploadedMediaUrls = mediaFiles.filter((media) => !media.uploading).map((media) => media.preview)
       const giphyUrls = giphyMedia.map((gif) => gif.url)
       const allMediaUrls = [...uploadedMediaUrls, ...giphyUrls]
-      
+
       let mediaType = null
       if (allMediaUrls.length > 0) {
         if (mediaFiles.some((media) => media.type === "video")) {
@@ -379,76 +351,31 @@ export default function CreatePostPage({ user }: CreatePostPageProps) {
           mediaType = "image"
         }
       }
-      
-      let pollData = null
-      if (showPollCreator) {
-        const now = new Date()
-        const createdAt = now.toISOString()
-        let endsAt = new Date(now)
-        if (pollDuration === "1 day") {
-          endsAt.setDate(now.getDate() + 1)
-        } else if (pollDuration === "3 days") {
-          endsAt.setDate(now.getDate() + 3)
-        } else if (pollDuration === "1 week") {
-          endsAt.setDate(now.getDate() + 7)
-        }
-        
-        pollData = {
-          question: pollQuestion.trim(),
-          status: "active",
-          created_at: createdAt,
-          ends_at: endsAt.toISOString(),
-          options: pollOptions
-            .filter((opt) => opt.trim())
-            .map((optionText, index) => ({
-              option_id: index + 1,
-              text: optionText,
-              votes: 0,
-            })),
-        }
-      }
-      
-      const { data: postData, error: postError } = await supabase
-        .from("posts")
-        .insert({
-          user_id: user.id,
+
+      const response = await fetch("/api/posts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
           content: validatedData.content,
-          media_urls: allMediaUrls.length > 0 ? allMediaUrls : null,
-          media_type: mediaType,
-          // in_post_poll: pollData ? [pollData] : null,
-        })
-        .select()
-        .single()
-      
-      if (postError) {
-        console.error("Post creation error:", postError)
-        setError(postError.message)
+          mediaUrls: allMediaUrls.length > 0 ? allMediaUrls : null,
+          mediaType: mediaType,
+        }),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        setError(errorData.error || "Failed to create post")
         return
       }
-      
-      for (const hashtag of hashtags) {
-        const tagName = hashtag.slice(1)
-        try {
-          const { data: hashtagData, error: hashtagError } = await supabase
-            .from("hashtags")
-            .upsert({ name: tagName }, { onConflict: "name" })
-            .select()
-            .single()
-          
-          if (!hashtagError && hashtagData) {
-            await supabase.from("post_hashtags").insert({ post_id: postData.id, hashtag_id: hashtagData.id })
-          }
-        } catch (hashtagErr) {
-          console.error(`Error processing hashtag ${tagName}:`, hashtagErr)
-        }
-      }
-      
+
+      const postData = await response.json()
+
       mediaFiles.forEach((media) => {
         if (media.preview.startsWith("blob:")) {
           URL.revokeObjectURL(media.preview)
         }
       })
-      
+
       setMediaFiles([])
       setGiphyMedia([])
       setContent("")
@@ -460,50 +387,50 @@ export default function CreatePostPage({ user }: CreatePostPageProps) {
         contentEditableRef.current.textContent = ""
         contentEditableRef.current.classList.add("placeholder-shown")
       }
+
+      toast("Post has been created", {
+        action: {
+          label: "View",
+          onClick: () => router.push("/dashboard"),
+        },
+      })
+
+      setIsPosted(true)
+      router.push("/dashboard")
     } catch (err: any) {
       console.error("Post submission error:", err)
       setError(err.message || "An error occurred while submitting the post.")
     } finally {
-      toast("Post has been created", {
-        
-        action: {
-          label: "View",
-          onClick: () => router.push('/dashboard'),
-        },
-      })
+      setIsPosting(false)
     }
-    setIsPosted(true)
-    setIsPosting(false)
   }
-  
-  
-  
+
   const handleEnhanceText = async () => {
     if (!content.trim()) {
       setError("Please write some text to enhance first.")
       return
     }
-    
+
     setIsEnhancingText(true)
     setError("")
     setEnhancedTextSuggestion(null)
-    
+
     try {
       const prompt = `Enhance the following text to be more engaging and descriptive for a social media post. Keep it concise and within 280 characters if possible. Here's the text: "${content}"`
-      let chatHistory = []
+      const chatHistory = []
       chatHistory.push({ role: "user", parts: [{ text: prompt }] })
       const payload = { contents: chatHistory }
       const apiKey = ""
       const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`
-      
+
       const response = await fetch(apiUrl, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       })
-      
+
       const result = await response.json()
-      
+
       if (
         result.candidates &&
         result.candidates.length > 0 &&
@@ -524,7 +451,7 @@ export default function CreatePostPage({ user }: CreatePostPageProps) {
       setIsEnhancingText(false)
     }
   }
-  
+
   const useEnhancedSuggestion = () => {
     if (enhancedTextSuggestion) {
       setContent(enhancedTextSuggestion)
@@ -541,24 +468,30 @@ export default function CreatePostPage({ user }: CreatePostPageProps) {
       setEnhancedTextSuggestion(null)
     }
   }
-  
+
   const remainingChars = MAX_CHARACTERS - characterCount
-  
+
   const highlightContent = (text: string) => {
     // Sanitize text to prevent XSS
     const div = document.createElement("div")
     div.textContent = text
     let escapedText = div.innerHTML
-    
-    escapedText = escapedText.replace(/#([a-zA-Z0-9_\u0980-\u09FF]+)/g, '<span style="color: #1DA1F2; font-weight: bold;">#$1</span>')
-    escapedText = escapedText.replace(/@([a-zA-Z0-9_]+)/g, '<span style="color: #1DA1F2; font-weight: bold;">@$1</span>')
+
+    escapedText = escapedText.replace(
+      /#([a-zA-Z0-9_\u0980-\u09FF]+)/g,
+      '<span style="color: #1DA1F2; font-weight: bold;">#$1</span>',
+    )
+    escapedText = escapedText.replace(
+      /@([a-zA-Z0-9_]+)/g,
+      '<span style="color: #1DA1F2; font-weight: bold;">@$1</span>',
+    )
     escapedText = escapedText.replace(
       /(https?:\/\/[^\s]+)/g,
-      '<a href="$1" target="_blank" rel="noopener noreferrer" style="color: #1DA1F2; text-decoration: underline;">$1</a>'
+      '<a href="$1" target="_blank" rel="noopener noreferrer" style="color: #1DA1F2; text-decoration: underline;">$1</a>',
     )
     return escapedText
   }
-  
+
   const featureOptions = [
     {
       icon: ImageIcon,
@@ -594,7 +527,7 @@ export default function CreatePostPage({ user }: CreatePostPageProps) {
     { icon: FileWarning, label: "Lost Notice", onClick: () => console.log("Lost Notice clicked") },
     { icon: Calendar, label: "Event", onClick: () => console.log("Event clicked") },
   ]
-  
+
   const getCaretCharacterOffset = useCallback((element: HTMLElement) => {
     let caretOffset = 0
     const doc = element.ownerDocument
@@ -609,15 +542,15 @@ export default function CreatePostPage({ user }: CreatePostPageProps) {
     }
     return caretOffset
   }, [])
-  
+
   const setCaretPosition = useCallback((element: HTMLElement, offset: number) => {
     const range = document.createRange()
     const selection = window.getSelection()
-    
+
     let currentNode: Node | null = element
     let currentOffset = 0
     let found = false
-    
+
     const walk = document.createTreeWalker(element, NodeFilter.SHOW_TEXT, null)
     while ((currentNode = walk.nextNode())) {
       const nodeTextLength = currentNode.textContent?.length || 0
@@ -629,16 +562,16 @@ export default function CreatePostPage({ user }: CreatePostPageProps) {
       }
       currentOffset += nodeTextLength
     }
-    
+
     if (!found) {
       range.selectNodeContents(element)
       range.collapse(false)
     }
-    
+
     selection?.removeAllRanges()
     selection?.addRange(range)
   }, [])
-  
+
   useEffect(() => {
     if (contentEditableRef.current && cursorPositionRef.current) {
       const { offset } = cursorPositionRef.current
@@ -646,80 +579,80 @@ export default function CreatePostPage({ user }: CreatePostPageProps) {
       cursorPositionRef.current = null
     }
   }, [content, setCaretPosition])
-  
+
   useEffect(() => {
     if (contentEditableRef.current && !content.trim()) {
       contentEditableRef.current.textContent = contentEditableRef.current.dataset.placeholder || ""
       contentEditableRef.current.classList.add("placeholder-shown")
     }
   }, [])
-  
+
   return (
     <div className="min-h-screen bg-white">
       <div className="sticky top-0 z-50 bg-white border-b border-gray-200">
         <div className="max-w-2xl mx-auto px-4 py-3 flex justify-between items-center">
-          <Button variant="ghost" size="icon" onClick={() => console.log("Close button clicked")}>
+          <Button variant="ghost" size="icon" onClick={() => router.back()}>
             <X className="h-5 w-5" />
           </Button>
           <h1 className="text-lg font-semibold">Create Post</h1>
           <Button
             onClick={handlePost}
-            disabled={isPosting || (!content.trim() && totalMediaCount === 0 && !showPollCreator) || isOverLimit || isUploadingMedia}
+            disabled={
+              isPosting ||
+              (!content.trim() && totalMediaCount === 0 && !showPollCreator) ||
+              isOverLimit ||
+              isUploadingMedia
+            }
             className="bg-blue-500 text-white px-4 py-2 rounded-full hover:bg-blue-600 font-semibold"
           >
             {isPosting ? <Loader2 className="h-5 w-5 animate-spin" /> : "Post"}
           </Button>
         </div>
       </div>
-    
+
       <div className="max-w-2xl mx-auto p-4">
         <div className="flex items-center gap-3 mb-4">
           <Avatar className="h-12 w-12">
-            <AvatarImage src={"https://placehold.co/48x48/aabbcc/ffffff?text=U"} />
-            <AvatarFallback>{"+"}</AvatarFallback>
+            <AvatarImage src={session?.user?.image || "https://placehold.co/48x48/aabbcc/ffffff?text=U"} />
+            <AvatarFallback>{"U"}</AvatarFallback>
           </Avatar>
           <div>
-            <span className="font-semibold text-lg">{userx.display_name}</span>
-            <span className="text-sm text-gray-700">@{userx.username}</span>
+            <span className="font-semibold text-lg">{session?.user?.name || "User"}</span>
+            <span className="text-sm text-gray-700">@{session?.user?.username || "username"}</span>
           </div>
         </div>
 
         <div className="mb-4">
           {!showPollCreator ? (
-          <>
-            <div
-              ref={contentEditableRef}
-              className="w-full border-0 resize-none text-lg focus:ring-0 outline-none"
-              style={{ minHeight: "120px" }}
-              contentEditable
-              suppressContentEditableWarning
-              onInput={(e) => {
-                if (contentEditableRef.current) {
-                
-                  const offset = getCaretCharacterOffset(contentEditableRef.current)
-                  cursorPositionRef.current = { node: null, offset: offset }
-                }
-                setContent(e.currentTarget.textContent || "")
-              }}
-              data-placeholder="What do you want to talk about?"
-              onFocus={(e) => {
-                if (e.target.textContent === e.target.dataset.placeholder) {
-                  e.target.textContent = ""
-                  e.target.classList.remove("placeholder-shown")
-                }
-              }}
-              onBlur={(e) => {
-                if (!e.target.textContent?.trim()) {
-                  //callSetParams()
-                  e.target.textContent = e.target.dataset.placeholder || ""
-                  e.target.classList.add("placeholder-shown")
-                }
-              }}
-              dangerouslySetInnerHTML={{ __html: content ? highlightContent(content) : "" }}
-            />
-              
-            
-            
+            <>
+              <div
+                ref={contentEditableRef}
+                className="w-full border-0 resize-none text-lg focus:ring-0 outline-none"
+                style={{ minHeight: "120px" }}
+                contentEditable
+                suppressContentEditableWarning
+                onInput={(e) => {
+                  if (contentEditableRef.current) {
+                    const offset = getCaretCharacterOffset(contentEditableRef.current)
+                    cursorPositionRef.current = { node: null, offset: offset }
+                  }
+                  setContent(e.currentTarget.textContent || "")
+                }}
+                data-placeholder="What do you want to talk about?"
+                onFocus={(e) => {
+                  if (e.target.textContent === e.target.dataset.placeholder) {
+                    e.target.textContent = ""
+                    e.target.classList.remove("placeholder-shown")
+                  }
+                }}
+                onBlur={(e) => {
+                  if (!e.target.textContent?.trim()) {
+                    e.target.textContent = e.target.dataset.placeholder || ""
+                    e.target.classList.add("placeholder-shown")
+                  }
+                }}
+                dangerouslySetInnerHTML={{ __html: content ? highlightContent(content) : "" }}
+              />
             </>
           ) : (
             <Card className="mb-4 shadow-none border">
@@ -767,7 +700,7 @@ export default function CreatePostPage({ user }: CreatePostPageProps) {
                   {pollOptions.length < MAX_POLL_OPTIONS && (
                     <Button
                       variant="outline"
-                      className="w-full mt-2 border-dashed border-gray-300 hover:bg-gray-50"
+                      className="w-full mt-2 border-dashed border-gray-300 hover:bg-gray-50 bg-transparent"
                       onClick={handleAddPollOption}
                     >
                       <Plus className="h-4 w-4 mr-2" /> Add Option
@@ -828,7 +761,11 @@ export default function CreatePostPage({ user }: CreatePostPageProps) {
             {mediaFiles.map((media) => (
               <div key={media.id} className="relative aspect-video rounded-lg overflow-hidden border border-gray-200">
                 {media.type === "image" ? (
-                  <img src={media.preview} alt="Media preview" className="w-full h-full object-cover" />
+                  <img
+                    src={media.preview || "/placeholder.svg"}
+                    alt="Media preview"
+                    className="w-full h-full object-cover"
+                  />
                 ) : (
                   <video src={media.preview} controls className="w-full h-full object-cover" />
                 )}
@@ -850,7 +787,7 @@ export default function CreatePostPage({ user }: CreatePostPageProps) {
             ))}
             {giphyMedia.map((gif, index) => (
               <div key={gif.id} className="relative aspect-video rounded-lg overflow-hidden border border-gray-200">
-                <img src={gif.url} alt="Giphy media" className="w-full h-full object-cover" />
+                <img src={gif.url || "/placeholder.svg"} alt="Giphy media" className="w-full h-full object-cover" />
                 <Button
                   variant="ghost"
                   size="icon"
@@ -933,13 +870,11 @@ export default function CreatePostPage({ user }: CreatePostPageProps) {
                     className="relative aspect-video rounded-lg overflow-hidden cursor-pointer"
                     onClick={() => handleGiphySelect(gif, "gif")}
                   >
-                    <img src={gif.url} alt="Giphy" className="w-full h-full object-cover" />
+                    <img src={gif.url || "/placeholder.svg"} alt="Giphy" className="w-full h-full object-cover" />
                   </div>
                 ))}
               </div>
-              <p className="text-sm text-gray-500 mt-4">
-                Powered by Giphy API
-              </p>
+              <p className="text-sm text-gray-500 mt-4">Powered by Giphy API</p>
             </CardContent>
           </Card>
         </div>
