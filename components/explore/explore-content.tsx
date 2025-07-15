@@ -18,6 +18,7 @@ import { Separator } from "@/components/ui/separator"
 import Link from "next/link"
 import { debounce } from "lodash"
 import { signOut } from "next-auth/react"
+import { Spinner } from "@/components/loader/spinner" // Updated import path
 
 interface UserProfile {
   _id: string
@@ -196,6 +197,8 @@ export function ExploreContent() {
     try {
       const response = await fetch(`/api/users/${userId}/follow`, {
         method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: isFollowing ? "unfollow" : "follow" }),
       })
 
       if (response.ok) {
@@ -219,6 +222,8 @@ export function ExploreContent() {
     try {
       const response = await fetch(`/api/posts/${postId}/like`, {
         method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ liked: !isLiked }),
       })
 
       if (response.ok) {
@@ -242,6 +247,8 @@ export function ExploreContent() {
     try {
       const response = await fetch(`/api/posts/${postId}/repost`, {
         method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ reposted: !isReposted }),
       })
 
       if (response.ok) {
@@ -270,7 +277,7 @@ export function ExploreContent() {
   if (!session?.user || !currentUser) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        <Spinner />
       </div>
     )
   }
@@ -624,7 +631,7 @@ export function ExploreContent() {
                         )
                       ) : (
                         <div className="flex justify-center py-12">
-                          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                          <Spinner />
                         </div>
                       )}
                     </TabsContent>
@@ -648,7 +655,7 @@ export function ExploreContent() {
                         )
                       ) : (
                         <div className="flex justify-center py-12">
-                          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                          <Spinner />
                         </div>
                       )}
                     </TabsContent>

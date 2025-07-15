@@ -15,6 +15,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { useToast } from "@/hooks/use-toast"
 import { useMobile } from "@/hooks/use-mobile"
 import { useSession, signOut } from "next-auth/react"
+import { Spinner } from "@/components/loader/spinner" // Updated import path
 import { User, Bell, Shield, Palette, Camera, Save, ArrowLeft, AlertCircle } from "lucide-react"
 
 interface SettingsContentProps {
@@ -134,7 +135,7 @@ export function SettingsContent({ userId }: SettingsContentProps) {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        <Spinner />
       </div>
     )
   }
@@ -391,7 +392,7 @@ export function SettingsContent({ userId }: SettingsContentProps) {
                     id="language"
                     value={language}
                     onChange={(e) => setLanguage(e.target.value)}
-                    className="w-full p-2 border border-gray-300 rounded-md"
+                    className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   >
                     <option value="en">English</option>
                     <option value="es">Español</option>

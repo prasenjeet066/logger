@@ -1,17 +1,13 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import {ReplyCard} from "@/components/reply/reply-card"
+import { ReplyCard } from "@/components/reply/reply-card"
 import { useRouter } from "next/navigation"
-import Spinner from "@/components/loader/spinner"
-import { supabase } from "@/lib/supabase/client"
-import { PostSection} from "@/components/post/post-section"
-import { PostCard} from "@/components/dashboard/post-card"
+import { Spinner } from "@/components/loader/spinner" // Updated import path
+import { PostSection } from "@/components/post/post-section"
 import { Button } from "@/components/ui/button"
 import { ArrowLeft, Loader2, Paperclip } from "lucide-react"
 import Image from "next/image"
-
-import LinkPreview from "@/components/link-preview"
 
 interface PostDetailContentProps {
   postId: string
@@ -31,19 +27,19 @@ export function PostDetailContent({ postId, userId }: PostDetailContentProps) {
   const [isLoading, setIsLoading] = useState(true)
   const router = useRouter()
   const [commentState, setCommentState] = useState<CommentState>({
-    text: '',
+    text: "",
     replyingTo: null,
-    replyParentId: postId // by default, reply to the main post
+    replyParentId: postId, // by default, reply to the main post
   })
   const [isPosting, setIsPosting] = useState(false)
-  
+
   useEffect(() => {
     fetchCurrentUser()
     fetchPostAndReplies()
-    
+
     // Reset comment state when postId changes
     setCommentState({
-      text: '',
+      text: "",
       replyingTo: null,
       replyParentId: postId,
     })
@@ -62,7 +58,9 @@ export function PostDetailContent({ postId, userId }: PostDetailContentProps) {
   }**/
   const fetchCurrentUser = async () => {
     try {
-      const { data } = await supabase.from("profiles").select("*").eq("id", userId).single()
+      const response = await fetch(`/api/users/current`)
+      if (!response.ok) throw new Error("Failed to fetch current user")
+      const data = await response.json()
       setCurrentUser(data)
     } catch (error) {
       console.error("Error fetching current user:", error)
@@ -74,20 +72,25 @@ export function PostDetailContent({ postId, userId }: PostDetailContentProps) {
 
     setIsPosting(true)
     try {
-      const commentData = {
-        content: commentState.text,
-        user_id: userId,
-        reply_to: commentState.replyParentId,
+      const response = await fetch("/api/posts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          content: commentState.text,
+          replyTo: commentState.replyParentId,
+        }),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || "Failed to post comment")
       }
 
-      const { error } = await supabase.from('posts').insert(commentData)
-      if (error) throw error
-
       // Reset comment box and refresh replies
-      setCommentState({ text: '', replyingTo: null, replyParentId: postId })
+      setCommentState({ text: "", replyingTo: null, replyParentId: postId })
       await fetchPostAndReplies()
     } catch (error) {
-      console.error('Error posting comment:', error)
+      console.error("Error posting comment:", error)
     } finally {
       setIsPosting(false)
     }
@@ -98,107 +101,39 @@ export function PostDetailContent({ postId, userId }: PostDetailContentProps) {
       setIsLoading(true)
 
       // Fetch main post
-      const { data: postData, error: postError } = await supabase
-        .from("posts")
-        .select(`
-          *,
-          profiles!posts_user_id_fkey(username, display_name, avatar_url, is_verified)
-        `)
-        .eq("id", postId)
-        .single()
-
-      if (postError) {
+      const postResponse = await fetch(`/api/posts/${postId}`)
+      if (!postResponse.ok) {
         setPost(null)
         setIsLoading(false)
         return
       }
-      //setNewViewUpdate(data)
-      // Fetch likes, reposts, replies count
-      const [{ data: likesData }, { data: repostsData }, { data: repliesCount }] = await Promise.all([
-        supabase.from("likes").select("user_id").eq("post_id", postId),
-        supabase.from("reposts").select("user_id").eq("post_id", postId),
-        supabase.from("posts").select("id").eq("reply_to", postId)
-      ])
+      const postData = await postResponse.json()
+      setPost(postData)
 
-      const transformedPost = {
-        ...postData,
-        username: postData.profiles?.username || "unknown",
-        display_name: postData.profiles?.display_name || "Unknown User",
-        avatar_url: postData.profiles?.avatar_url,
-        is_verified: postData.profiles?.is_verified || false,
-        likes_count: likesData?.length || 0,
-        is_liked: likesData?.some((like: any) => like.user_id === userId) || false,
-        reposts_count: repostsData?.length || 0,
-        is_reposted: repostsData?.some((repost: any) => repost.user_id === userId) || false,
-        replies_count: repliesCount?.length || 0,
-        is_repost: false,
-      }
-      //setNewViewUpdate(postData)
-      setPost(transformedPost)
-      try{
-      if(userId !== postData.user_id){
-      const {error} = await supabase.from('posts').update({
-        views_count : postData.views_count + 1
-      }).eq("id",postId)
-      }
-    }catch(error){
-      // error
-      }
-      // Fetch replies (top-level only)
-      const { data: repliesData, error: repliesError } = await supabase
-        .from("posts")
-        .select(`
-          *,
-          profiles!posts_user_id_fkey(username, display_name, avatar_url, is_verified)
-        `)
-        .eq("reply_to", postId)
-        .order("created_at", { ascending: true })
-
-      if (repliesError) {
+      // Fetch replies
+      const repliesResponse = await fetch(`/api/posts/${postId}/replies`)
+      if (!repliesResponse.ok) {
         setReplies([])
         return
       }
-
-      // For each reply, fetch like/repost counts
-      const transformedReplies = await Promise.all(
-        (repliesData || []).map(async (reply: any) => {
-          const [{ data: replyLikes }, { data: replyReposts }] = await Promise.all([
-            supabase.from("likes").select("user_id").eq("post_id", reply.id),
-            supabase.from("reposts").select("user_id").eq("post_id", reply.id),
-          ])
-          return {
-            ...reply,
-            username: reply.profiles?.username || "unknown",
-            display_name: reply.profiles?.display_name || "Unknown User",
-            avatar_url: reply.profiles?.avatar_url,
-            is_verified: reply.profiles?.is_verified || false,
-            likes_count: replyLikes?.length || 0,
-            is_liked: replyLikes?.some((like: any) => like.user_id === userId) || false,
-            reposts_count: replyReposts?.length || 0,
-            is_reposted: replyReposts?.some((repost: any) => repost.user_id === userId) || false,
-            replies_count: 0,
-            is_repost: false,
-          }
-        })
-      )
-
-      setReplies(transformedReplies)
+      const repliesData = await repliesResponse.json()
+      setReplies(repliesData)
     } catch (error) {
       console.error("Error fetching post and replies:", error)
       setPost(null)
     } finally {
-      
       setIsLoading(false)
     }
   }
 
   const handleLike = async (id: string, isLiked: boolean) => {
     try {
-      if (isLiked) {
-        await supabase.from("likes").delete().eq("post_id", id).eq("user_id", userId)
-      } else {
-        await supabase.from("likes").insert({ post_id: id, user_id: userId })
-      }
+      const response = await fetch(`/api/posts/${id}/like`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ liked: !isLiked }),
+      })
+      if (!response.ok) throw new Error("Failed to toggle like")
       fetchPostAndReplies()
     } catch (error) {
       console.error("Error toggling like:", error)
@@ -207,11 +142,12 @@ export function PostDetailContent({ postId, userId }: PostDetailContentProps) {
 
   const handleRepost = async (id: string, isReposted: boolean) => {
     try {
-      if (isReposted) {
-        await supabase.from("reposts").delete().eq("post_id", id).eq("user_id", userId)
-      } else {
-        await supabase.from("reposts").insert({ post_id: id, user_id: userId })
-      }
+      const response = await fetch(`/api/posts/${id}/repost`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ reposted: !isReposted }),
+      })
+      if (!response.ok) throw new Error("Failed to toggle repost")
       fetchPostAndReplies()
     } catch (error) {
       console.error("Error toggling repost:", error)
@@ -223,17 +159,17 @@ export function PostDetailContent({ postId, userId }: PostDetailContentProps) {
     if (reply) {
       // Set reply state to reply to this reply
       setCommentState({
-        text: '',
+        text: "",
         replyingTo: reply.username,
-        replyParentId: reply.id
+        replyParentId: reply.id,
       })
       router.push(`/post/${reply.id}`)
     } else {
       // Replying to main post
       setCommentState({
-        text: '',
+        text: "",
         replyingTo: post.username,
-        replyParentId: postId
+        replyParentId: postId,
       })
     }
   }
@@ -242,7 +178,7 @@ export function PostDetailContent({ postId, userId }: PostDetailContentProps) {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
-        <Spinner/>
+        <Spinner />
       </div>
     )
   }
@@ -263,10 +199,10 @@ export function PostDetailContent({ postId, userId }: PostDetailContentProps) {
   const renderReplyInput = () => (
     <div className="flex items-center gap-2 px-4 py-3 box-border w-full">
       {/* Avatar */}
-      {currentUser?.avatar_url ? (
+      {currentUser?.avatarUrl ? (
         <Image
-          src={currentUser.avatar_url}
-          alt={currentUser.display_name || "User"}
+          src={currentUser.avatarUrl || "/placeholder.svg"}
+          alt={currentUser.displayName || "User"}
           width={35}
           height={35}
           className="rounded-full object-cover"
@@ -281,14 +217,8 @@ export function PostDetailContent({ postId, userId }: PostDetailContentProps) {
           <input
             type="text"
             value={commentState.text}
-            onChange={e =>
-              setCommentState(prev => ({ ...prev, text: e.target.value }))
-            }
-            placeholder={
-              commentState.replyingTo
-                ? `Replying to @${commentState.replyingTo}...`
-                : "Write a reply..."
-            }
+            onChange={(e) => setCommentState((prev) => ({ ...prev, text: e.target.value }))}
+            placeholder={commentState.replyingTo ? `Replying to @${commentState.replyingTo}...` : "Write a reply..."}
             className="bg-transparent w-full outline-none px-2 py-1"
             disabled={isPosting}
             autoFocus
@@ -309,11 +239,7 @@ export function PostDetailContent({ postId, userId }: PostDetailContentProps) {
         disabled={!commentState.text.trim() || isPosting}
         onClick={handlePostComment}
       >
-        {isPosting ? (
-          <Loader2 className="h-4 w-4 animate-spin" />
-        ) : (
-          'Post'
-        )}
+        {isPosting ? <Loader2 className="h-4 w-4 animate-spin" /> : "Post"}
       </Button>
     </div>
   )
@@ -327,7 +253,7 @@ export function PostDetailContent({ postId, userId }: PostDetailContentProps) {
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <div className="flex flex-col">
-            <h1 className="text-xl font-bold">{post.display_name}</h1>
+            <h1 className="text-xl font-bold">{post.displayName}</h1>
             <small>{replies.length} replies</small>
           </div>
         </div>
@@ -346,13 +272,14 @@ export function PostDetailContent({ postId, userId }: PostDetailContentProps) {
           <h3 className="my-2 px-4">Comments</h3>
           {/* Comment Box: Only show if not replying to a specific reply */}
           {!commentState.replyingTo && renderReplyInput()}
-          {replies.map(reply => (
+          {replies.map((reply) => (
             <div key={reply.id}>
               <ReplyCard
                 post={reply}
                 currentUserId={userId}
                 currentUser={currentUser}
-                
+                onLike={handleLike}
+                onRepost={handleRepost}
               />
               {/* Show reply input under the reply if replying to it */}
               {commentState.replyParentId === reply.id && renderReplyInput()}
@@ -367,4 +294,4 @@ export function PostDetailContent({ postId, userId }: PostDetailContentProps) {
       </div>
     </div>
   )
-  }
+}

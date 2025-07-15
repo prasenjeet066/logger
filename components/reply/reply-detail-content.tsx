@@ -2,11 +2,11 @@
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { supabase } from "@/lib/supabase/client"
+import { Spinner } from "@/components/loader/spinner" // Updated import path
 import { PostCard } from "@/components/dashboard/post-card"
 import { CreatePost } from "@/components/dashboard/create-post"
 import { Button } from "@/components/ui/button"
-import { ArrowLeft, Loader2 } from "lucide-react"
+import { ArrowLeft } from "lucide-react"
 
 interface ReplyDetailContentProps {
   replyId: string
@@ -28,7 +28,9 @@ export function ReplyDetailContent({ replyId, userId }: ReplyDetailContentProps)
 
   const fetchCurrentUser = async () => {
     try {
-      const { data } = await supabase.from("profiles").select("*").eq("id", userId).single()
+      const response = await fetch(`/api/users/current`)
+      if (!response.ok) throw new Error("Failed to fetch current user")
+      const data = await response.json()
       setCurrentUser(data)
     } catch (error) {
       console.error("Error fetching current user:", error)
@@ -37,96 +39,27 @@ export function ReplyDetailContent({ replyId, userId }: ReplyDetailContentProps)
 
   const fetchReplyAndContext = async () => {
     try {
+      setIsLoading(true)
+
       // Fetch the reply
-      const { data: replyData, error: replyError } = await supabase
-        .from("posts")
-        .select(`
-          *,
-          profiles!inner(username, display_name, avatar_url, is_verified),
-          likes(user_id),
-          reposts(user_id),
-          replies:posts!reply_to(id)
-        `)
-        .eq("id", replyId)
-        .single()
-
-      if (replyError) throw replyError
-
-      const transformedReply = {
-        ...replyData,
-        username: replyData.profiles.username,
-        display_name: replyData.profiles.display_name,
-        avatar_url: replyData.profiles.avatar_url,
-        is_verified: replyData.profiles.is_verified || false,
-        likes_count: replyData.likes?.length || 0,
-        is_liked: replyData.likes?.some((like: any) => like.user_id === userId) || false,
-        reposts_count: replyData.reposts?.length || 0,
-        is_reposted: replyData.reposts?.some((repost: any) => repost.user_id === userId) || false,
-        replies_count: replyData.replies?.length || 0,
-        is_repost: false,
-      }
-
-      setReply(transformedReply)
+      const replyResponse = await fetch(`/api/posts/${replyId}`)
+      if (!replyResponse.ok) throw new Error("Failed to fetch reply")
+      const replyData = await replyResponse.json()
+      setReply(replyData)
 
       // Fetch parent post if this is a reply
-      if (replyData.reply_to) {
-        const { data: parentData, error: parentError } = await supabase
-          .from("posts")
-          .select(`
-            *,
-            profiles!inner(username, display_name, avatar_url, is_verified),
-            likes(user_id),
-            reposts(user_id)
-          `)
-          .eq("id", replyData.reply_to)
-          .single()
-
-        if (!parentError && parentData) {
-          const transformedParent = {
-            ...parentData,
-            username: parentData.profiles.username,
-            display_name: parentData.profiles.display_name,
-            avatar_url: parentData.profiles.avatar_url,
-            is_verified: parentData.profiles.is_verified || false,
-            likes_count: parentData.likes?.length || 0,
-            is_liked: parentData.likes?.some((like: any) => like.user_id === userId) || false,
-            reposts_count: parentData.reposts?.length || 0,
-            is_reposted: parentData.reposts?.some((repost: any) => repost.user_id === userId) || false,
-            is_repost: false,
-          }
-          setParentPost(transformedParent)
-        }
+      if (replyData.replyTo) {
+        const parentResponse = await fetch(`/api/posts/${replyData.replyTo}`)
+        if (!parentResponse.ok) throw new Error("Failed to fetch parent post")
+        const parentData = await parentResponse.json()
+        setParentPost(parentData)
       }
 
       // Fetch sub-replies
-      const { data: subRepliesData, error: subRepliesError } = await supabase
-        .from("posts")
-        .select(`
-          *,
-          profiles!inner(username, display_name, avatar_url, is_verified),
-          likes(user_id),
-          reposts(user_id),
-          replies:posts!reply_to(id)
-        `)
-        .eq("reply_to", replyId)
-        .order("created_at", { ascending: true })
-
-      if (!subRepliesError && subRepliesData) {
-        const transformedSubReplies = subRepliesData.map((subReply: any) => ({
-          ...subReply,
-          username: subReply.profiles.username,
-          display_name: subReply.profiles.display_name,
-          avatar_url: subReply.profiles.avatar_url,
-          is_verified: subReply.profiles.is_verified || false,
-          likes_count: subReply.likes?.length || 0,
-          is_liked: subReply.likes?.some((like: any) => like.user_id === userId) || false,
-          reposts_count: subReply.reposts?.length || 0,
-          is_reposted: subReply.reposts?.some((repost: any) => repost.user_id === userId) || false,
-          replies_count: subReply.replies?.length || 0,
-          is_repost: false,
-        }))
-        setSubReplies(transformedSubReplies)
-      }
+      const subRepliesResponse = await fetch(`/api/posts/${replyId}/replies`)
+      if (!subRepliesResponse.ok) throw new Error("Failed to fetch sub-replies")
+      const subRepliesData = await subRepliesResponse.json()
+      setSubReplies(subRepliesData)
     } catch (error) {
       console.error("Error fetching reply and context:", error)
     } finally {
@@ -136,11 +69,12 @@ export function ReplyDetailContent({ replyId, userId }: ReplyDetailContentProps)
 
   const handleLike = async (postId: string, isLiked: boolean) => {
     try {
-      if (isLiked) {
-        await supabase.from("likes").delete().eq("post_id", postId).eq("user_id", userId)
-      } else {
-        await supabase.from("likes").insert({ post_id: postId, user_id: userId })
-      }
+      const response = await fetch(`/api/posts/${postId}/like`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ liked: !isLiked }),
+      })
+      if (!response.ok) throw new Error("Failed to toggle like")
       fetchReplyAndContext()
     } catch (error) {
       console.error("Error toggling like:", error)
@@ -149,11 +83,12 @@ export function ReplyDetailContent({ replyId, userId }: ReplyDetailContentProps)
 
   const handleRepost = async (postId: string, isReposted: boolean) => {
     try {
-      if (isReposted) {
-        await supabase.from("reposts").delete().eq("post_id", postId).eq("user_id", userId)
-      } else {
-        await supabase.from("reposts").insert({ post_id: postId, user_id: userId })
-      }
+      const response = await fetch(`/api/posts/${postId}/repost`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ reposted: !isReposted }),
+      })
+      if (!response.ok) throw new Error("Failed to toggle repost")
       fetchReplyAndContext()
     } catch (error) {
       console.error("Error toggling repost:", error)
@@ -167,7 +102,7 @@ export function ReplyDetailContent({ replyId, userId }: ReplyDetailContentProps)
   if (isLoading) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin" />
+        <Spinner />
       </div>
     )
   }
@@ -232,7 +167,7 @@ export function ReplyDetailContent({ replyId, userId }: ReplyDetailContentProps)
         <div className="divide-y">
           {subReplies.map((subReply) => (
             <PostCard
-              key={subReply.id}
+              key={subReply._id} // Use _id for MongoDB documents
               post={subReply}
               currentUserId={userId}
               currentUser={currentUser}

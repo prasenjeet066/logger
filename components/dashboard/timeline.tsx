@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { PostCard } from "./post-card"
-import { Spinner } from "@/components/spinner"
+import { Spinner } from "@/components/loader/spinner" // Updated import path
 
 interface Post {
   _id: string

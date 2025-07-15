@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { signOut } from "next-auth/react" // Import signOut from next-auth/react
-import Spinner from "@/components/loader/spinner"
+import { Spinner } from "@/components/loader/spinner" // Updated import path
 import { Sidebar } from "./sidebar"
 import { Timeline } from "./timeline"
 import { TrendingHashtags } from "./trending-hashtags"
