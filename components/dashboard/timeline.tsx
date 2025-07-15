@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { PostCard } from "./post-card"
-import { Spinner } from "@/components/loader/spinner" // Updated import path
+import { Spinner } from "@/components/loader/spinner"
 
 interface Post {
   _id: string
@@ -15,6 +15,12 @@ interface Post {
   viewsCount: number
   mediaUrls?: string[]
   mediaType?: "image" | "video" | "gif"
+  isRepost: boolean
+  originalPostId?: string
+  parentPostId?: string
+  hashtags: string[]
+  mentions: string[]
+  isPinned: boolean
   author: {
     id: string
     username: string
@@ -22,6 +28,9 @@ interface Post {
     avatarUrl?: string
     isVerified: boolean
   }
+  isLiked: boolean
+  isReposted: boolean
+  repostedBy?: string
 }
 
 export function Timeline() {
@@ -51,13 +60,50 @@ export function Timeline() {
     }
   }
 
-  const handlePostUpdate = (updatedPost: Post) => {
-    setPosts((prevPosts) => prevPosts.map((post) => (post._id === updatedPost._id ? updatedPost : post)))
+  const handleLike = async (postId: string, isLiked: boolean) => {
+    try {
+      const response = await fetch(`/api/posts/${postId}/like`, {
+        method: "POST",
+      })
+      if (!response.ok) {
+        throw new Error("Failed to toggle like")
+      }
+      const result = await response.json()
+      setPosts((prevPosts) =>
+        prevPosts.map((post) =>
+          post._id === postId
+            ? { ...post, isLiked: result.liked, likesCount: post.likesCount + (result.liked ? 1 : -1) }
+            : post,
+        ),
+      )
+    } catch (error) {
+      console.error("Error toggling like:", error)
+    }
   }
 
-  const handleNewPost = (newPost: Post) => {
-    setPosts((prevPosts) => [newPost, ...prevPosts])
+  const handleRepost = async (postId: string, isReposted: boolean) => {
+    try {
+      const response = await fetch(`/api/posts/${postId}/repost`, {
+        method: "POST",
+      })
+      if (!response.ok) {
+        throw new Error("Failed to toggle repost")
+      }
+      const result = await response.json()
+      setPosts((prevPosts) =>
+        prevPosts.map((post) =>
+          post._id === postId
+            ? { ...post, isReposted: result.reposted, repostsCount: post.repostsCount + (result.reposted ? 1 : -1) }
+            : post,
+        ),
+      )
+    } catch (error) {
+      console.error("Error toggling repost:", error)
+    }
   }
+
+  // No longer need handlePostUpdate or handleNewPost here as PostCard handles its own state updates
+  // and Timeline fetches all posts.
 
   if (loading) {
     return (
@@ -78,7 +124,13 @@ export function Timeline() {
   return (
     <div className="space-y-0">
       {posts.map((post) => (
-        <PostCard key={post._id} post={post} onUpdate={handlePostUpdate} />
+        <PostCard
+          key={post._id}
+          post={post}
+          onLike={handleLike}
+          onRepost={handleRepost}
+          // onReply is not directly handled by Timeline, but by PostCard itself
+        />
       ))}
     </div>
   )

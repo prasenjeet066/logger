@@ -1,27 +1,29 @@
 export interface Post {
-  id: string
+  _id: string
   content: string
-  created_at: string
-  user_id: string
-  username: string
-  display_name: string
-  avatar_url: string | null
-  likes_count: number
-  is_liked: boolean
-  reposts_count: number
-  is_reposted: boolean
-  replies_count: number
-  reply_to: string | null
-  media_urls: string[] | null
-  media_type: string | null
-  is_repost: boolean
-  repost_of: string | null
-  reposted_by: string | null
-  post_user_id: string | null
-  post_username: string | null
-  post_display_name: string | null
-  post_created_at: string | null
-  repost_created_at: string | null
-  is_verified: boolean
-  is_pinned?: boolean
+  authorId: string
+  mediaUrls?: string[]
+  mediaType?: "image" | "video" | "gif"
+  likesCount: number
+  repostsCount: number
+  repliesCount: number
+  isRepost: boolean
+  originalPostId?: string // Renamed from replyToId for consistency with MongoDB model
+  parentPostId?: string // For replies
+  hashtags: string[]
+  mentions: string[]
+  isPinned: boolean
+  createdAt: string // Date string
+  updatedAt: string // Date string
+  author: {
+    // Populated author data
+    id: string
+    username: string
+    displayName: string
+    avatarUrl?: string
+    isVerified: boolean
+  }
+  isLiked: boolean // Client-side only
+  isReposted: boolean // Client-side only
+  repostedBy?: string // Client-side only, for display (username of the reposting user)
 }

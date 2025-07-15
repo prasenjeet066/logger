@@ -1,10 +1,10 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import { useSession } from "next-auth/react"
 import { Button } from "@/components/ui/button"
-import { Spinner } from "@/components/spinner"
+import { Spinner } from "@/components/loader/spinner" // Corrected import path
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Sidebar } from "@/components/dashboard/sidebar"
@@ -16,6 +16,7 @@ import Link from "next/link"
 import { ImageViewer } from "@/components/media/image-viewer"
 import { VerificationBadge } from "@/components/badge/verification-badge"
 import { signOut } from "next-auth/react"
+import type { Post } from "@/types/post" // Import the updated Post type
 
 interface ProfileContentProps {
   username: string
@@ -35,34 +36,11 @@ interface ProfileData {
   isVerified: boolean
   followersCount: number
   followingCount: number
-  isFollowing: boolean
-}
-
-interface Post {
-  _id: string
-  content: string
-  createdAt: string
-  authorId: string
-  author: {
-    id: string
-    username: string
-    displayName: string
-    avatarUrl: string | null
-    isVerified: boolean
-  }
-  likesCount: number
-  repliesCount: number
-  repostsCount: number
-  replyToId?: string
-  mediaUrls?: string[]
-  mediaType?: string
-  isLiked: boolean
-  isReposted: boolean
-  isPinned?: boolean
+  isFollowing: boolean // Added for current user's follow status
 }
 
 export function ProfileContent({ username }: ProfileContentProps) {
-  const { data: session } = useSession()
+  const { data: session, status } = useSession()
   const [currentUser, setCurrentUser] = useState<any>(null)
   const [profileData, setProfileData] = useState<ProfileData | null>(null)
   const [posts, setPosts] = useState<Post[]>([])
@@ -76,52 +54,53 @@ export function ProfileContent({ username }: ProfileContentProps) {
   const [imageViewerOpen, setImageViewerOpen] = useState<string | null>(null)
   const router = useRouter()
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        // Get current user profile if logged in
-        if (session?.user) {
-          const currentUserResponse = await fetch("/api/users/current")
-          if (currentUserResponse.ok) {
-            const currentUserData = await currentUserResponse.json()
-            setCurrentUser(currentUserData)
-          }
+  const fetchProfileData = useCallback(async () => {
+    try {
+      setIsLoading(true)
+      // Get current user profile if logged in
+      if (session?.user) {
+        const currentUserResponse = await fetch("/api/users/current")
+        if (currentUserResponse.ok) {
+          const currentUserData = await currentUserResponse.json()
+          setCurrentUser(currentUserData)
         }
-
-        // Get profile data
-        const profileResponse = await fetch(`/api/users/${username}`)
-        if (!profileResponse.ok) {
-          router.push("/")
-          return
-        }
-
-        const { user: profile, posts: userPosts } = await profileResponse.json()
-        setProfileData(profile)
-
-        // Separate posts by type
-        const regularPosts = userPosts.filter((post: Post) => !post.replyToId)
-        const replyPosts = userPosts.filter((post: Post) => post.replyToId)
-        const mediaPosts = userPosts.filter((post: Post) => post.mediaUrls && post.mediaUrls.length > 0)
-
-        setPosts(regularPosts)
-        setReplies(replyPosts)
-        setMedia(mediaPosts)
-
-        // Get reposts separately
-        const repostsResponse = await fetch(`/api/users/${username}/reposts`)
-        if (repostsResponse.ok) {
-          const repostsData = await repostsResponse.json()
-          setReposts(repostsData)
-        }
-      } catch (error) {
-        console.error("Error fetching profile data:", error)
-      } finally {
-        setIsLoading(false)
       }
-    }
 
-    fetchData()
+      // Get profile data and posts
+      const profileResponse = await fetch(`/api/users/${username}`)
+      if (!profileResponse.ok) {
+        router.push("/")
+        return
+      }
+
+      const { user: profile, posts: userPosts } = await profileResponse.json()
+      setProfileData(profile)
+
+      // Separate posts by type
+      const regularPosts = userPosts.filter((post: Post) => !post.parentPostId && !post.isRepost)
+      const replyPosts = userPosts.filter((post: Post) => post.parentPostId)
+      const mediaPosts = userPosts.filter((post: Post) => post.mediaUrls && post.mediaUrls.length > 0)
+
+      setPosts(regularPosts)
+      setReplies(replyPosts)
+      setMedia(mediaPosts)
+
+      // Get reposts separately (already handled by the API route now)
+      const repostsResponse = await fetch(`/api/users/${username}/reposts`)
+      if (repostsResponse.ok) {
+        const repostsData = await repostsResponse.json()
+        setReposts(repostsData)
+      }
+    } catch (error) {
+      console.error("Error fetching profile data:", error)
+    } finally {
+      setIsLoading(false)
+    }
   }, [username, session, router])
+
+  useEffect(() => {
+    fetchProfileData()
+  }, [fetchProfileData])
 
   const handleFollow = async () => {
     if (!profileData || !session?.user) return
@@ -133,10 +112,13 @@ export function ProfileContent({ username }: ProfileContentProps) {
 
       if (response.ok) {
         const result = await response.json()
-        setProfileData({
-          ...profileData,
-          isFollowing: result.following,
-          followersCount: profileData.followersCount + (result.following ? 1 : -1),
+        setProfileData((prevProfile) => {
+          if (!prevProfile) return null
+          return {
+            ...prevProfile,
+            isFollowing: result.following,
+            followersCount: prevProfile.followersCount + (result.following ? 1 : -1),
+          }
         })
       }
     } catch (error) {
@@ -161,10 +143,10 @@ export function ProfileContent({ username }: ProfileContentProps) {
               : post,
           )
 
-        setPosts(updatePosts)
-        setReplies(updatePosts)
-        setReposts(updatePosts)
-        setMedia(updatePosts)
+        setPosts(updatePosts(posts))
+        setReplies(updatePosts(replies))
+        setReposts(updatePosts(reposts))
+        setMedia(updatePosts(media))
       }
     } catch (error) {
       console.error("Error toggling like:", error)
@@ -180,21 +162,10 @@ export function ProfileContent({ username }: ProfileContentProps) {
       })
 
       if (response.ok) {
-        const updatePosts = (postsList: Post[]) =>
-          postsList.map((post) =>
-            post._id === postId
-              ? {
-                  ...post,
-                  isReposted: !isReposted,
-                  repostsCount: post.repostsCount + (isReposted ? -1 : 1),
-                }
-              : post,
-          )
-
-        setPosts(updatePosts)
-        setReplies(updatePosts)
-        setReposts(updatePosts)
-        setMedia(updatePosts)
+        const result = await response.json()
+        // If a repost was created/deleted, we need to refetch reposts or update state carefully.
+        // For simplicity, let's refetch all profile data to ensure counts are accurate.
+        fetchProfileData()
       }
     } catch (error) {
       console.error("Error toggling repost:", error)
@@ -216,7 +187,9 @@ export function ProfileContent({ username }: ProfileContentProps) {
 
   if (!profileData) {
     return (
-      <div className="min-h-screen flex items-center justify-center bengali-font">
+      <div className="min-h-screen flex items-center justify-center font-english">
+        {" "}
+        {/* Changed to font-english */}
         <div className="text-center">
           <p className="text-xl mb-4">Profile not found</p>
           <Link href="/">
@@ -240,10 +213,9 @@ export function ProfileContent({ username }: ProfileContentProps) {
           <PostCard
             key={post._id}
             post={post}
-            onUpdate={() => {
-              // Refresh data
-              window.location.reload()
-            }}
+            onLike={handleLike}
+            onRepost={handleRepost}
+            onReply={fetchProfileData} // Trigger a refetch on reply/post update
           />
         ))
       )}
@@ -251,7 +223,9 @@ export function ProfileContent({ username }: ProfileContentProps) {
   )
 
   return (
-    <div className="min-h-screen bg-gray-50 bengali-font">
+    <div className="min-h-screen bg-gray-50 font-english">
+      {" "}
+      {/* Changed to font-english */}
       {/* Mobile header */}
       <div className="lg:hidden bg-white border-b px-4 py-3 flex items-center justify-between">
         <h1 className="text-xl font-bold logo-font">Cōdes</h1>
@@ -280,7 +254,6 @@ export function ProfileContent({ username }: ProfileContentProps) {
           )}
         </div>
       </div>
-
       <div className="flex">
         {/* Sidebar - only show if logged in */}
         {session?.user && currentUser && (
@@ -448,12 +421,10 @@ export function ProfileContent({ username }: ProfileContentProps) {
           </div>
         </div>
       </div>
-
       {/* Mobile overlay */}
       {sidebarOpen && (
         <div className="lg:hidden fixed inset-0 bg-black bg-opacity-50 z-40" onClick={() => setSidebarOpen(false)} />
       )}
-
       {/* Edit Profile Dialog */}
       {isOwnProfile && (
         <EditProfileDialog
@@ -461,14 +432,16 @@ export function ProfileContent({ username }: ProfileContentProps) {
           onOpenChange={setEditDialogOpen}
           profile={profileData}
           onProfileUpdate={(updatedProfile) => {
-            setProfileData({ ...profileData, ...updatedProfile })
+            setProfileData((prevProfile) => {
+              if (!prevProfile) return null
+              return { ...prevProfile, ...updatedProfile }
+            })
             if (currentUser) {
-              setCurrentUser({ ...currentUser, ...updatedProfile })
+              setCurrentUser((prevUser: any) => ({ ...prevUser, ...updatedProfile }))
             }
           }}
         />
       )}
-
       {/* Image Viewer */}
       {imageViewerOpen && (
         <ImageViewer

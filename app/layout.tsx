@@ -1,13 +1,10 @@
 import type React from "react"
 import type { Metadata } from "next"
-// import { Inter } from 'next/font/google' // Removed Inter import
 import "./globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
 import { AuthProvider } from "@/components/providers/auth-provider"
 import { Toaster } from "@/components/ui/toaster"
-import { LanguageProvider } from "@/lib/contexts/language-context" // Ensure LanguageProvider is imported
-
-// const inter = Inter({ subsets: ["latin"] }) // Removed Inter instance
+import { LanguageProvider } from "@/lib/contexts/language-context"
 
 export const metadata: Metadata = {
   title: "Codes - Social Media Platform",
@@ -23,15 +20,9 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body>
-        {" "}
-        {/* Removed className={inter.className} */}
         <AuthProvider>
           <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
-            <LanguageProvider>
-              {" "}
-              {/* Wrapped children with LanguageProvider */}
-              {children}
-            </LanguageProvider>
+            <LanguageProvider>{children}</LanguageProvider>
             <Toaster />
           </ThemeProvider>
         </AuthProvider>

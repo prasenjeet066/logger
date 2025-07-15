@@ -12,9 +12,10 @@ const config: Config = {
     extend: {
       fontFamily: {
         racing: ['"Racing Sans One"'],
-        "space-grotesk": ['"Space Grotesk"', "sans-serif"], // Added
-        "noto-sans-devanagari": ['"Noto Sans Devanagari"', "sans-serif"], // Added
-        "noto-sans-arabic": ['"Noto Sans Arabic"', "sans-serif"], // Added
+        raleway: ['"Raleway"', "sans-serif"], // Added Raleway
+        "space-grotesk": ['"Space Grotesk"', "sans-serif"],
+        "noto-sans-devanagari": ['"Noto Sans Devanagari"', "sans-serif"],
+        "noto-sans-arabic": ['"Noto Sans Arabic"', "sans-serif"],
       },
       colors: {
         background: "hsl(var(--background))",

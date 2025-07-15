@@ -5,8 +5,9 @@
 @import url("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300..700&display=swap");
 @import url("https://fonts.googleapis.com/css2?family=Racing+Sans+One&display=swap");
 @import url("https://fonts.googleapis.com/css2?family=Tiro+Bangla:ital@0;1&display=swap");
-@import url("https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;700&display=swap"); /* Added */
-@import url("https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@400;700&display=swap"); /* Added */
+@import url("https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@400;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Raleway:wght@300;400;500;600;700&display=swap"); /* Added Raleway */
 
 @layer base {
   :root {
@@ -87,13 +88,13 @@
   }
   body {
     @apply bg-background text-foreground;
-    font-family: "Space Grotesk", sans-serif;
+    font-family: "Raleway", sans-serif; /* Changed to Raleway */
   }
 }
 
 /* Language-specific fonts */
 .font-english {
-  font-family: "Space Grotesk", sans-serif;
+  font-family: "Raleway", sans-serif; /* Changed to Raleway */
 }
 
 .font-bengali {

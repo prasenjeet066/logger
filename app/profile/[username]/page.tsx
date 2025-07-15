@@ -1,19 +1,18 @@
-import { getServerSession } from "next-auth"
-import { authOptions } from "@/lib/auth/auth-config" // Assuming authOptions is exported from here
+"use client"
+
 import { ProfileContent } from "@/components/profile/profile-content"
+import { useSession } from "next-auth/react"
 
-interface ProfilePageProps {
-  params: {
-    username: string
-  }
-}
+export default function ProfilePage({ params }: { params: { username: string } }) {
+  const { data: session, status } = useSession()
 
-export default async function ProfilePage({ params }: ProfilePageProps) {
-  const session = await getServerSession(authOptions)
+  // If not logged in, redirect to sign-in page
+  // This might be too aggressive if profiles are public.
+  // Consider if public profiles should be viewable without login.
+  // For now, assuming profiles are public but actions require login.
+  // if (status === "unauthenticated") {
+  //   redirect("/auth/sign-in")
+  // }
 
-  // Allow viewing profiles even when not logged in
-  // currentUserId will be the MongoDB _id from the session user
-  const currentUserId = session?.user?.id || null
-
-  return <ProfileContent username={params.username} currentUserId={currentUserId} />
+  return <ProfileContent username={params.username} />
 }
