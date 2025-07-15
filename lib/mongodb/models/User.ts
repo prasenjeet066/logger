@@ -32,14 +32,14 @@ const userSchema = new Schema<IUser>(
     email: {
       type: String,
       required: true,
-      unique: true,
+      unique: true, // This implicitly creates an index
       lowercase: true,
       trim: true,
     },
     username: {
       type: String,
       required: true,
-      unique: true,
+      unique: true, // This implicitly creates an index
       lowercase: true,
       trim: true,
       minlength: 3,
@@ -124,9 +124,7 @@ const userSchema = new Schema<IUser>(
   },
 )
 
-// Index for performance
-userSchema.index({ email: 1 })
-userSchema.index({ username: 1 })
+// Only keep the index for createdAt, as email and username are implicitly indexed by unique: true
 userSchema.index({ createdAt: -1 })
 
 // Hash password before saving
