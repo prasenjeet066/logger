@@ -1,9 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import type { User } from "@supabase/supabase-js"
-//import { supabase } from "@/lib/supabase/client"
-import { useSession } from "next-auth/react"
+import { signOut } from "next-auth/react" // Import signOut from next-auth/react
 import Spinner from "@/components/loader/spinner"
 import { Sidebar } from "./sidebar"
 import { Timeline } from "./timeline"
@@ -16,41 +14,64 @@ import { Menu, UserIcon, Plus } from "lucide-react"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import Link from "next/link"
+import type { IUser } from "@/lib/mongodb/models/User" // Import IUser type
 
 interface DashboardContentProps {
-  user: User
+  // The user prop now represents the session user from NextAuth, which should align with IUser
+  user: {
+    id: string
+    email: string
+    username: string
+    displayName: string
+    avatarUrl?: string
+  }
 }
 
 export function DashboardContent({ user }: DashboardContentProps) {
-  const [profile, setProfile] = useState < any > (null)
+  const [profile, setProfile] = useState<IUser | null>(null)
   const [isLoading, setIsLoading] = useState(true)
-  const { data: session } = useSession()
+
   useEffect(() => {
-    fetchData()
-  },[session.user])
-  const fetchData = async () => {
-    // Get current user profile if logged in
-    //commit 
-    if (session?.user) {
-      const currentUserResponse = await fetch("/api/users/current")
-      if (currentUserResponse.ok) {
-        const currentUserData = await currentUserResponse.json()
-        setProfile(currentUserData)
+    fetchProfile()
+  }, [user.id]) // Depend on user.id to refetch if user changes
+
+  const fetchProfile = async () => {
+    try {
+      // Fetch profile from your new MongoDB-backed API route
+      const response = await fetch("/api/users/current")
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
       }
+      const data: IUser = await response.json()
+      setProfile(data)
+    } catch (error) {
+      console.error("Error fetching profile:", error)
+      // Optionally handle error, e.g., redirect to login or show a message
+    } finally {
+      setIsLoading(false)
     }
-    
   }
-  
+
   const handleSignOut = async () => {
-    //await supabase.auth.signOut()
+    await signOut({ callbackUrl: "/auth/sign-in" }) // Redirect to sign-in page after sign out
   }
-  
+
   if (isLoading) {
-    return <div className="flex items-center justify-center min-h-screen">
-      <Spinner/>
-    </div>
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <Spinner />
+      </div>
+    )
   }
-  
+
+  if (!profile) {
+    return (
+      <div className="flex items-center justify-center min-h-screen text-red-500">
+        Error: Could not load user profile.
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen bg-white">
       {/* Mobile Header */}
@@ -58,28 +79,27 @@ export function DashboardContent({ user }: DashboardContentProps) {
         <div className="flex items-center justify-between">
           <h1 className="text-xl font-bold logo-font">Cōdes</h1>
           <div className="flex flex-row w-full items-center justify-end">
-          <Sheet>
-            <SheetTrigger asChild>
-              <Button variant="ghost" size="icon">
-                <Menu className="h-5 w-5" />
-              </Button>
-            </SheetTrigger>
-            <SheetContent side="left" className="p-0 w-80">
-              <Sidebar profile={profile} onSignOut={handleSignOut} />
-            </SheetContent>
-          </Sheet>
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="icon">
+                  <Menu className="h-5 w-5" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="left" className="p-0 w-80">
+                <Sidebar profile={profile} onSignOut={handleSignOut} />
+              </SheetContent>
+            </Sheet>
 
-        
-          <Link href={`/profile/${profile?.username}`}>
-            <Avatar className="h-8 w-8">
-              <AvatarImage src={profile?.avatar_url || "/placeholder.svg"} />
-              <AvatarFallback>
-                <UserIcon className="h-4 w-4" />
-              </AvatarFallback>
-            </Avatar>
-          </Link>
+            <Link href={`/profile/${profile?.username}`}>
+              <Avatar className="h-8 w-8">
+                <AvatarImage src={profile?.avatarUrl || "/placeholder.svg"} />
+                <AvatarFallback>
+                  <UserIcon className="h-4 w-4" />
+                </AvatarFallback>
+              </Avatar>
+            </Link>
+          </div>
         </div>
-      </div>
       </div>
 
       <div className="flex">
@@ -90,7 +110,7 @@ export function DashboardContent({ user }: DashboardContentProps) {
 
         {/* Main Content */}
         <div className="flex-1 max-w-2xl border-r">
-          <Timeline userId={user.id} />
+          <Timeline userId={profile._id} /> {/* Pass MongoDB _id */}
         </div>
 
         {/* Right Sidebar */}
