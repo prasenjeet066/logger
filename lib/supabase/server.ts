@@ -1,13 +1,13 @@
-// Supabase has been fully removed, but some legacy code may still import
-// { createServerClient } from '@/lib/supabase/server'.
-// We provide a safe stub so the application can build without errors.
+// 🔒 Supabase has been removed from this project.
+//    This stub prevents build errors for outdated imports like
+//    `import { createServerClient } from '@/lib/supabase/server'`.
 
 export function createServerClient() {
   throw new Error(
-    "Supabase has been removed from this project. Please remove any remaining Supabase code or replace it with MongoDB logic.",
+    "Supabase has been removed from this project. " + "Please migrate any remaining Supabase logic to Mongoose.",
   )
 }
 
-// Legacy default export (kept for backwards compatibility, returns null)
-export const supabase = null
+// Optional legacy value
+export const supabase: null = null
 export default supabase

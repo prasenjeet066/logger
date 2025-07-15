@@ -1,17 +1,23 @@
 import { redirect } from "next/navigation"
-import { createServerClient } from "@/lib/supabase/server"
+import { getServerSession } from "next-auth"
+import { authOptions } from "@/lib/auth/auth-config"
 import { DashboardContent } from "@/components/dashboard/dashboard-content"
 
 export default async function DashboardPage() {
-  const supabase = createServerClient()
+  const session = await getServerSession(authOptions)
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  if (!user) {
+  if (!session?.user) {
     redirect("/auth/sign-in")
   }
+
+  // Map session.user properties to what DashboardContent expects
+  const user = {
+    id: session.user.id,
+    email: session.user.email,
+    username: session.user.username,
+    avatar_url: session.user.avatarUrl,
+    // Add other properties if DashboardContent expects them
+  } as any
 
   return <DashboardContent user={user} />
 }

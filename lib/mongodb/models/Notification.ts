@@ -48,3 +48,5 @@ notificationSchema.index({ userId: 1, isRead: 1 })
 
 export const Notification =
   mongoose.models.Notification || mongoose.model<INotification>("Notification", notificationSchema)
+
+export default Notification

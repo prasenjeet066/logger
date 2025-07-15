@@ -1,14 +1,11 @@
 import { redirect } from "next/navigation"
-import { createServerClient } from "@/lib/supabase/server"
+import { getServerSession } from "next-auth"
+import { authOptions } from "@/lib/auth/auth-config"
 
 export default async function BookmarksPage() {
-  const supabase = createServerClient()
+  const session = await getServerSession(authOptions)
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  if (!user) {
+  if (!session?.user) {
     redirect("/auth/sign-in")
   }
 
