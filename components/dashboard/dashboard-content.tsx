@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from "react"
 import type { User } from "@supabase/supabase-js"
-import { supabase } from "@/lib/supabase/client"
+//import { supabase } from "@/lib/supabase/client"
+import { useSession } from "next-auth/react"
 import Spinner from "@/components/loader/spinner"
 import { Sidebar } from "./sidebar"
 import { Timeline } from "./timeline"
@@ -21,36 +22,34 @@ interface DashboardContentProps {
 }
 
 export function DashboardContent({ user }: DashboardContentProps) {
-  const [profile, setProfile] = useState<any>(null)
+  const [profile, setProfile] = useState < any > (null)
   const [isLoading, setIsLoading] = useState(true)
-
+  const { data: session } = useSession()
   useEffect(() => {
-    fetchProfile()
-  }, [user.id])
-
-  const fetchProfile = async () => {
-    try {
-      const { data, error } = await supabase.from("profiles").select("*").eq("id", user.id).single()
-
-      if (error) throw error
-      setProfile(data)
-    } catch (error) {
-      console.error("Error fetching profile:", error)
-    } finally {
-      setIsLoading(false)
+    fetchData()
+  },[session.user])
+  const fetchData = async () => {
+    // Get current user profile if logged in
+    if (session?.user) {
+      const currentUserResponse = await fetch("/api/users/current")
+      if (currentUserResponse.ok) {
+        const currentUserData = await currentUserResponse.json()
+        setProfile(currentUserData)
+      }
     }
+    
   }
-
+  
   const handleSignOut = async () => {
-    await supabase.auth.signOut()
+    //await supabase.auth.signOut()
   }
-
+  
   if (isLoading) {
     return <div className="flex items-center justify-center min-h-screen">
       <Spinner/>
     </div>
   }
-
+  
   return (
     <div className="min-h-screen bg-white">
       {/* Mobile Header */}
