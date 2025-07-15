@@ -363,7 +363,6 @@ export function ReplyCard({ post, onLike, onRepost }) {
                   onRepost?.(post._id, post.isReposted) // Changed from post.id, is_reposted
                 }}
                 disabled={repostLoading}
-                aria-label={`Repost. ${post.repostsCount || 0} reposts`} {/* Changed from reposts_count */}
               >
                 {repostLoading ? (
                   <Loader2 className="h-4 w-4 mr-1 animate-spin" />

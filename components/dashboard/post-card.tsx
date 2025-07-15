@@ -493,12 +493,12 @@ export function PostCard({ post, onLike, onRepost, onReply }: PostCardProps) {
                   handleRepostClick()
                 }}
                 disabled={repostLoading}
-                aria-label={`${post.isReposted ? "Unrepost" : "Repost"}. ${post.repostsCount || 0} reposts\`} {/* Changed from is_reposted, reposts_count */}
+                aria-label={`${post.isReposted ? "Unrepost" : "Repost"}. ${post.repostsCount || 0} reposts`} 
               >
                 {repostLoading ? (
                   <Loader2 className="h-4 w-4 mr-1 animate-spin" />
                 ) : (
-                  <Repeat2 className={\`h-4 w-4 mr-1 ${post.isReposted ? "fill-current" : ""}`} /> {/* Changed from is_reposted */}
+                  <Repeat2 className={`h-4 w-4 mr-1 ${post.isReposted ? "fill-current" : ""}`} />
                 )}
                 <span className="text-xs lg:text-sm">{post.repostsCount || 0}</span> {/* Changed from reposts_count */}
               </Button>
@@ -515,9 +515,9 @@ export function PostCard({ post, onLike, onRepost, onReply }: PostCardProps) {
                   e.stopPropagation()
                   onLike(post._id, post.isLiked) // Changed from post.id, is_liked
                 }}
-                aria-label={`${post.isLiked ? "Unlike" : "Like"} post. ${post.likesCount} likes\`} {/* Changed from is_liked, likes_count */}
+                aria-label={`${post.isLiked ? "Unlike" : "Like"} post. ${post.likesCount} likes`}
               >
-                <Heart className={\`h-4 w-4 mr-1 ${post.isLiked ? "fill-current" : ""}`} /> {/* Changed from is_liked */}
+                <Heart className={`h-4 w-4 mr-1 ${post.isLiked ? "fill-current" : ""}`} /> {/* Changed from is_liked */}
                 <span className="text-xs lg:text-sm">{post.likesCount}</span> {/* Changed from likes_count */}
               </Button>
 

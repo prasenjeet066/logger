@@ -502,7 +502,7 @@ export function PostSection({ post, onLike, onRepost, onReply }: PostCardProps) 
                 {repostLoading ? (
                   <Loader2 className="h-4 w-4 mr-1 animate-spin" />
                 ) : (
-                  <Repeat2 className={`h-4 w-4 mr-1 ${post.isReposted ? "fill-current" : ""}\`} /> {/* Changed from is_reposted */}
+                  <Repeat2 className={`h-4 w-4 mr-1 ${post.isReposted ? "fill-current" : ""}`} /> 
                 )}
                 <span className="text-xs lg:text-sm">{post.repostsCount || 0}</span> {/* Changed from reposts_count */}
               </Button>
@@ -510,7 +510,7 @@ export function PostSection({ post, onLike, onRepost, onReply }: PostCardProps) 
               <Button
                 variant="ghost"
                 size="sm"
-                className={\`${post.isLiked ? "text-red-600 bg-red-50" : "text-gray-500 hover:text-red-600 hover:bg-red-50"} p-2 rounded-full transition-colors`}
+                className={`${post.isLiked ? "text-red-600 bg-red-50" : "text-gray-500 hover:text-red-600 hover:bg-red-50"} p-2 rounded-full transition-colors`}
                 onClick={(e) => {
                   e.stopPropagation()
                   onLike(post._id, post.isLiked) // Changed from post.id, is_liked
@@ -518,10 +518,11 @@ export function PostSection({ post, onLike, onRepost, onReply }: PostCardProps) 
                 aria-label={`${post.isLiked ? 'Unlike' : 'Like'} post. ${post.likesCount} likes`}
               >
                 <Heart className={`h-4 w-4 mr-1 ${post.isLiked ? "fill-current" : ""}`} /> {/* Changed from is_liked */}
-                <span className="text-xs lg:text-sm">{post.likesCount}</span> {/* Changed from likes_count */}
+                <span className="text-xs lg:text-sm">{post.likesCount}</span> 
+                
               </Button>
 
-              <Button\
+              <Button
                 variant="ghost"
                 size="sm"
                 className="text-gray-500 hover:text-blue-600 hover:bg-blue-50 p-2 rounded-full transition-colors"
