@@ -1,4 +1,5 @@
-import { createServerClient } from "@/lib/supabase/server"
+import { getServerSession } from "next-auth"
+import { authOptions } from "@/lib/auth/auth-config" // Assuming authOptions is exported from here
 import { ProfileContent } from "@/components/profile/profile-content"
 
 interface ProfilePageProps {
@@ -8,14 +9,11 @@ interface ProfilePageProps {
 }
 
 export default async function ProfilePage({ params }: ProfilePageProps) {
-  const supabase = createServerClient()
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  const session = await getServerSession(authOptions)
 
   // Allow viewing profiles even when not logged in
-  const currentUserId = user?.id || null
+  // currentUserId will be the MongoDB _id from the session user
+  const currentUserId = session?.user?.id || null
 
   return <ProfileContent username={params.username} currentUserId={currentUserId} />
 }
