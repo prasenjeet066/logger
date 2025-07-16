@@ -14,5 +14,5 @@
 
 import Loader from "./loader"
 
-export const Spinner = Loader
 export default Loader
+export { Loader as Spinner }

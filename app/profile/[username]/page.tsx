@@ -145,7 +145,7 @@ export default function ProfilePage({ params }: { params: { username: string } }
     setIsFollowingAction(true)
     try {
       const action = profile.isFollowing ? "unfollow" : "follow"
-      const response = await fetch(`/api/users/${profile._id}/follow`, {
+      const response = await fetch(`/api/users/${profile.username}/follow`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action }),
