@@ -12,10 +12,12 @@ const config: Config = {
     extend: {
       fontFamily: {
         racing: ['"Racing Sans One"'],
-        raleway: ['"Raleway"', "sans-serif"], // Added Raleway
+        raleway: ["var(--font-raleway)"], // Use CSS variable for Raleway
+        inconsolata: ["var(--font-inconsolata)"], // Add Inconsolata
         "space-grotesk": ['"Space Grotesk"', "sans-serif"],
         "noto-sans-devanagari": ['"Noto Sans Devanagari"', "sans-serif"],
         "noto-sans-arabic": ['"Noto Sans Arabic"', "sans-serif"],
+        sans: ["var(--font-raleway)", "sans-serif"], // Set Raleway as default sans-serif
       },
       colors: {
         background: "hsl(var(--background))",
