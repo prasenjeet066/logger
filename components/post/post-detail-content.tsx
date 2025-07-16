@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import { ReplyCard } from "@/components/reply/reply-card"
 import { useRouter } from "next/navigation"
-import { Spinner } from "@/components/loader/spinner" // Updated import path
+import { Spinner } from "@/components/loader/spinner"
 import { PostSection } from "@/components/post/post-section"
 import { Button } from "@/components/ui/button"
 import { ArrowLeft, Loader2, Paperclip } from "lucide-react"
@@ -14,22 +14,64 @@ interface PostDetailContentProps {
   userId: string
 }
 
+interface Post {
+  _id: string
+  content: string
+  authorId: string
+  author: {
+    _id: string
+    username: string
+    displayName: string
+    avatarUrl?: string
+    isVerified: boolean
+  }
+  mediaUrls?: string[]
+  mediaType?: "image" | "video" | "gif"
+  likesCount: number
+  repostsCount: number
+  repliesCount: number
+  isRepost: boolean
+  originalPostId?: string
+  parentPostId?: string
+  hashtags: string[]
+  mentions: string[]
+  isPinned: boolean
+  createdAt: string
+  updatedAt: string
+  isLiked?: boolean
+  isReposted?: boolean
+}
+
+interface Reply extends Post {
+  parentPost?: Post
+}
+
+interface CurrentUser {
+  _id: string
+  username: string
+  displayName: string
+  avatarUrl?: string
+  email: string
+}
+
 type CommentState = {
   text: string
-  replyingTo: string | null // username or null
-  replyParentId: string | null // postId or replyId
+  replyingTo: string | null
+  replyParentId: string | null
 }
 
 export function PostDetailContent({ postId, userId }: PostDetailContentProps) {
-  const [post, setPost] = useState<any>(null)
-  const [replies, setReplies] = useState<any[]>([])
-  const [currentUser, setCurrentUser] = useState<any>(null)
+  const [post, setPost] = useState<Post | null>(null)
+  const [replies, setReplies] = useState<Reply[]>([])
+  const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const router = useRouter()
+
   const [commentState, setCommentState] = useState<CommentState>({
     text: "",
     replyingTo: null,
-    replyParentId: postId, // by default, reply to the main post
+    replyParentId: postId,
   })
   const [isPosting, setIsPosting] = useState(false)
 
@@ -44,26 +86,58 @@ export function PostDetailContent({ postId, userId }: PostDetailContentProps) {
       replyParentId: postId,
     })
   }, [postId, userId])
-  /**
-  const setNewViewUpdate = async (data) =>{
-    try{
-      if(userId !== null){
-      const {error} = await supabase.from('posts').update({
-        views_count : post.views_count + 1
-      }).eq("id",postId)
-      }
-    }catch(error){
-      // error
-    }
-  }**/
+
   const fetchCurrentUser = async () => {
     try {
       const response = await fetch(`/api/users/current`)
-      if (!response.ok) throw new Error("Failed to fetch current user")
+      if (!response.ok) {
+        throw new Error("Failed to fetch current user")
+      }
       const data = await response.json()
       setCurrentUser(data)
     } catch (error) {
       console.error("Error fetching current user:", error)
+      setError("Failed to load user data")
+    }
+  }
+
+  const fetchPostAndReplies = async () => {
+    try {
+      setIsLoading(true)
+      setError(null)
+
+      // Fetch main post
+      const postResponse = await fetch(`/api/posts/${postId}`)
+      if (!postResponse.ok) {
+        if (postResponse.status === 404) {
+          setError("Post not found")
+        } else {
+          throw new Error("Failed to fetch post")
+        }
+        setPost(null)
+        setIsLoading(false)
+        return
+      }
+
+      const postData = await postResponse.json()
+      setPost(postData)
+
+      // Fetch replies
+      const repliesResponse = await fetch(`/api/posts/${postId}/replies`)
+      if (!repliesResponse.ok) {
+        console.warn("Failed to fetch replies")
+        setReplies([])
+        return
+      }
+
+      const repliesData = await repliesResponse.json()
+      setReplies(Array.isArray(repliesData) ? repliesData : [])
+    } catch (error) {
+      console.error("Error fetching post and replies:", error)
+      setError("Failed to load post data")
+      setPost(null)
+    } finally {
+      setIsLoading(false)
     }
   }
 
@@ -74,10 +148,12 @@ export function PostDetailContent({ postId, userId }: PostDetailContentProps) {
     try {
       const response = await fetch("/api/posts", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify({
           content: commentState.text,
-          replyTo: commentState.replyParentId,
+          parentPostId: commentState.replyParentId,
         }),
       })
 
@@ -87,42 +163,17 @@ export function PostDetailContent({ postId, userId }: PostDetailContentProps) {
       }
 
       // Reset comment box and refresh replies
-      setCommentState({ text: "", replyingTo: null, replyParentId: postId })
+      setCommentState({
+        text: "",
+        replyingTo: null,
+        replyParentId: postId,
+      })
       await fetchPostAndReplies()
     } catch (error) {
       console.error("Error posting comment:", error)
+      setError("Failed to post comment")
     } finally {
       setIsPosting(false)
-    }
-  }
-
-  const fetchPostAndReplies = async () => {
-    try {
-      setIsLoading(true)
-
-      // Fetch main post
-      const postResponse = await fetch(`/api/posts/${postId}`)
-      if (!postResponse.ok) {
-        setPost(null)
-        setIsLoading(false)
-        return
-      }
-      const postData = await postResponse.json()
-      setPost(postData)
-
-      // Fetch replies
-      const repliesResponse = await fetch(`/api/posts/${postId}/replies`)
-      if (!repliesResponse.ok) {
-        setReplies([])
-        return
-      }
-      const repliesData = await repliesResponse.json()
-      setReplies(repliesData)
-    } catch (error) {
-      console.error("Error fetching post and replies:", error)
-      setPost(null)
-    } finally {
-      setIsLoading(false)
     }
   }
 
@@ -133,10 +184,15 @@ export function PostDetailContent({ postId, userId }: PostDetailContentProps) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ liked: !isLiked }),
       })
-      if (!response.ok) throw new Error("Failed to toggle like")
-      fetchPostAndReplies()
+
+      if (!response.ok) {
+        throw new Error("Failed to toggle like")
+      }
+
+      await fetchPostAndReplies()
     } catch (error) {
       console.error("Error toggling like:", error)
+      setError("Failed to update like")
     }
   }
 
@@ -147,34 +203,38 @@ export function PostDetailContent({ postId, userId }: PostDetailContentProps) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ reposted: !isReposted }),
       })
-      if (!response.ok) throw new Error("Failed to toggle repost")
-      fetchPostAndReplies()
+
+      if (!response.ok) {
+        throw new Error("Failed to toggle repost")
+      }
+
+      await fetchPostAndReplies()
     } catch (error) {
       console.error("Error toggling repost:", error)
+      setError("Failed to update repost")
     }
   }
 
-  // Handle clicking "Reply" on a post or reply
-  const handleReplyCreated = (reply?: any) => {
+  const handleReplyCreated = (reply?: Reply) => {
     if (reply) {
       // Set reply state to reply to this reply
       setCommentState({
         text: "",
-        replyingTo: reply.username,
-        replyParentId: reply.id,
+        replyingTo: reply.author.username,
+        replyParentId: reply._id,
       })
-      router.push(`/post/${reply.id}`)
+      router.push(`/post/${reply._id}`)
     } else {
       // Replying to main post
       setCommentState({
         text: "",
-        replyingTo: post.username,
+        replyingTo: post?.author.username || null,
         replyParentId: postId,
       })
     }
   }
 
-  // UI rendering
+  // Loading state
   if (isLoading) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
@@ -183,12 +243,19 @@ export function PostDetailContent({ postId, userId }: PostDetailContentProps) {
     )
   }
 
-  if (!post) {
+  // Error state
+  if (error || !post) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
         <div className="text-center">
-          <h2 className="text-xl font-semibold mb-2">Post not found</h2>
-          <p className="text-gray-500 mb-4">This post may have been deleted or doesn't exist.</p>
+          <h2 className="text-xl font-semibold mb-2">
+            {error === "Post not found" ? "Post not found" : "Something went wrong"}
+          </h2>
+          <p className="text-gray-500 mb-4">
+            {error === "Post not found"
+              ? "This post may have been deleted or doesn't exist."
+              : error || "Failed to load post data"}
+          </p>
           <Button onClick={() => router.back()}>Go Back</Button>
         </div>
       </div>
@@ -197,7 +264,7 @@ export function PostDetailContent({ postId, userId }: PostDetailContentProps) {
 
   // Helper: render the reply input box
   const renderReplyInput = () => (
-    <div className="flex items-center gap-2 px-4 py-3 box-border w-full">
+    <div className="flex items-center gap-2 px-4 py-3 box-border w-full border-b">
       {/* Avatar */}
       {currentUser?.avatarUrl ? (
         <Image
@@ -208,55 +275,75 @@ export function PostDetailContent({ postId, userId }: PostDetailContentProps) {
           className="rounded-full object-cover"
         />
       ) : (
-        <div className="w-10 h-10 rounded-full bg-gray-200" />
+        <div className="w-9 h-9 rounded-full bg-gray-200 flex items-center justify-center">
+          <span className="text-gray-500 text-sm font-medium">
+            {currentUser?.displayName?.charAt(0)?.toUpperCase() || "U"}
+          </span>
+        </div>
       )}
 
       {/* Input container */}
-      <div className="flex-1 flex items-center bg-gray-100 rounded-full px-3 py-1">
-        <div className="flex items-center gap-1">
-          <input
-            type="text"
-            value={commentState.text}
-            onChange={(e) => setCommentState((prev) => ({ ...prev, text: e.target.value }))}
-            placeholder={commentState.replyingTo ? `Replying to @${commentState.replyingTo}...` : "Write a reply..."}
-            className="bg-transparent w-full outline-none px-2 py-1"
-            disabled={isPosting}
-            autoFocus
-          />
-        </div>
+      <div className="flex-1 flex items-center bg-gray-100 rounded-full px-3 py-2">
+        <input
+          type="text"
+          value={commentState.text}
+          onChange={(e) => setCommentState((prev) => ({ ...prev, text: e.target.value }))}
+          placeholder={commentState.replyingTo ? `Replying to @${commentState.replyingTo}...` : "Write a reply..."}
+          className="bg-transparent w-full outline-none px-2 py-1 text-sm"
+          disabled={isPosting}
+          autoFocus
+          maxLength={280}
+        />
         <button
           type="button"
           className="text-gray-400 hover:text-gray-600 flex items-center ml-2"
           tabIndex={-1}
           aria-label="Attach file"
         >
-          <Paperclip className="w-5 h-5" />
+          <Paperclip className="w-4 h-4" />
         </button>
       </div>
 
       <Button
-        className="bg-gray-800 text-white rounded-full"
+        className="bg-blue-500 hover:bg-blue-600 text-white rounded-full px-4 py-2 text-sm font-medium"
         disabled={!commentState.text.trim() || isPosting}
         onClick={handlePostComment}
       >
-        {isPosting ? <Loader2 className="h-4 w-4 animate-spin" /> : "Post"}
+        {isPosting ? <Loader2 className="h-4 w-4 animate-spin" /> : "Reply"}
       </Button>
     </div>
   )
 
   return (
     <div className="min-h-screen bg-white">
-      <div className="max-w-2xl mx-auto border-x">
+      <div className="max-w-2xl mx-auto border-x min-h-screen">
         {/* Header */}
         <div className="sticky top-0 bg-white/80 backdrop-blur-md border-b px-4 py-3 z-50 flex items-center gap-4">
           <Button variant="ghost" size="icon" onClick={() => router.back()}>
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <div className="flex flex-col">
-            <h1 className="text-xl font-bold">{post.displayName}</h1>
-            <small>{replies.length} replies</small>
+            <h1 className="text-xl font-bold">Post</h1>
+            <span className="text-sm text-gray-500">
+              {replies.length} {replies.length === 1 ? "reply" : "replies"}
+            </span>
           </div>
         </div>
+
+        {/* Error banner */}
+        {error && (
+          <div className="bg-red-50 border-l-4 border-red-400 p-4 mx-4 mt-4">
+            <div className="flex">
+              <div className="ml-3">
+                <p className="text-sm text-red-700">{error}</p>
+              </div>
+              <button onClick={() => setError(null)} className="ml-auto text-red-400 hover:text-red-600">
+                ×
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Main Post */}
         <PostSection
           post={post}
@@ -267,30 +354,48 @@ export function PostDetailContent({ postId, userId }: PostDetailContentProps) {
           onReply={() => handleReplyCreated()}
         />
 
-        {/* Replies */}
+        {/* Reply Input - Always show at top */}
+        {!commentState.replyingTo && renderReplyInput()}
+
+        {/* Replies Section */}
         <div className="divide-y">
-          <h3 className="my-2 px-4">Comments</h3>
-          {/* Comment Box: Only show if not replying to a specific reply */}
-          {!commentState.replyingTo && renderReplyInput()}
-          {replies.map((reply) => (
-            <div key={reply.id}>
-              <ReplyCard
-                post={reply}
-                currentUserId={userId}
-                currentUser={currentUser}
-                onLike={handleLike}
-                onRepost={handleRepost}
-              />
-              {/* Show reply input under the reply if replying to it */}
-              {commentState.replyParentId === reply.id && renderReplyInput()}
+          {replies.length > 0 ? (
+            replies.map((reply) => (
+              <div key={reply._id}>
+                <ReplyCard
+                  post={reply}
+                  currentUserId={userId}
+                  currentUser={currentUser}
+                  onLike={handleLike}
+                  onRepost={handleRepost}
+                />
+                {/* Show reply input under the reply if replying to it */}
+                {commentState.replyParentId === reply._id && renderReplyInput()}
+              </div>
+            ))
+          ) : (
+            <div className="text-center py-12 text-gray-500">
+              <div className="mb-4">
+                <svg
+                  className="mx-auto h-12 w-12 text-gray-300"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  aria-hidden="true"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+                  />
+                </svg>
+              </div>
+              <p className="text-lg font-medium">No replies yet</p>
+              <p className="text-sm">Be the first to reply to this post!</p>
             </div>
-          ))}
+          )}
         </div>
-        {replies.length === 0 && (
-          <div className="text-center py-8 text-gray-500">
-            <p>No replies yet. Be the first to reply!</p>
-          </div>
-        )}
       </div>
     </div>
   )
