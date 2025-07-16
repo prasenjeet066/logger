@@ -15,7 +15,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { useToast } from "@/hooks/use-toast"
 import { useMobile } from "@/hooks/use-mobile"
 import { useSession, signOut } from "next-auth/react"
-import Loader from "@/components/loader/loader" // Updated import path
+import { Spinner } from "@/components/loader/spinner" // Updated import path
 import { User, Bell, Shield, Palette, Camera, Save, ArrowLeft, AlertCircle } from "lucide-react"
 
 interface SettingsContentProps {
@@ -135,7 +135,7 @@ export function SettingsContent({ userId }: SettingsContentProps) {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <Loader />
+        <Spinner />
       </div>
     )
   }

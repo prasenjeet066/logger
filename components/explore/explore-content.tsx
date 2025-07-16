@@ -18,7 +18,7 @@ import { Separator } from "@/components/ui/separator"
 import Link from "next/link"
 import { debounce } from "lodash"
 import { signOut } from "next-auth/react"
-import Loader from "@/components/loader/loader" // Updated import path
+import { Spinner } from "@/components/loader/spinner" // Updated import path
 
 interface UserProfile {
   _id: string
@@ -277,7 +277,7 @@ export function ExploreContent() {
   if (!session?.user || !currentUser) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <Loader />
+        <Spinner />
       </div>
     )
   }
@@ -631,7 +631,7 @@ export function ExploreContent() {
                         )
                       ) : (
                         <div className="flex justify-center py-12">
-                          <Loader />
+                          <Spinner />
                         </div>
                       )}
                     </TabsContent>
@@ -655,7 +655,7 @@ export function ExploreContent() {
                         )
                       ) : (
                         <div className="flex justify-center py-12">
-                          <Loader />
+                          <Spinner />
                         </div>
                       )}
                     </TabsContent>

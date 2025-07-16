@@ -207,7 +207,6 @@ export function PostCard({ post, onLike, onRepost, onReply }: PostCardProps) {
       onRepost(post._id, result.reposted)
     } catch (error) {
       console.error("Error reposting:", error)
-      // You might want to show a toast notification here
     } finally {
       setRepostLoading(false)
     }

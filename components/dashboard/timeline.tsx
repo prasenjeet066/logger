@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { PostCard } from "./post-card"
-import Loader from "@/components/loader/loader" // Updated import path
+import { Spinner } from "@/components/loader/spinner"
 
 interface Post {
   _id: string
@@ -108,7 +108,7 @@ export function Timeline() {
   if (loading) {
     return (
       <div className="flex justify-center items-center py-8">
-        <Loader />
+        <Spinner />
       </div>
     )
   }

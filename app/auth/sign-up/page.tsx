@@ -9,11 +9,24 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Checkbox } from "@/components/ui/checkbox"
+import { Progress } from "@/components/ui/progress"
 import { signUpSchema, type SignUpData } from "@/lib/validations/auth"
 import { TermsAndConditions } from "@/components/auth/terms-and-conditions"
-import { AlertCircle, Loader2 } from "lucide-react"
+import {
+  Loader2,
+  Eye,
+  EyeOff,
+  CheckCircle,
+  XCircle,
+  ArrowLeft,
+  ArrowRight,
+  Mail,
+  User,
+  Lock,
+  FileText,
+} from "lucide-react"
 
 type Step = 1 | 2 | 3 | 4
 
@@ -51,10 +64,10 @@ export default function SignUpPage() {
   const router = useRouter()
 
   const steps = [
-    { number: 1, title: "ইমেইল", icon: Loader2, description: "আপনার ইমেইল ঠিকানা" },
-    { number: 2, title: "প্রোফাইল", icon: Loader2, description: "ব্যবহারকারীর তথ্য" },
-    { number: 3, title: "পাসওয়ার্ড", icon: Loader2, description: "নিরাপত্তা সেটআপ" },
-    { number: 4, title: "শর্তাবলী", icon: Loader2, description: "চূড়ান্ত করুন" },
+    { number: 1, title: "Email", icon: Mail, description: "Your email address" },
+    { number: 2, title: "Profile", icon: User, description: "User information" },
+    { number: 3, title: "Password", icon: Lock, description: "Security setup" },
+    { number: 4, title: "Terms", icon: FileText, description: "Finalize" },
   ]
 
   const progress = (currentStep / steps.length) * 100
@@ -77,7 +90,7 @@ export default function SignUpPage() {
         callbackUrl: `${window.location.origin}/dashboard`,
       })
     } catch (error) {
-      setMessage("Google দিয়ে সাইন আপ করতে সমস্যা হয়েছে")
+      setMessage("Failed to sign up with Google")
     } finally {
       setIsLoading(false)
     }
@@ -89,47 +102,47 @@ export default function SignUpPage() {
     switch (step) {
       case 1:
         if (!formData.email) {
-          stepErrors.email = "ইমেইল আবশ্যক"
+          stepErrors.email = "Email is required"
         } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-          stepErrors.email = "দয়া করে একটি বৈধ ইমেইল ঠিকানা লিখুন"
+          stepErrors.email = "Please enter a valid email address"
         }
         break
 
       case 2:
         if (!formData.username) {
-          stepErrors.username = "ইউজারনেম আবশ্যক"
+          stepErrors.username = "Username is required"
         } else if (formData.username.length < 3) {
-          stepErrors.username = "ইউজারনেম কমপক্ষে ৩ অক্ষরের হতে হবে"
+          stepErrors.username = "Username must be at least 3 characters long"
         } else if (!/^[a-zA-Z0-9_]+$/.test(formData.username)) {
-          stepErrors.username = "ইউজারনেমে শুধুমাত্র অক্ষর, সংখ্যা এবং আন্ডারস্কোর থাকতে পারে"
+          stepErrors.username = "Username can only contain letters, numbers, and underscores"
         }
         // Removed client-side usernameAvailable check here, as it relies on Supabase RPC
         // Server-side validation will catch duplicates.
 
         if (!formData.displayName) {
-          stepErrors.displayName = "প্রদর্শনী নাম আবশ্যক"
+          stepErrors.displayName = "Display name is required"
         } else if (formData.displayName.length > 50) {
-          stepErrors.displayName = "প্রদর্শনী নাম ৫০ অক্ষরের কম হতে হবে"
+          stepErrors.displayName = "Display name must be less than 50 characters"
         }
         break
 
       case 3:
         if (!formData.password) {
-          stepErrors.password = "পাসওয়ার্ড আবশ্যক"
+          stepErrors.password = "Password is required"
         } else if (formData.password.length < 8) {
-          stepErrors.password = "পাসওয়ার্ড কমপক্ষে ৮ অক্ষরের হতে হবে"
+          stepErrors.password = "Password must be at least 8 characters long"
         }
 
         if (!formData.confirmPassword) {
-          stepErrors.confirmPassword = "পাসওয়ার্ড নিশ্চিত করুন"
+          stepErrors.confirmPassword = "Confirm password is required"
         } else if (formData.password !== formData.confirmPassword) {
-          stepErrors.confirmPassword = "পাসওয়ার্ড মিলছে না"
+          stepErrors.confirmPassword = "Passwords do not match"
         }
         break
 
       case 4:
         if (!formData.acceptTerms) {
-          stepErrors.acceptTerms = "শর্তাবলী গ্রহণ করা আবশ্যক"
+          stepErrors.acceptTerms = "You must accept the terms and conditions"
         }
         break
     }
@@ -180,14 +193,14 @@ export default function SignUpPage() {
       const data = await response.json()
 
       if (!response.ok) {
-        setMessage(data.error || "অ্যাকাউন্ট তৈরি করতে সমস্যা হয়েছে")
+        setMessage(data.error || "Failed to create account")
         setMessageType("error")
       } else {
-        setMessage("সফলভাবে অ্যাকাউন্ট তৈরি হয়েছে! আপনার ইমেইল চেক করুন কনফার্মেশন লিঙ্কের জন্য")
+        setMessage("Account created successfully! Check your email for a confirmation link.")
         setMessageType("success")
 
         // Optionally redirect to sign-in or dashboard after successful signup
-        router.push("/auth/sign-in")
+        // router.push("/auth/sign-in");
 
         // Reset form
         setFormData({
@@ -210,7 +223,7 @@ export default function SignUpPage() {
             fieldErrors[err.path[0] as keyof SignUpData] = err.message
           })
           setErrors(fieldErrors)
-          setMessage("ফর্ম পূরণে ত্রুটি রয়েছে")
+          setMessage("There are errors in the form submission.")
         } catch (parseError) {
           setMessage("An unexpected error occurred during form validation.")
         }
@@ -249,19 +262,19 @@ export default function SignUpPage() {
         return (
           <div className="space-y-4">
             <div className="text-center mb-6">
-              <Loader2 className="h-12 w-12 mx-auto text-blue-500 mb-2" />
-              <h3 className="text-lg font-semibold">আপনার ইমেইল ঠিকানা</h3>
-              <p className="text-sm text-gray-600">আমরা আপনার ইমেইলে একটি কনফার্মেশন লিঙ্ক পাঠাবো</p>
+              <Mail className="h-12 w-12 mx-auto text-blue-500 mb-2" />
+              <h3 className="text-lg font-semibold">Your Email Address</h3>
+              <p className="text-sm text-gray-600">We'll send a confirmation link to your email</p>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="email">ইমেইল</Label>
+              <Label htmlFor="email">Email</Label>
               <Input
                 id="email"
                 type="email"
                 value={formData.email}
                 onChange={handleChange("email")}
-                placeholder="আপনার ইমেইল লিখুন"
+                placeholder="Enter your email"
                 disabled={isLoading}
                 className={errors.email ? "border-red-500" : ""}
               />
@@ -294,7 +307,7 @@ export default function SignUpPage() {
                     d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
                   />
                 </svg>
-                Google দিয়ে সাইন আপ করুন
+                Sign up with Google
               </Button>
             </div>
 
@@ -303,7 +316,7 @@ export default function SignUpPage() {
                 <span className="w-full border-t" />
               </div>
               <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-white px-2 text-gray-500">অথবা</span>
+                <span className="bg-white px-2 text-gray-500">Or</span>
               </div>
             </div>
           </div>
@@ -313,20 +326,20 @@ export default function SignUpPage() {
         return (
           <div className="space-y-4">
             <div className="text-center mb-6">
-              <Loader2 className="h-12 w-12 mx-auto text-blue-500 mb-2" />
-              <h3 className="text-lg font-semibold">প্রোফাইল তথ্য</h3>
-              <p className="text-sm text-gray-600">আপনার ইউজারনেম এবং প্রদর্শনী নাম</p>
+              <User className="h-12 w-12 mx-auto text-blue-500 mb-2" />
+              <h3 className="text-lg font-semibold">Profile Information</h3>
+              <p className="text-sm text-gray-600">Your username and display name</p>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="username">ইউজারনেম</Label>
+              <Label htmlFor="username">Username</Label>
               <div className="relative">
                 <Input
                   id="username"
                   type="text"
                   value={formData.username}
                   onChange={handleChange("username")}
-                  placeholder="একটি ইউজারনেম বেছে নিন"
+                  placeholder="Choose a username"
                   disabled={isLoading}
                   className={`pr-10 ${
                     errors.username
@@ -342,27 +355,27 @@ export default function SignUpPage() {
                   {checkingUsername ? (
                     <Loader2 className="h-4 w-4 animate-spin text-gray-400" />
                   ) : usernameAvailable === true ? (
-                    <Loader2 className="h-4 w-4 text-green-500" />
+                    <CheckCircle className="h-4 w-4 text-green-500" />
                   ) : usernameAvailable === false ? (
-                    <Loader2 className="h-4 w-4 text-red-500" />
+                    <XCircle className="h-4 w-4 text-red-500" />
                   ) : null}
                 </div>
               </div>
               {errors.username && <p className="text-sm text-red-600">{errors.username}</p>}
               {usernameAvailable === false && !errors.username && (
-                <p className="text-sm text-red-600">এই ইউজারনেমটি ইতিমধ্যে ব্যবহৃত হয়েছে</p>
+                <p className="text-sm text-red-600">This username is already taken</p>
               )}
-              {usernameAvailable === true && <p className="text-sm text-green-600">ইউজারনেমটি উপলব্ধ</p>}
+              {usernameAvailable === true && <p className="text-sm text-green-600">Username is available</p>}
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="displayName">প্রদর্শনী নাম</Label>
+              <Label htmlFor="displayName">Display Name</Label>
               <Input
                 id="displayName"
                 type="text"
                 value={formData.displayName}
                 onChange={handleChange("displayName")}
-                placeholder="আপনার প্রদর্শনী নাম"
+                placeholder="Your display name"
                 disabled={isLoading}
                 className={errors.displayName ? "border-red-500" : ""}
               />
@@ -375,20 +388,20 @@ export default function SignUpPage() {
         return (
           <div className="space-y-4">
             <div className="text-center mb-6">
-              <Loader2 className="h-12 w-12 mx-auto text-blue-500 mb-2" />
-              <h3 className="text-lg font-semibold">পাসওয়ার্ড সেটআপ</h3>
-              <p className="text-sm text-gray-600">একটি শক্তিশালী পাসওয়ার্ড তৈরি করুন</p>
+              <Lock className="h-12 w-12 mx-auto text-blue-500 mb-2" />
+              <h3 className="text-lg font-semibold">Password Setup</h3>
+              <p className="text-sm text-gray-600">Create a strong password</p>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="password">পাসওয়ার্ড</Label>
+              <Label htmlFor="password">Password</Label>
               <div className="relative">
                 <Input
                   id="password"
                   type={showPassword ? "text" : "password"}
                   value={formData.password}
                   onChange={handleChange("password")}
-                  placeholder="একটি পাসওয়ার্ড তৈরি করুন"
+                  placeholder="Create a password"
                   disabled={isLoading}
                   className={`pr-10 ${errors.password ? "border-red-500" : ""}`}
                 />
@@ -399,9 +412,9 @@ export default function SignUpPage() {
                   disabled={isLoading}
                 >
                   {showPassword ? (
-                    <Loader2 className="h-4 w-4 text-gray-400" />
+                    <EyeOff className="h-4 w-4 text-gray-400" />
                   ) : (
-                    <Loader2 className="h-4 w-4 text-gray-400" />
+                    <Eye className="h-4 w-4 text-gray-400" />
                   )}
                 </button>
               </div>
@@ -409,14 +422,14 @@ export default function SignUpPage() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="confirmPassword">পাসওয়ার্ড নিশ্চিত করুন</Label>
+              <Label htmlFor="confirmPassword">Confirm New Password</Label>
               <div className="relative">
                 <Input
                   id="confirmPassword"
                   type={showConfirmPassword ? "text" : "password"}
                   value={formData.confirmPassword}
                   onChange={handleChange("confirmPassword")}
-                  placeholder="পাসওয়ার্ড আবার লিখুন"
+                  placeholder="Re-enter password"
                   disabled={isLoading}
                   className={`pr-10 ${errors.confirmPassword ? "border-red-500" : ""}`}
                 />
@@ -427,9 +440,9 @@ export default function SignUpPage() {
                   disabled={isLoading}
                 >
                   {showConfirmPassword ? (
-                    <Loader2 className="h-4 w-4 text-gray-400" />
+                    <EyeOff className="h-4 w-4 text-gray-400" />
                   ) : (
-                    <Loader2 className="h-4 w-4 text-gray-400" />
+                    <Eye className="h-4 w-4 text-gray-400" />
                   )}
                 </button>
               </div>
@@ -437,12 +450,12 @@ export default function SignUpPage() {
             </div>
 
             <div className="text-xs text-gray-500 space-y-1">
-              <p>পাসওয়ার্ড অবশ্যই:</p>
+              <p>Password must:</p>
               <ul className="list-disc list-inside ml-2 space-y-1">
-                <li>কমপক্ষে ৮ অক্ষরের হতে হবে</li>
-                <li>বড় ও ছোট হাতের অক্ষর থাকতে হবে</li>
-                <li>অন্তত একটি সংখ্যা থাকতে হবে</li>
-                <li>বিশেষ চিহ্ন থাকলে ভালো</li>
+                <li>Be at least 8 characters long</li>
+                <li>Contain uppercase and lowercase letters</li>
+                <li>Contain at least one number</li>
+                <li>Optionally contain special characters</li>
               </ul>
             </div>
           </div>
@@ -452,22 +465,22 @@ export default function SignUpPage() {
         return (
           <div className="space-y-4">
             <div className="text-center mb-6">
-              <Loader2 className="h-12 w-12 mx-auto text-blue-500 mb-2" />
-              <h3 className="text-lg font-semibold">শর্তাবলী এবং গোপনীয়তা</h3>
-              <p className="text-sm text-gray-600">চূড়ান্ত করার আগে শর্তাবলী পড়ুন</p>
+              <FileText className="h-12 w-12 mx-auto text-blue-500 mb-2" />
+              <h3 className="text-lg font-semibold">Terms and Privacy</h3>
+              <p className="text-sm text-gray-600">Read the terms before finalizing</p>
             </div>
 
             <div className="bg-gray-50 p-4 rounded-lg space-y-3">
-              <h4 className="font-medium">আপনার তথ্য:</h4>
+              <h4 className="font-medium">Your Information:</h4>
               <div className="text-sm space-y-1">
                 <p>
-                  <strong>ইমেইল:</strong> {formData.email}
+                  <strong>Email:</strong> {formData.email}
                 </p>
                 <p>
-                  <strong>ইউজারনেম:</strong> @{formData.username}
+                  <strong>Username:</strong> @{formData.username}
                 </p>
                 <p>
-                  <strong>প্র প্রদর্শনী নাম:</strong> {formData.displayName}
+                  <strong>Display Name:</strong> {formData.displayName}
                 </p>
               </div>
             </div>
@@ -487,11 +500,10 @@ export default function SignUpPage() {
                 />
                 <div className="text-sm">
                   <label htmlFor="acceptTerms" className="cursor-pointer">
-                    আমি{" "}
+                    I have read and agree to the{" "}
                     <button type="button" onClick={() => setShowTerms(true)} className="text-blue-600 hover:underline">
-                      শর্তাবলী এবং গোপনীয়তা নীতি
-                    </button>{" "}
-                    পড়েছি এবং সম্মত হয়েছি
+                      Terms and Privacy Policy
+                    </button>
                   </label>
                 </div>
               </div>
@@ -506,26 +518,61 @@ export default function SignUpPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-100 px-4 py-12 sm:px-6 lg:px-8">
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
       <Card className="w-full max-w-md">
-        <CardHeader className="space-y-1 text-center">
-          <CardTitle className="text-3xl font-bold logo-font">Cōdes</CardTitle>
-          <CardDescription>Create your account</CardDescription>
+        <CardHeader className="text-center">
+          <CardTitle className="text-2xl font-bold logo-font">Cōdes</CardTitle>
+          <CardDescription>Join the conversation today</CardDescription>
+
+          {/* Progress Bar */}
+          <div className="mt-4">
+            <div className="flex justify-between text-xs text-gray-500 mb-2">
+              <span>
+                Step {currentStep} / {steps.length}
+              </span>
+              <span>{Math.round(progress)}% Complete</span>
+            </div>
+            <Progress value={progress} className="h-2" />
+          </div>
+
+          {/* Step Indicators */}
+          <div className="flex justify-between mt-4">
+            {steps.map((step) => {
+              const Icon = step.icon
+              const isActive = currentStep === step.number
+              const isCompleted = currentStep > step.number
+
+              return (
+                <div key={step.number} className="flex flex-col items-center">
+                  <div
+                    className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-medium ${
+                      isCompleted
+                        ? "bg-green-500 text-white"
+                        : isActive
+                          ? "bg-blue-500 text-white"
+                          : "bg-gray-200 text-gray-500"
+                    }`}
+                  >
+                    {isCompleted ? <CheckCircle className="h-4 w-4" /> : <Icon className="h-4 w-4" />}
+                  </div>
+                  <span className="text-xs mt-1 text-center">{step.title}</span>
+                </div>
+              )
+            })}
+          </div>
         </CardHeader>
+
         <CardContent>
-          {message && (
-            <Alert
-              className={`mt-4 ${messageType === "success" ? "border-green-500 bg-green-50" : "border-red-500 bg-red-50"}`}
-            >
-              {messageType === "error" && <AlertCircle className="h-4 w-4" />}
-              <AlertTitle>{messageType === "success" ? "Success" : "Error"}</AlertTitle>
-              <AlertDescription className={messageType === "success" ? "text-green-700" : "text-red-600"}>
-                {message}
-              </AlertDescription>
-            </Alert>
-          )}
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit}>
             {renderStepContent()}
+
+            {message && (
+              <Alert className={`mt-4 ${messageType === "success" ? "border-green-500 bg-green-50" : ""}`}>
+                <AlertDescription className={messageType === "success" ? "text-green-700" : ""}>
+                  {message}
+                </AlertDescription>
+              </Alert>
+            )}
 
             {/* Navigation Buttons */}
             <div className="flex justify-between mt-6">
@@ -536,29 +583,31 @@ export default function SignUpPage() {
                 disabled={currentStep === 1 || isLoading}
                 className="flex items-center bg-transparent"
               >
-                <Loader2 className="h-4 w-4 mr-1" />
-                পূর্ববর্তী
+                <ArrowLeft className="h-4 w-4 mr-1" />
+                Previous
               </Button>
 
               {currentStep < 4 ? (
                 <Button type="button" onClick={nextStep} disabled={isLoading} className="flex items-center">
-                  পরবর্তী
-                  <Loader2 className="h-4 w-4 ml-1" />
+                  Next
+                  <ArrowRight className="h-4 w-4 ml-1" />
                 </Button>
               ) : (
                 <Button type="submit" disabled={isLoading || !formData.acceptTerms} className="flex items-center">
                   {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  অ্যাকাউন্ট তৈরি করুন
+                  Create Account
                 </Button>
               )}
             </div>
           </form>
 
-          <div className="mt-6 text-center text-sm">
-            Already have an account?{" "}
-            <Link href="/auth/sign-in" className="underline">
-              Sign In
-            </Link>
+          <div className="mt-6 text-center">
+            <p className="text-sm text-gray-600">
+              Already have an account?{" "}
+              <Link href="/auth/sign-in" className="text-blue-600 hover:underline">
+                Sign In
+              </Link>
+            </p>
           </div>
         </CardContent>
       </Card>
