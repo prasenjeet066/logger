@@ -3,21 +3,13 @@
 import { useState, useEffect, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { Switch } from "@/components/ui/switch"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Separator } from "@/components/ui/separator"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { useToast } from "@/hooks/use-toast"
 import { useMobile } from "@/hooks/use-mobile"
 import { useSession, signOut } from "next-auth/react"
 import { Spinner } from "@/components/loader/spinner"
-import { User, Bell, Shield, Palette, Camera, Save, ArrowLeft, AlertCircle, Trash2 } from "lucide-react"
-import { EditProfileDialog } from "@/components/profile/edit-profile-dialog"
+import { ArrowLeft, AlertCircle } from "lucide-react"
 import { type UpdateSettingsData, updateSettingsSchema } from "@/lib/validations/settings"
 import { updateUserSettings, deleteUserAccount } from "@/app/actions/settings"
 import { z } from "zod"
@@ -31,6 +23,14 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
+
+// Import the new modular components
+import { ProfileSettings } from "./profile-settings"
+import { PrivacySettings } from "./privacy-settings"
+import { NotificationSettings } from "./notification-settings"
+import { AppearanceSettings } from "./appearance-settings"
+import { DangerZoneSettings } from "./danger-zone-settings"
+import { EditProfileDialog } from "./edit-profile-dialog" // Declare the EditProfileDialog variable
 
 interface SettingsContentProps {
   initialUser: {
@@ -87,7 +87,7 @@ export function SettingsContent({ initialUser }: SettingsContentProps) {
   useEffect(() => {
     if (session?.user) {
       // Update formData if session user data changes (e.g., after profile dialog update)
-      setFormData({
+      const currentSessionData: UpdateSettingsData = {
         displayName: session.user.displayName || "",
         bio: session.user.bio || "",
         location: session.user.location || "",
@@ -100,24 +100,18 @@ export function SettingsContent({ initialUser }: SettingsContentProps) {
         soundEnabled: session.user.soundEnabled || true,
         darkMode: session.user.darkMode || false,
         language: session.user.language || "en",
-      })
-      setOriginalFormData({
-        displayName: session.user.displayName || "",
-        bio: session.user.bio || "",
-        location: session.user.location || "",
-        website: session.user.website || "",
-        isPrivate: session.user.isPrivate || false,
-        allowMessages: session.user.allowMessages || true,
-        showEmail: session.user.showEmail || false,
-        emailNotifications: session.user.emailNotifications || true,
-        pushNotifications: session.user.pushNotifications || true,
-        soundEnabled: session.user.soundEnabled || true,
-        darkMode: session.user.darkMode || false,
-        language: session.user.language || "en",
-      })
+      }
+      setFormData(currentSessionData)
+      setOriginalFormData(currentSessionData)
       setLoading(false)
+
+      // Apply dark mode based on session data
+      if (currentSessionData.darkMode) {
+        document.documentElement.classList.add("dark")
+      } else {
+        document.documentElement.classList.remove("dark")
+      }
     } else {
-      // If session is not available, redirect or show error
       setLoading(false)
       toast({
         title: "Error",
@@ -294,7 +288,7 @@ export function SettingsContent({ initialUser }: SettingsContentProps) {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-950">
         <Spinner />
       </div>
     )
@@ -302,8 +296,8 @@ export function SettingsContent({ initialUser }: SettingsContentProps) {
 
   if (!session?.user) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-4">
-        <Alert variant="destructive">
+      <div className="min-h-screen flex items-center justify-center p-4 bg-gray-50 dark:bg-gray-950">
+        <Alert variant="destructive" className="max-w-md">
           <AlertCircle className="h-4 w-4" />
           <AlertTitle>Error</AlertTitle>
           <AlertDescription>Failed to load user settings. Please ensure you are logged in.</AlertDescription>
@@ -315,8 +309,13 @@ export function SettingsContent({ initialUser }: SettingsContentProps) {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-gray-50">
       {/* Header */}
-      <div className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 px-4 py-3 flex items-center gap-4">
-        <Button variant="ghost" size="icon" onClick={() => router.back()}>
+      <div className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 px-4 py-3 flex items-center gap-4 shadow-sm">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => router.back()}
+          className="text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800"
+        >
           <ArrowLeft className="h-5 w-5" />
         </Button>
         <div>
@@ -327,381 +326,79 @@ export function SettingsContent({ initialUser }: SettingsContentProps) {
 
       <div className="max-w-4xl mx-auto p-4">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4 bg-gray-100 dark:bg-gray-800">
+          <TabsList className="grid w-full grid-cols-4 bg-gray-100 dark:bg-gray-800 rounded-lg p-1 shadow-inner">
             <TabsTrigger
               value="profile"
-              className="flex items-center gap-2 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-700"
+              className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-700 data-[state=active]:text-primary dark:data-[state=active]:text-primary-foreground rounded-md shadow-sm transition-all duration-200"
             >
-              <User className="h-4 w-4" />
-              {!isMobile && "Profile"}
+              Profile
             </TabsTrigger>
             <TabsTrigger
               value="privacy"
-              className="flex items-center gap-2 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-700"
+              className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-700 data-[state=active]:text-primary dark:data-[state=active]:text-primary-foreground rounded-md shadow-sm transition-all duration-200"
             >
-              <Shield className="h-4 w-4" />
-              {!isMobile && "Privacy"}
+              Privacy
             </TabsTrigger>
             <TabsTrigger
               value="notifications"
-              className="flex items-center gap-2 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-700"
+              className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-700 data-[state=active]:text-primary dark:data-[state=active]:text-primary-foreground rounded-md shadow-sm transition-all duration-200"
             >
-              <Bell className="h-4 w-4" />
-              {!isMobile && "Notifications"}
+              Notifications
             </TabsTrigger>
             <TabsTrigger
               value="appearance"
-              className="flex items-center gap-2 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-700"
+              className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-700 data-[state=active]:text-primary dark:data-[state=active]:text-primary-foreground rounded-md shadow-sm transition-all duration-200"
             >
-              <Palette className="h-4 w-4" />
-              {!isMobile && "Appearance"}
+              Appearance
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="profile" className="space-y-6">
-            <Card className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <User className="h-5 w-5" />
-                  Profile Information
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="flex items-center gap-4">
-                  <Avatar className="h-20 w-20 cursor-pointer" onClick={() => setIsEditProfileDialogOpen(true)}>
-                    <AvatarImage src={session.user.avatarUrl || undefined} />
-                    <AvatarFallback className="text-lg">
-                      {session.user.displayName?.charAt(0)?.toUpperCase() || "U"}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="flex items-center gap-2 bg-transparent dark:bg-gray-800 dark:text-gray-50 dark:hover:bg-gray-700"
-                      onClick={() => setIsEditProfileDialogOpen(true)}
-                    >
-                      <Camera className="h-4 w-4" />
-                      Change Photo
-                    </Button>
-                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                      Click avatar to edit profile, including photos.
-                    </p>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="displayName">Display Name</Label>
-                    <Input
-                      id="displayName"
-                      value={formData.displayName}
-                      onChange={(e) => handleChange("displayName", e.target.value)}
-                      placeholder="Your display name"
-                    />
-                    {errors.displayName && (
-                      <p className="text-sm text-red-600 dark:text-red-400">{errors.displayName}</p>
-                    )}
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="username">Username</Label>
-                    <Input
-                      id="username"
-                      value={session.user.username || ""}
-                      disabled
-                      className="bg-gray-100 dark:bg-gray-800 cursor-not-allowed"
-                    />
-                    <p className="text-xs text-gray-500 dark:text-gray-400">Username cannot be changed</p>
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="bio">Bio</Label>
-                  <Textarea
-                    id="bio"
-                    value={formData.bio}
-                    onChange={(e) => handleChange("bio", e.target.value)}
-                    placeholder="Tell us about yourself..."
-                    rows={3}
-                  />
-                  <p className="text-xs text-gray-500 dark:text-gray-400">{formData.bio?.length || 0}/160 characters</p>
-                  {errors.bio && <p className="text-sm text-red-600 dark:text-red-400">{errors.bio}</p>}
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="location">Location</Label>
-                    <Input
-                      id="location"
-                      value={formData.location}
-                      onChange={(e) => handleChange("location", e.target.value)}
-                      placeholder="Your location"
-                    />
-                    {errors.location && <p className="text-sm text-red-600 dark:text-red-400">{errors.location}</p>}
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="website">Website</Label>
-                    <Input
-                      id="website"
-                      value={formData.website}
-                      onChange={(e) => handleChange("website", e.target.value)}
-                      placeholder="https://yourwebsite.com"
-                    />
-                    {errors.website && <p className="text-sm text-red-600 dark:text-red-400">{errors.website}</p>}
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
-                  <Input
-                    id="email"
-                    value={session.user.email || ""}
-                    disabled
-                    className="bg-gray-100 dark:bg-gray-800 cursor-not-allowed"
-                  />
-                  <p className="text-xs text-gray-500 dark:text-gray-400">Email cannot be changed</p>
-                </div>
-
-                <Button onClick={saveSettings} disabled={saving || !hasChanges()} className="w-full md:w-auto">
-                  {saving ? (
-                    <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                      Saving...
-                    </>
-                  ) : (
-                    <>
-                      <Save className="h-4 w-4 mr-2" />
-                      Save Changes
-                    </>
-                  )}
-                </Button>
-              </CardContent>
-            </Card>
+          <TabsContent value="profile">
+            <ProfileSettings
+              formData={formData}
+              handleChange={handleChange}
+              errors={errors}
+              saving={saving}
+              hasChanges={hasChanges}
+              session={session}
+              setIsEditProfileDialogOpen={setIsEditProfileDialogOpen}
+              onProfileUpdateFromDialog={handleProfileUpdateFromDialog}
+              saveSettings={saveSettings}
+            />
           </TabsContent>
 
-          <TabsContent value="privacy" className="space-y-6">
-            <Card className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Shield className="h-5 w-5" />
-                  Privacy Settings
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <Label htmlFor="private-account">Private Account</Label>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">
-                      Only approved followers can see your posts
-                    </p>
-                  </div>
-                  <Switch
-                    id="private-account"
-                    checked={formData.isPrivate}
-                    onCheckedChange={(checked) => handleChange("isPrivate", checked)}
-                  />
-                </div>
-
-                <Separator className="bg-gray-200 dark:bg-gray-700" />
-
-                <div className="flex items-center justify-between">
-                  <div>
-                    <Label htmlFor="allow-messages">Allow Direct Messages</Label>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">Let others send you direct messages</p>
-                  </div>
-                  <Switch
-                    id="allow-messages"
-                    checked={formData.allowMessages}
-                    onCheckedChange={(checked) => handleChange("allowMessages", checked)}
-                  />
-                </div>
-
-                <Separator className="bg-gray-200 dark:bg-gray-700" />
-
-                <div className="flex items-center justify-between">
-                  <div>
-                    <Label htmlFor="show-email">Show Email in Profile</Label>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">
-                      Display your email address on your profile
-                    </p>
-                  </div>
-                  <Switch
-                    id="show-email"
-                    checked={formData.showEmail}
-                    onCheckedChange={(checked) => handleChange("showEmail", checked)}
-                  />
-                </div>
-                <Button onClick={saveSettings} disabled={saving || !hasChanges()} className="w-full md:w-auto">
-                  {saving ? (
-                    <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                      Saving...
-                    </>
-                  ) : (
-                    <>
-                      <Save className="h-4 w-4 mr-2" />
-                      Save Changes
-                    </>
-                  )}
-                </Button>
-              </CardContent>
-            </Card>
+          <TabsContent value="privacy">
+            <PrivacySettings
+              formData={formData}
+              handleChange={handleChange}
+              saving={saving}
+              hasChanges={hasChanges}
+              saveSettings={saveSettings}
+            />
           </TabsContent>
 
-          <TabsContent value="notifications" className="space-y-6">
-            <Card className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Bell className="h-5 w-5" />
-                  Notification Preferences
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <Label htmlFor="email-notifications">Email Notifications</Label>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">Receive notifications via email</p>
-                  </div>
-                  <Switch
-                    id="email-notifications"
-                    checked={formData.emailNotifications}
-                    onCheckedChange={(checked) => handleChange("emailNotifications", checked)}
-                  />
-                </div>
-
-                <Separator className="bg-gray-200 dark:bg-gray-700" />
-
-                <div className="flex items-center justify-between">
-                  <div>
-                    <Label htmlFor="push-notifications">Push Notifications</Label>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">
-                      Receive push notifications on your device
-                    </p>
-                  </div>
-                  <Switch
-                    id="push-notifications"
-                    checked={formData.pushNotifications}
-                    onCheckedChange={(checked) => handleChange("pushNotifications", checked)}
-                  />
-                </div>
-
-                <Separator className="bg-gray-200 dark:bg-gray-700" />
-
-                <div className="flex items-center justify-between">
-                  <div>
-                    <Label htmlFor="sound-enabled">Notification Sounds</Label>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">Play sounds for notifications</p>
-                  </div>
-                  <Switch
-                    id="sound-enabled"
-                    checked={formData.soundEnabled}
-                    onCheckedChange={(checked) => handleChange("soundEnabled", checked)}
-                  />
-                </div>
-                <Button onClick={saveSettings} disabled={saving || !hasChanges()} className="w-full md:w-auto">
-                  {saving ? (
-                    <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                      Saving...
-                    </>
-                  ) : (
-                    <>
-                      <Save className="h-4 w-4 mr-2" />
-                      Save Changes
-                    </>
-                  )}
-                </Button>
-              </CardContent>
-            </Card>
+          <TabsContent value="notifications">
+            <NotificationSettings
+              formData={formData}
+              handleChange={handleChange}
+              saving={saving}
+              hasChanges={hasChanges}
+              saveSettings={saveSettings}
+            />
           </TabsContent>
 
-          <TabsContent value="appearance" className="space-y-6">
-            <Card className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Palette className="h-5 w-5" />
-                  Appearance Settings
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <Label htmlFor="dark-mode">Dark Mode</Label>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">Use dark theme for the interface</p>
-                  </div>
-                  <Switch
-                    id="dark-mode"
-                    checked={formData.darkMode}
-                    onCheckedChange={(checked) => handleChange("darkMode", checked)}
-                  />
-                </div>
-
-                <Separator className="bg-gray-200 dark:bg-gray-700" />
-
-                <div className="space-y-2">
-                  <Label htmlFor="language">Language</Label>
-                  <select
-                    id="language"
-                    value={formData.language}
-                    onChange={(e) => handleChange("language", e.target.value)}
-                    className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-800 dark:text-gray-50 dark:border-gray-700"
-                  >
-                    <option value="en">English</option>
-                    <option value="es">Español</option>
-                    <option value="fr">Français</option>
-                    <option value="de">Deutsch</option>
-                  </select>
-                </div>
-                <Button onClick={saveSettings} disabled={saving || !hasChanges()} className="w-full md:w-auto">
-                  {saving ? (
-                    <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                      Saving...
-                    </>
-                  ) : (
-                    <>
-                      <Save className="h-4 w-4 mr-2" />
-                      Save Changes
-                    </>
-                  )}
-                </Button>
-              </CardContent>
-            </Card>
+          <TabsContent value="appearance">
+            <AppearanceSettings
+              formData={formData}
+              handleChange={handleChange}
+              saving={saving}
+              hasChanges={hasChanges}
+              saveSettings={saveSettings}
+            />
           </TabsContent>
         </Tabs>
 
-        {/* Account Actions */}
-        <Card className="mt-6 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800">
-          <CardHeader>
-            <CardTitle className="text-red-600 dark:text-red-400">Danger Zone</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <Label>Sign Out</Label>
-                <p className="text-sm text-gray-500 dark:text-gray-400">Sign out of your account</p>
-              </div>
-              <Button
-                variant="outline"
-                onClick={handleSignOut}
-                className="dark:bg-gray-800 dark:text-gray-50 dark:hover:bg-gray-700 bg-transparent"
-              >
-                Sign Out
-              </Button>
-            </div>
-            <Separator className="bg-gray-200 dark:bg-gray-700" />
-            <div className="flex items-center justify-between">
-              <div>
-                <Label className="text-red-600 dark:text-red-400">Delete Account</Label>
-                <p className="text-sm text-gray-500 dark:text-gray-400">Permanently delete your account and all data</p>
-              </div>
-              <Button variant="destructive" onClick={() => setIsDeleteAccountDialogOpen(true)}>
-                <Trash2 className="h-4 w-4 mr-2" />
-                Delete Account
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+        <DangerZoneSettings handleSignOut={handleSignOut} setIsDeleteAccountDialogOpen={setIsDeleteAccountDialogOpen} />
       </div>
 
       {session?.user && (
@@ -723,16 +420,18 @@ export function SettingsContent({ initialUser }: SettingsContentProps) {
       )}
 
       <AlertDialog open={isDeleteAccountDialogOpen} onOpenChange={setIsDeleteAccountDialogOpen}>
-        <AlertDialogContent className="bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-50 border border-gray-200 dark:border-gray-800">
+        <AlertDialogContent className="bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-50 border border-gray-200 dark:border-gray-800 shadow-lg">
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-red-600 dark:text-red-400">Are you absolutely sure?</AlertDialogTitle>
-            <AlertDialogDescription className="text-gray-600 dark:text-gray-400">
+            <AlertDialogTitle className="text-red-600 dark:text-red-400 text-xl font-bold">
+              Are you absolutely sure?
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-gray-600 dark:text-gray-400 text-base">
               This action cannot be undone. This will permanently delete your account and remove your data from our
               servers.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel className="dark:bg-gray-800 dark:text-gray-50 dark:hover:bg-gray-700">
+            <AlertDialogCancel className="dark:bg-gray-800 dark:text-gray-50 dark:hover:bg-gray-700 border border-gray-300 dark:border-gray-700 hover:bg-gray-100">
               Cancel
             </AlertDialogCancel>
             <AlertDialogAction
