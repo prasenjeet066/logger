@@ -23,33 +23,7 @@ export function MobileBottomNav({ profile, onSearchOpen, onNotificationOpen }: M
   ]
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-white border-t shadow-lg z-40 lg:hidden">
-      <nav className="flex justify-around h-16 items-center">
-        {navItems.map((item) => (
-          <Button
-            key={item.label}
-            variant="ghost"
-            size="icon"
-            className={`flex flex-col gap-1 h-full w-full rounded-none ${
-              pathname === item.href ? "text-blue-600" : "text-gray-500"
-            }`}
-            onClick={item.action || undefined}
-            asChild={!item.action}
-          >
-            {item.action ? (
-              <>
-                <item.icon className="h-5 w-5" />
-                <span className="text-xs">{item.label}</span>
-              </>
-            ) : (
-              <Link href={item.href}>
-                <item.icon className="h-5 w-5" />
-                <span className="text-xs">{item.label}</span>
-              </Link>
-            )}
-          </Button>
-        ))}
-      </nav>
-    </div>
+    
+    <></>
   )
 }

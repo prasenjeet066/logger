@@ -2,8 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Removed direct @import url for Google Fonts, as next/font handles it */
-
 @layer base {
   :root {
     --background: 0 0% 100%;
@@ -83,7 +81,7 @@
   }
   body {
     @apply bg-background text-foreground;
-    font-family: var(--font-raleway), sans-serif; /* Use Raleway CSS variable */
+    font-family: var(--font-raleway), sans-serif; /* Use Raleway CSS variable as default */
   }
 }
 
@@ -105,7 +103,7 @@
 }
 
 .logo-font {
-  font-family: "Racing Sans One", sans-serif;
+  font-family: var(--font-bytesized), sans-serif; /* Use Bytesized CSS variable for the logo */
   font-weight: 600;
   color: #121212;
 }

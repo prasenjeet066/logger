@@ -1,7 +1,6 @@
 import type React from "react"
 import type { Metadata } from "next"
-import { Raleway, Inconsolata, Space_Grotesk } from "next/font/google" // Import Raleway, Inconsolata, and Space_Grotesk
-import localFont from "next/font/local" // Import localFont for Bytesized
+import { Raleway, Inconsolata, Besley as Bytesized } from "next/font/google" // Import Raleway, Inconsolata, and Bytesized
 import "./globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
 import { Toaster } from "@/components/ui/sonner"
@@ -22,29 +21,12 @@ const inconsolata = Inconsolata({
   variable: "--font-inconsolata", // Define CSS variable for Inconsolata
 })
 
-// Configure Space Grotesk font
-const spaceGrotesk = Space_Grotesk({
+// Configure Bytesized font for the logo
+const bytesized = Bytesized({
+  weight: "400", // Bytesized is a single-weight font, so specify a weight
   subsets: ["latin"],
   display: "swap",
-  variable: "--font-space-grotesk",
-})
-
-// Configure Bytesized font (assuming it's a local font or a specific Google Font that needs this approach)
-// If 'Bytesized' is a standard Google Font, you would import it like Raleway/Inconsolata.
-// For demonstration, I'll treat it as a local font or a custom font that needs a specific import.
-// If it's a Google Font, please confirm its exact name for `next/font/google`.
-// For now, I'll use a placeholder for a local font, as 'Bytesized' isn't a standard Google Font name.
-// If it's a custom font file, you'd use `localFont`. If it's a Google Font, replace `localFont` with `GoogleFontName`.
-const bytesized = localFont({
-  src: [
-    {
-      path: "../public/fonts/Bytesized.ttf", // Placeholder path, replace with actual font file if local
-      weight: "400",
-      style: "normal",
-    },
-  ],
-  display: "swap",
-  variable: "--font-bytesized",
+  variable: "--font-bytesized", // Define CSS variable for Bytesized
 })
 
 export const metadata: Metadata = {
@@ -62,7 +44,7 @@ export default function RootLayout({
     <html
       lang="en"
       suppressHydrationWarning
-      className={`${raleway.variable} ${inconsolata.variable} ${spaceGrotesk.variable} ${bytesized.variable}`} // Apply all font variables
+      className={`${raleway.variable} ${inconsolata.variable} ${bytesized.variable}`} // Apply all font variables
     >
       <body>
         <AuthProvider>
