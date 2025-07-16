@@ -263,8 +263,7 @@ export function ReplyCard({ post, onLike, onRepost }) {
   return (
     <article 
       className="hover:bg-gray-50 transition-colors cursor-pointer border-b border-gray-200"
-      aria-label={`Post by ${post.author.displayName}`} // Changed from display_name
-    >
+      aria-label={`Post by ${post.author.displayName}`} >
       <div className="p-4">
         <div className="flex gap-3 relative">
           {/* Thread line */}

@@ -334,7 +334,7 @@ export function PostCard({ post, onLike, onRepost, onReply }: PostCardProps) {
     <article 
       className="border-b hover:bg-gray-50 transition-colors cursor-pointer"
       onClick={handlePostClick}
-      aria-label={`Post by ${post.author.displayName}`} // Changed from display_name
+      aria-label={`Post by ${post.author.displayName}`}
     >
       <div className="p-4">
         {/* Repost header */}
@@ -474,7 +474,7 @@ export function PostCard({ post, onLike, onRepost, onReply }: PostCardProps) {
                   e.stopPropagation()
                   handleReplyClick()
                 }}
-                aria-label={`Reply to post. ${post.repliesCount || 0} replies\`} {/* Changed from replies_count */}
+                aria-label={`Reply to post. ${post.repliesCount || 0} replies`}
               >
                 <MessageCircle className="h-4 w-4 mr-1"/>
                 <span className="text-xs lg:text-sm">{post.repliesCount || 0}</span> {/* Changed from replies_count */}
@@ -483,7 +483,7 @@ export function PostCard({ post, onLike, onRepost, onReply }: PostCardProps) {
               <Button
                 variant="ghost"
                 size="sm"
-                className={\`${
+                className={`${
                   post.isReposted
                     ? "text-green-600 bg-green-50"
                     : "text-gray-500 hover:text-green-600 hover:bg-green-50"
