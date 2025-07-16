@@ -14,6 +14,7 @@ const config: Config = {
         racing: ['"Racing Sans One"'],
         raleway: ["var(--font-raleway)"], // Use CSS variable for Raleway
         inconsolata: ["var(--font-inconsolata)"], // Add Inconsolata
+        bytesized: ["var(--font-bytesized)"], // Add Bytesized
         "space-grotesk": ['"Space Grotesk"', "sans-serif"],
         "noto-sans-devanagari": ['"Noto Sans Devanagari"', "sans-serif"],
         "noto-sans-arabic": ['"Noto Sans Arabic"', "sans-serif"],
