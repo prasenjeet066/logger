@@ -7,7 +7,7 @@ import { formatDistanceToNow } from "date-fns"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { getImageRatioFromSrc, getHeightFromWidth } from "@/lib/ration-lib"
 import { Button } from "@/components/ui/button"
-import { Heart, Loader2, Languages, Repeat2, Share, Pin, AlertCircle, MessageCircle } from "lucide-react"
+import { Heart, Loader2, MessageCircle, Languages, Repeat2, Share, Pin, AlertCircle } from "lucide-react"
 import Link from "next/link"
 import { PostActionsMenu } from "@/components/dashboard/post-actions-menu"
 import { VerificationBadge } from "@/components/badge/verification-badge"
@@ -68,7 +68,7 @@ export function PostSection({ post, onLike, onRepost, onReply }: PostCardProps) 
   const { data: session } = useSession()
   const currentUserId = session?.user?.id
 
-  const [showReplyDialog, setShowReplyDialog] = useState(false)
+  const [showReplyDialog, setShowReplyDialog] = useState(false) // This state is not used in the current render, but kept for potential future use.
   const [showTrim, SetShowTrim] = useState("trim")
   const [repostLoading, setRepostLoading] = useState(false)
   const [translation, setTranslation] = useState<TranslationState>({
@@ -90,7 +90,7 @@ export function PostSection({ post, onLike, onRepost, onReply }: PostCardProps) 
   const [imageH, setH] = useState(0)
   const MAX_LENGTH = 100
   const shouldTrim = post.content.length > MAX_LENGTH
-  const displayContent = shouldTrim ? smartTruncate(post.content, MAX_LENGTH) : post.content
+  const displayContent = shouldTrim && showTrim === "trim" ? smartTruncate(post.content, MAX_LENGTH) : post.content
 
   // Translation function with better error handling
   const translateText = useCallback(async (text: string, targetLang = "bn"): Promise<string> => {
@@ -343,7 +343,7 @@ export function PostSection({ post, onLike, onRepost, onReply }: PostCardProps) 
     >
       <div className="p-4 flex flex-col">
         {/* Repost header */}
-        {post.isRepost && (
+        {post.isReposted && (
           <div className="flex items-center gap-2 mb-3 text-gray-500 text-sm">
             <Repeat2 className="h-4 w-4" />
             <span>
