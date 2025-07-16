@@ -6,12 +6,12 @@ import { connectDB } from "@/lib/mongodb/connection"
 import { User } from "@/lib/mongodb/models/User"
 
 interface PostPageProps {
-  params: {
-    id: string
-  }
+  params: Promise<{ id: string }>
 }
 
 export default async function PostPage({ params }: PostPageProps) {
+  const { id } = await params
+
   // Get session using NextAuth
   const session = await getServerSession(authOptions)
 
@@ -36,5 +36,5 @@ export default async function PostPage({ params }: PostPageProps) {
     redirect("/auth/sign-in")
   }
 
-  return <PostDetailContent postId={params.id} userId={currentUser._id.toString()} />
+  return <PostDetailContent postId={id} userId={currentUser._id.toString()} />
 }
