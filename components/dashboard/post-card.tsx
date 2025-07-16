@@ -6,7 +6,7 @@ import { useState, useCallback, useMemo } from "react"
 import { formatDistanceToNow } from "date-fns"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
-import { Loader2, Languages, Repeat2, Share, Pin, AlertCircle } from "lucide-react"
+import { Loader2, Languages, Repeat2, Share, Pin, AlertCircle, Heart, MessageCircle } from "lucide-react"
 import Link from "next/link"
 import { PostActionsMenu } from "./post-actions-menu"
 import { VerificationBadge } from "@/components/badge/verification-badge"
@@ -14,12 +14,10 @@ import LinkPreview from "@/components/link-preview"
 import DOMPurify from "dompurify"
 import { useRouter, usePathname } from "next/navigation"
 import type { Post } from "@/types/post"
-import { useSession } from "next-auth/react" // Import useSession
+import { useSession } from "next-auth/react"
 
 interface PostCardProps {
   post: Post
-  // currentUserId: string // No longer needed, get from session
-  // currentUser: any // No longer needed, get from session
   onLike: (postId: string, isLiked: boolean) => void
   onRepost: (postId: string, isReposted: boolean) => void
   onReply?: () => void
@@ -66,8 +64,8 @@ const smartTruncate = (text: string, maxLength: number): string => {
 }
 
 export function PostCard({ post, onLike, onRepost, onReply }: PostCardProps) {
-  const { data: session } = useSession() // Get session
-  const currentUserId = session?.user?.id // Extract current user ID
+  const { data: session } = useSession()
+  const currentUserId = session?.user?.id
 
   const [showReplyDialog, setShowReplyDialog] = useState(false)
   const [repostLoading, setRepostLoading] = useState(false)
@@ -84,7 +82,7 @@ export function PostCard({ post, onLike, onRepost, onReply }: PostCardProps) {
 
   // Memoized values
   const postUrl = useMemo(() => extractFirstUrl(post.content), [post.content])
-  const hasMedia = useMemo(() => post.mediaUrls && post.mediaUrls.length > 0, [post.mediaUrls]) // Changed from media_urls
+  const hasMedia = useMemo(() => post.mediaUrls && post.mediaUrls.length > 0, [post.mediaUrls])
   const isPostPage = useMemo(() => pathname.startsWith("/post"), [pathname])
 
   const MAX_LENGTH = 100
@@ -189,17 +187,16 @@ export function PostCard({ post, onLike, onRepost, onReply }: PostCardProps) {
 
   // Reply handler
   const handleReplyClick = useCallback(() => {
-    router.push(`/post/${post._id}`) // Changed from post.id
-  }, [router, post._id]) // Changed from post.id
+    router.push(`/post/${post._id}`)
+  }, [router, post._id])
 
   // Enhanced repost handler with better error handling
   const handleRepostClick = useCallback(async () => {
-    if (repostLoading || !currentUserId) return // Ensure user is logged in
+    if (repostLoading || !currentUserId) return
 
     setRepostLoading(true)
     try {
       const response = await fetch(`/api/posts/${post._id}/repost`, {
-        // Changed from post.id
         method: "POST",
       })
 
@@ -207,22 +204,20 @@ export function PostCard({ post, onLike, onRepost, onReply }: PostCardProps) {
         throw new Error("Failed to toggle repost")
       }
       const result = await response.json()
-      onRepost(post._id, result.reposted) // Pass the actual reposted status from API
+      onRepost(post._id, result.reposted)
     } catch (error) {
       console.error("Error reposting:", error)
-      // You might want to show a toast notification here
     } finally {
       setRepostLoading(false)
     }
-  }, [repostLoading, post._id, currentUserId, onRepost]) // Changed from post.id
+  }, [repostLoading, post._id, currentUserId, onRepost])
 
   // Enhanced pin handler
   const handlePinPost = useCallback(async () => {
-    if (!currentUserId) return // Ensure user is logged in
+    if (!currentUserId) return
 
     try {
       const response = await fetch(`/api/posts/${post._id}/pin`, {
-        // Changed from post.id
         method: "POST",
       })
 
@@ -230,12 +225,11 @@ export function PostCard({ post, onLike, onRepost, onReply }: PostCardProps) {
         throw new Error("Failed to toggle pin status")
       }
       const result = await response.json()
-      // Assuming onReply triggers a refresh or updates the post state
       onReply?.()
     } catch (error) {
       console.error("Error pinning post:", error)
     }
-  }, [post._id, currentUserId, onReply]) // Changed from post.id
+  }, [post._id, currentUserId, onReply])
 
   // Enhanced media rendering with loading states
   const renderMedia = useCallback((mediaUrls: string[] | null, mediaType: string | null) => {
@@ -256,7 +250,6 @@ export function PostCard({ post, onLike, onRepost, onReply }: PostCardProps) {
             preload="metadata"
             onError={(e) => {
               console.error("Video load error:", e)
-              // You might want to show a fallback image here
             }}
           />
         </div>
@@ -322,29 +315,28 @@ export function PostCard({ post, onLike, onRepost, onReply }: PostCardProps) {
     const pathParts = pathname.split("/")
     const currentPostId = pathParts[1] === "post" && pathParts[2] ? pathParts[2] : null
     if (currentPostId !== post._id) {
-      // Changed from post.id
-      router.push(`/post/${post._id}`) // Changed from post.id
+      router.push(`/post/${post._id}`)
     }
-  }, [pathname, post._id, router]) // Changed from post.id
+  }, [pathname, post._id, router])
 
   // Determine what content to display
   const contentToDisplay = translation.translatedText || displayContent
 
   return (
-    <article 
+    <article
       className="border-b hover:bg-gray-50 transition-colors cursor-pointer"
       onClick={handlePostClick}
       aria-label={`Post by ${post.author.displayName}`}
     >
       <div className="p-4">
         {/* Repost header */}
-        {post.isRepost && ( // Changed from is_repost
+        {post.isRepost && (
           <div className="flex items-center gap-2 mb-3 text-gray-500 text-sm">
             <Repeat2 className="h-4 w-4" />
             <span>
               Reposted by{" "}
-              <Link 
-                href={`/profile/${post.repostedBy}`} // Changed from reposted_by
+              <Link
+                href={`/profile/${post.repostedBy}`}
                 className="text-blue-600 hover:underline transition-colors"
                 onClick={(e) => e.stopPropagation()}
               >
@@ -355,7 +347,7 @@ export function PostCard({ post, onLike, onRepost, onReply }: PostCardProps) {
         )}
 
         {/* Pin indicator */}
-        {post.isPinned && ( // Changed from is_pinned
+        {post.isPinned && (
           <div className="flex items-center gap-2 mb-3 text-blue-600 text-sm">
             <Pin className="h-4 w-4" />
             <span>Pinned Post</span>
@@ -363,36 +355,36 @@ export function PostCard({ post, onLike, onRepost, onReply }: PostCardProps) {
         )}
 
         <div className="flex gap-3">
-          <Link 
-            href={`/profile/${post.author.username}`} // Changed from post.username
-            className="flex-shrink-0" 
+          <Link
+            href={`/profile/${post.author.username}`}
+            className="flex-shrink-0"
             onClick={(e) => e.stopPropagation()}
           >
             <Avatar className="cursor-pointer h-10 w-10 lg:h-12 lg:w-12 ring-2 ring-transparent hover:ring-blue-200 transition-all">
-              <AvatarImage src={post.author.avatarUrl || undefined} alt={`${post.author.displayName}'s avatar`} /> {/* Changed from avatar_url, display_name */}
+              <AvatarImage src={post.author.avatarUrl || undefined} alt={`${post.author.displayName}'s avatar`} />
               <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white">
-                {post.author.displayName?.charAt(0)?.toUpperCase() || "U"} {/* Changed from display_name */}
+                {post.author.displayName?.charAt(0)?.toUpperCase() || "U"}
               </AvatarFallback>
             </Avatar>
           </Link>
-          
+
           <div className="flex-1 min-w-0">
             <div className="flex flex-col items-left gap-1">
               <Link
-                href={`/profile/${post.author.username}`} // Changed from post.username
+                href={`/profile/${post.author.username}`}
                 className="hover:underline transition-colors"
                 onClick={(e) => e.stopPropagation()}
               >
                 <span className="font-semibold flex items-center gap-1">
-                  {post.author.displayName} {/* Changed from display_name */}
-                  {post.author.isVerified && <VerificationBadge className="h-4 w-4" size={15} />} {/* Changed from is_verified */}
+                  {post.author.displayName}
+                  {post.author.isVerified && <VerificationBadge className="h-4 w-4" size={15} />}
                 </span>
               </Link>
               <div className="flex flex-row items-center gap-1 -mt-2">
-                <span className="text-gray-500 text-[10px]">@{post.author.username}</span> {/* Changed from post.username */}
+                <span className="text-gray-500 text-[10px]">@{post.author.username}</span>
                 <span className="text-gray-500 text-[10px]">·</span>
-                <time className="text-gray-500 text-[10px]" dateTime={post.createdAt}> {/* Changed from created_at */}
-                  {formatDistanceToNow(new Date(post.createdAt), { addSuffix: true })} {/* Changed from created_at */}
+                <time className="text-gray-500 text-[10px]" dateTime={post.createdAt}>
+                  {formatDistanceToNow(new Date(post.createdAt), { addSuffix: true })}
                 </time>
               </div>
             </div>
@@ -404,14 +396,14 @@ export function PostCard({ post, onLike, onRepost, onReply }: PostCardProps) {
                   className="text-gray-900 whitespace-pre-wrap text-sm lg:text-base leading-relaxed"
                   dangerouslySetInnerHTML={{ __html: formatContent(contentToDisplay) }}
                 />
-                
+
                 {/* Show more button */}
                 {shouldTrim && !isPostPage && (
                   <button
                     className="text-blue-600 hover:text-blue-800 hover:underline text-sm mt-2 transition-colors"
                     onClick={(e) => {
                       e.stopPropagation()
-                      router.push(`/post/${post._id}`) // Changed from post.id
+                      router.push(`/post/${post._id}`)
                     }}
                   >
                     Show More
@@ -443,7 +435,7 @@ export function PostCard({ post, onLike, onRepost, onReply }: PostCardProps) {
                     </>
                   )}
                 </button>
-                
+
                 {/* Translation error */}
                 {translation.error && (
                   <div className="flex items-center gap-1 text-sm text-red-600 mt-1">
@@ -462,7 +454,7 @@ export function PostCard({ post, onLike, onRepost, onReply }: PostCardProps) {
             )}
 
             {/* Media */}
-            {renderMedia(post.mediaUrls, post.mediaType)} {/* Changed from media_urls, media_type */}
+            {renderMedia(post.mediaUrls, post.mediaType)}
 
             {/* Action buttons */}
             <div className="flex items-center justify-between max-w-sm lg:max-w-md mt-3">
@@ -476,8 +468,8 @@ export function PostCard({ post, onLike, onRepost, onReply }: PostCardProps) {
                 }}
                 aria-label={`Reply to post. ${post.repliesCount || 0} replies`}
               >
-                <MessageCircle className="h-4 w-4 mr-1"/>
-                <span className="text-xs lg:text-sm">{post.repliesCount || 0}</span> {/* Changed from replies_count */}
+                <MessageCircle className="h-4 w-4 mr-1" />
+                <span className="text-xs lg:text-sm">{post.repliesCount || 0}</span>
               </Button>
 
               <Button
@@ -493,32 +485,30 @@ export function PostCard({ post, onLike, onRepost, onReply }: PostCardProps) {
                   handleRepostClick()
                 }}
                 disabled={repostLoading}
-                aria-label={`${post.isReposted ? "Unrepost" : "Repost"}. ${post.repostsCount || 0} reposts`} 
+                aria-label={`${post.isReposted ? "Unrepost" : "Repost"}. ${post.repostsCount || 0} reposts`}
               >
                 {repostLoading ? (
                   <Loader2 className="h-4 w-4 mr-1 animate-spin" />
                 ) : (
                   <Repeat2 className={`h-4 w-4 mr-1 ${post.isReposted ? "fill-current" : ""}`} />
                 )}
-                <span className="text-xs lg:text-sm">{post.repostsCount || 0}</span> {/* Changed from reposts_count */}
+                <span className="text-xs lg:text-sm">{post.repostsCount || 0}</span>
               </Button>
 
               <Button
                 variant="ghost"
                 size="sm"
                 className={`${
-                  post.isLiked // Changed from is_liked
-                    ? "text-red-600 bg-red-50" 
-                    : "text-gray-500 hover:text-red-600 hover:bg-red-50"
+                  post.isLiked ? "text-red-600 bg-red-50" : "text-gray-500 hover:text-red-600 hover:bg-red-50"
                 } p-2 rounded-full transition-colors`}
                 onClick={(e) => {
                   e.stopPropagation()
-                  onLike(post._id, post.isLiked) // Changed from post.id, is_liked
+                  onLike(post._id, post.isLiked)
                 }}
                 aria-label={`${post.isLiked ? "Unlike" : "Like"} post. ${post.likesCount} likes`}
               >
-                <Heart className={`h-4 w-4 mr-1 ${post.isLiked ? "fill-current" : ""}`} /> {/* Changed from is_liked */}
-                <span className="text-xs lg:text-sm">{post.likesCount}</span> {/* Changed from likes_count */}
+                <Heart className={`h-4 w-4 mr-1 ${post.isLiked ? "fill-current" : ""}`} />
+                <span className="text-xs lg:text-sm">{post.likesCount}</span>
               </Button>
 
               <Button
@@ -534,7 +524,7 @@ export function PostCard({ post, onLike, onRepost, onReply }: PostCardProps) {
 
               <PostActionsMenu
                 post={post}
-                currentUserId={currentUserId || ""} // Pass currentUserId
+                currentUserId={currentUserId || ""}
                 onPostUpdated={onReply}
                 onPostDeleted={onReply}
                 onPinPost={handlePinPost}
@@ -542,7 +532,7 @@ export function PostCard({ post, onLike, onRepost, onReply }: PostCardProps) {
             </div>
           </div>
         </div>
-  </div>
+      </div>
     </article>
   )
 }

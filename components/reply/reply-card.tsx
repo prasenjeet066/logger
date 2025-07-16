@@ -6,19 +6,17 @@ import { useState, useEffect, useCallback, useMemo } from "react"
 import { formatDistanceToNow } from "date-fns"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
-import { MessageCircle, Share } from "lucide-react"
+import { Heart, Loader2, MessageCircle, Repeat2, Share } from "lucide-react"
 import Link from "next/link"
 import { VerificationBadge } from "@/components/badge/verification-badge"
 import LinkPreview from "@/components/link-preview"
 import DOMPurify from "dompurify"
 import { useRouter, usePathname } from "next/navigation"
 import type { Post } from "@/types/post"
-import { useSession } from "next-auth/react" // Import useSession
+import { useSession } from "next-auth/react"
 
 interface PostCardProps {
   post: Post
-  // currentUserId: string // No longer needed
-  // currentUser: any // No longer needed
   onLike: (postId: string, isLiked: boolean) => void
   onRepost: (postId: string, isReposted: boolean) => void
   onReply?: () => void
@@ -64,7 +62,7 @@ const smartTruncate = (text: string, maxLength: number): string => {
 
 // Reply Preview Component
 interface ReplyPreviewProps {
-  reply: Post // Use the Post type for replies
+  reply: Post
   index: number
   total: number
 }
@@ -73,28 +71,20 @@ const ReplyPreview = ({ reply, index, total }: ReplyPreviewProps) => {
   return (
     <div className="rounded-lg p-3 mb-2 last:mb-0">
       <div className="flex gap-3">
-        <Link
-          href={`/profile/${reply.author.username}`} // Changed from profiles.username
-          className="flex-shrink-0"
-          onClick={(e) => e.stopPropagation()}
-        >
+        <Link href={`/profile/${reply.author.username}`} className="flex-shrink-0" onClick={(e) => e.stopPropagation()}>
           <Avatar className="h-8 w-8 border-2 border-white">
-            <AvatarImage src={reply.author.avatarUrl || undefined} alt={`${reply.author.displayName}'s avatar`} />{" "}
-            {/* Changed from profiles.avatar_url, profiles.display_name */}
+            <AvatarImage src={reply.author.avatarUrl || undefined} alt={`${reply.author.displayName}'s avatar`} />
             <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white text-xs">
-              {reply.author.displayName?.charAt(0)?.toUpperCase() || "U"} {/* Changed from profiles.display_name */}
+              {reply.author.displayName?.charAt(0)?.toUpperCase() || "U"}
             </AvatarFallback>
           </Avatar>
         </Link>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
-            <span className="font-medium text-sm">{reply.author.displayName}</span>{" "}
-            {/* Changed from profiles.display_name */}
+            <span className="font-medium text-sm">{reply.author.displayName}</span>
             <span className="text-gray-500 text-xs">·</span>
             <time className="text-gray-500 text-xs" dateTime={reply.createdAt}>
-              {" "}
-              {/* Changed from created_at */}
-              {formatDistanceToNow(new Date(reply.createdAt), { addSuffix: false })} {/* Changed from created_at */}
+              {formatDistanceToNow(new Date(reply.createdAt), { addSuffix: false })}
             </time>
           </div>
           <p className="text-sm text-gray-700 mt-1 line-clamp-2">{reply.content}</p>
@@ -104,12 +94,12 @@ const ReplyPreview = ({ reply, index, total }: ReplyPreviewProps) => {
   )
 }
 
-export function ReplyCard({ post, onLike, onRepost }) {
-  const { data: session } = useSession() // Get session
-  const currentUserId = session?.user?.id // Extract current user ID
+export function ReplyCard({ post, onLike, onRepost }: PostCardProps) {
+  const { data: session } = useSession()
+  const currentUserId = session?.user?.id
 
   const [showReplyDialog, setShowReplyDialog] = useState(false)
-  const [replies, setReplies] = useState<Post[]>([]) // Specify Post type
+  const [replies, setReplies] = useState<Post[]>([])
   const [showAllReplies, setShowAllReplies] = useState(false)
   const [repostLoading, setRepostLoading] = useState(false)
   const [translation, setTranslation] = useState<TranslationState>({
@@ -125,12 +115,12 @@ export function ReplyCard({ post, onLike, onRepost }) {
 
   // Memoized values
   const postUrl = useMemo(() => extractFirstUrl(post.content), [post.content])
-  const hasMedia = useMemo(() => post.mediaUrls && post.mediaUrls.length > 0, [post.mediaUrls]) // Changed from media_urls
+  const hasMedia = useMemo(() => post.mediaUrls && post.mediaUrls.length > 0, [post.mediaUrls])
   const isPostPage = useMemo(() => pathname.startsWith("/post"), [pathname])
 
   const fetchReplies = async () => {
     try {
-      const response = await fetch(`/api/posts/${post._id}/replies`) // New API route
+      const response = await fetch(`/api/posts/${post._id}/replies`)
 
       if (!response.ok) {
         throw new Error("Failed to fetch replies")
@@ -144,7 +134,7 @@ export function ReplyCard({ post, onLike, onRepost }) {
 
   useEffect(() => {
     fetchReplies()
-  }, [post._id]) // Depend on post._id
+  }, [post._id])
 
   const MAX_LENGTH = 100
   const shouldTrim = !isPostPage && post.content.length > MAX_LENGTH
@@ -261,50 +251,49 @@ export function ReplyCard({ post, onLike, onRepost }) {
   const hasMoreReplies = replies.length > 1
 
   return (
-    <article 
+    <article
       className="hover:bg-gray-50 transition-colors cursor-pointer border-b border-gray-200"
-      aria-label={`Post by ${post.author.displayName}`} >
+      aria-label={`Post by ${post.author.displayName}`}
+    >
       <div className="p-4">
         <div className="flex gap-3 relative">
           {/* Thread line */}
-          {replies.length > 0 && (
-            <div className="absolute left-6 top-14 w-[5px] bg-none border-l-2  h-full"></div>
-          )}
-          
-          <Link 
-            href={`/profile/${post.author.username}`} // Changed from post.username
-            className="flex-shrink-0 relative z-10" 
+          {replies.length > 0 && <div className="absolute left-6 top-14 w-[5px] bg-none border-l-2  h-full"></div>}
+
+          <Link
+            href={`/profile/${post.author.username}`}
+            className="flex-shrink-0 relative z-10"
             onClick={(e) => e.stopPropagation()}
           >
             <Avatar className="cursor-pointer h-12 w-12 ring-2 ring-white border-2 border-gray-200 hover:ring-blue-200 transition-all">
-              <AvatarImage src={post.author.avatarUrl || undefined} alt={`${post.author.displayName}'s avatar`} /> {/* Changed from avatar_url, display_name */}
+              <AvatarImage src={post.author.avatarUrl || undefined} alt={`${post.author.displayName}'s avatar`} />
               <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white">
-                {post.author.displayName?.charAt(0)?.toUpperCase() || "U"} {/* Changed from display_name */}
+                {post.author.displayName?.charAt(0)?.toUpperCase() || "U"}
               </AvatarFallback>
             </Avatar>
           </Link>
-          
+
           <div className="flex-1 min-w-0">
             <div className="flex flex-col items-left gap-1">
               <Link
-                href={`/profile/${post.author.username}`} // Changed from post.username
+                href={`/profile/${post.author.username}`}
                 className="hover:underline transition-colors"
                 onClick={(e) => e.stopPropagation()}
               >
                 <span className="font-semibold flex items-center gap-1">
-                  {post.author.displayName} {/* Changed from display_name */}
-                  {post.author.isVerified && <VerificationBadge className="h-4 w-4" size={15} />} {/* Changed from is_verified */}
+                  {post.author.displayName}
+                  {post.author.isVerified && <VerificationBadge className="h-4 w-4" size={15} />}
                 </span>
               </Link>
               <div className="flex flex-row items-center gap-1 -mt-1">
-                <span className="text-gray-500 text-sm">@{post.author.username}</span> {/* Changed from post.username */}
+                <span className="text-gray-500 text-sm">@{post.author.username}</span>
                 <span className="text-gray-500 text-sm">·</span>
-                <time className="text-gray-500 text-sm" dateTime={post.createdAt}> {/* Changed from created_at */}
-                  {formatDistanceToNow(new Date(post.createdAt), { addSuffix: true })} {/* Changed from created_at */}
+                <time className="text-gray-500 text-sm" dateTime={post.createdAt}>
+                  {formatDistanceToNow(new Date(post.createdAt), { addSuffix: true })}
                 </time>
               </div>
             </div>
-            
+
             {/* Post content */}
             {post.content && (
               <div className="mt-2 mb-3">
@@ -312,13 +301,13 @@ export function ReplyCard({ post, onLike, onRepost }) {
                   className="text-gray-900 whitespace-pre-wrap text-sm lg:text-base leading-relaxed"
                   dangerouslySetInnerHTML={{ __html: formatContent(contentToDisplay) }}
                 />
-                
+
                 {shouldTrim && (
                   <button
                     className="text-blue-600 hover:text-blue-800 hover:underline text-sm mt-2 transition-colors"
                     onClick={(e) => {
                       e.stopPropagation()
-                      router.push(`/post/${post._id}`) // Changed from post.id
+                      router.push(`/post/${post._id}`)
                     }}
                   >
                     Show More
@@ -335,7 +324,7 @@ export function ReplyCard({ post, onLike, onRepost }) {
             )}
 
             {/* Media */}
-            {renderMedia(post.mediaUrls, post.mediaType)} {/* Changed from media_urls, media_type */}
+            {renderMedia(post.mediaUrls, post.mediaType)}
 
             {/* Action buttons */}
             <div className="flex items-center justify-between max-w-sm lg:max-w-md mt-3">
@@ -345,50 +334,51 @@ export function ReplyCard({ post, onLike, onRepost }) {
                 className="text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-full transition-colors"
                 onClick={(e) => {
                   e.stopPropagation()
-                  router.push('/post/' + post._id) // Changed from post.id
+                  router.push("/post/" + post._id)
                 }}
                 aria-label={`Reply to post. ${replies.length || 0} replies`}
               >
                 <MessageCircle className="h-4 w-4 mr-1" />
                 <span className="text-xs lg:text-sm">{replies.length || 0}</span>
               </Button>
-              
+
               <Button
                 variant="ghost"
                 size="sm"
                 className="text-gray-500 hover:text-green-600 hover:bg-green-50 rounded-full transition-colors"
                 onClick={(e) => {
                   e.stopPropagation()
-                  onRepost?.(post._id, post.isReposted) // Changed from post.id, is_reposted
+                  onRepost?.(post._id, post.isReposted)
                 }}
                 disabled={repostLoading}
+                aria-label={`Repost. ${post.repostsCount || 0} reposts`}
               >
                 {repostLoading ? (
                   <Loader2 className="h-4 w-4 mr-1 animate-spin" />
                 ) : (
                   <Repeat2 className="h-4 w-4 mr-1" />
                 )}
-                <span className="text-xs lg:text-sm">{post.repostsCount || 0}</span> {/* Changed from reposts_count */}
+                <span className="text-xs lg:text-sm">{post.repostsCount || 0}</span>
               </Button>
-              
+
               <Button
                 variant="ghost"
                 size="sm"
                 className={`rounded-full transition-colors ${
-                  post.isLiked // Changed from is_liked
-                    ? 'text-red-500 hover:text-red-600 hover:bg-red-50' 
-                    : 'text-gray-500 hover:text-red-600 hover:bg-red-50'
+                  post.isLiked
+                    ? "text-red-500 hover:text-red-600 hover:bg-red-50"
+                    : "text-gray-500 hover:text-red-600 hover:bg-red-50"
                 }`}
                 onClick={(e) => {
                   e.stopPropagation()
-                  onLike?.(post._id, post.isLiked) // Changed from post.id, is_liked
+                  onLike?.(post._id, post.isLiked)
                 }}
-                aria-label={`Like post. ${post.likesCount || 0}`}>
-                <Heart className={`h-4 w-4 mr-1 ${post.isLiked ? 'fill-current' : ''}`}/> 
-                {/* Changed from is_liked */}
-                <span className="text-xs lg:text-sm">{post.likesCount || 0}</span> {/* Changed from likes_count */}
+                aria-label={`Like post. ${post.likesCount || 0} likes`}
+              >
+                <Heart className={`h-4 w-4 mr-1 ${post.isLiked ? "fill-current" : ""}`} />
+                <span className="text-xs lg:text-sm">{post.likesCount || 0}</span>
               </Button>
-              
+
               <Button
                 variant="ghost"
                 size="sm"
@@ -404,27 +394,22 @@ export function ReplyCard({ post, onLike, onRepost }) {
             </div>
           </div>
         </div>
-        
+
         {/* Reply previews */}
         {replies.length > 0 && (
           <div className="-ml-4 pl-3">
             <div className="space-y-2">
               {previewReplies.map((reply, index) => (
-                <ReplyPreview 
-                  key={reply._id} // Changed from reply.id
-                  reply={reply} 
-                  index={index}
-                  total={replies.length}
-                />
+                <ReplyPreview key={reply._id} reply={reply} index={index} total={replies.length} />
               ))}
             </div>
-            
+
             {hasMoreReplies && (
               <button
                 className="text-blue-600 hover:text-blue-800 hover:underline text-sm mt-3 flex items-center gap-1 transition-colors"
                 onClick={(e) => {
                   e.stopPropagation()
-                  router.push(`/post/${post._id}`) // Changed from post.id
+                  router.push(`/post/${post._id}`)
                 }}
               >
                 See {replies.length - 1} more replies...
@@ -433,6 +418,6 @@ export function ReplyCard({ post, onLike, onRepost }) {
           </div>
         )}
       </div>
-  </article>
+    </article>
   )
 }

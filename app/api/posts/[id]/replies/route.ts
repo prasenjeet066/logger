@@ -1,33 +1,41 @@
 import { type NextRequest, NextResponse } from "next/server"
-import connectDB from "@/lib/mongodb/connection"
+import { connectToDatabase } from "@/lib/mongodb/connection"
 import { Post } from "@/lib/mongodb/models/Post"
-import { User } from "@/lib/mongodb/models/User"
 
 export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
   try {
-    await connectDB()
+    await connectToDatabase()
 
-    const postId = params.id
-
-    const replies = await Post.find({ parentPostId: postId })
-      .sort({ createdAt: 1 }) // Sort by creation date for chronological replies
+    const replies = await Post.find({ parentPostId: params.id })
+      .populate("authorId", "username displayName avatarUrl isVerified")
+      .sort({ createdAt: 1 })
       .lean()
 
-    // Get author information for each reply
-    const authorIds = [...new Set(replies.map((reply) => reply.authorId))]
-    const authors = await User.find({
-      _id: { $in: authorIds },
-    })
-      .select("_id username displayName avatarUrl isVerified")
-      .lean()
-
-    const authorMap = new Map(authors.map((author) => [author._id.toString(), author]))
-
-    // Format replies with author information
     const formattedReplies = replies.map((reply) => ({
-      ...reply,
       _id: reply._id.toString(),
-      author: authorMap.get(reply.authorId),
+      content: reply.content,
+      authorId: reply.authorId._id.toString(),
+      createdAt: reply.createdAt.toISOString(),
+      updatedAt: reply.updatedAt.toISOString(),
+      likesCount: reply.likesCount || 0,
+      repliesCount: reply.repliesCount || 0,
+      repostsCount: reply.repostsCount || 0,
+      viewsCount: reply.viewsCount || 0,
+      mediaUrls: reply.mediaUrls || [],
+      mediaType: reply.mediaType,
+      isRepost: reply.isRepost || false,
+      originalPostId: reply.originalPostId?.toString(),
+      parentPostId: reply.parentPostId?.toString(),
+      hashtags: reply.hashtags || [],
+      mentions: reply.mentions || [],
+      isPinned: reply.isPinned || false,
+      author: {
+        id: reply.authorId._id.toString(),
+        username: reply.authorId.username,
+        displayName: reply.authorId.displayName,
+        avatarUrl: reply.authorId.avatarUrl,
+        isVerified: reply.authorId.isVerified || false,
+      },
       isLiked: false, // TODO: Check if current user liked this reply
       isReposted: false, // TODO: Check if current user reposted this reply
     }))
@@ -35,6 +43,6 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
     return NextResponse.json(formattedReplies)
   } catch (error) {
     console.error("Error fetching replies:", error)
-    return NextResponse.json({ error: "Failed to fetch replies" }, { status: 500 })
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
 }

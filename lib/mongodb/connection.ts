@@ -50,3 +50,6 @@ export async function connectDB(): Promise<typeof mongoose> {
 
 // Provide both named and default exports
 export default connectDB
+
+// Alias export for backward-compatibility with older imports
+export { connectDB as connectToDatabase }

@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/dialog"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import type { Post } from "@/types/post" // Import the updated Post type
+import type { Post } from "@/types/post"
 
 interface PostActionsMenuProps {
   post: Post
@@ -45,7 +45,6 @@ export function PostActionsMenu({
   const handleDeletePost = async () => {
     try {
       const response = await fetch(`/api/posts/${post._id}`, {
-        // Changed from post.id
         method: "DELETE",
       })
 
@@ -55,11 +54,9 @@ export function PostActionsMenu({
 
       onPostDeleted?.()
       setShowDeleteDialog(false)
-      // Optionally, redirect or refresh the page if needed
-      router.refresh() // Refresh current route to reflect changes
+      router.refresh()
     } catch (error) {
       console.error("Error deleting post:", error)
-      // Show a toast notification
     }
   }
 
@@ -85,7 +82,7 @@ export function PostActionsMenu({
           <>
             <DropdownMenuItem onClick={handlePinToggle}>
               <Pin className="mr-2 h-4 w-4" />
-              {post.isPinned ? "Unpin Post" : "Pin Post"} {/* Changed from is_pinned */}
+              {post.isPinned ? "Unpin Post" : "Pin Post"}
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
