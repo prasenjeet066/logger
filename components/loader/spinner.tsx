@@ -1,13 +1,18 @@
 "use client"
-import { cn } from "@/lib/utils"
-import { Loader2 } from "lucide-react"
 
-interface SpinnerProps {
-  className?: string
-}
+/**
+ * Temporary shim to keep legacy `Spinner` imports working.
+ * It re-exports the new `Loader` component so both
+ *   import Loader from "@/components/loader/loader"
+ * and
+ *   import Spinner from "@/components/loader/spinner"
+ * resolve correctly.
+ *
+ * Remove this file once all old `Spinner` imports
+ * have been replaced with `Loader`.
+ */
 
-export function Spinner({ className }: SpinnerProps) {
-  return <Loader2 className={cn("h-4 w-4 animate-spin", className)} />
-}
+import Loader from "./loader"
 
-export default Spinner // Ensure default export is also present
+export const Spinner = Loader
+export default Loader

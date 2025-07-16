@@ -9,24 +9,11 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Checkbox } from "@/components/ui/checkbox"
-import { Progress } from "@/components/ui/progress"
 import { signUpSchema, type SignUpData } from "@/lib/validations/auth"
 import { TermsAndConditions } from "@/components/auth/terms-and-conditions"
-import {
-  Loader2,
-  Eye,
-  EyeOff,
-  CheckCircle,
-  XCircle,
-  ArrowLeft,
-  ArrowRight,
-  Mail,
-  User,
-  Lock,
-  FileText,
-} from "lucide-react"
+import { AlertCircle, Loader2 } from "lucide-react"
 
 type Step = 1 | 2 | 3 | 4
 
@@ -64,10 +51,10 @@ export default function SignUpPage() {
   const router = useRouter()
 
   const steps = [
-    { number: 1, title: "ইমেইল", icon: Mail, description: "আপনার ইমেইল ঠিকানা" },
-    { number: 2, title: "প্রোফাইল", icon: User, description: "ব্যবহারকারীর তথ্য" },
-    { number: 3, title: "পাসওয়ার্ড", icon: Lock, description: "নিরাপত্তা সেটআপ" },
-    { number: 4, title: "শর্তাবলী", icon: FileText, description: "চূড়ান্ত করুন" },
+    { number: 1, title: "ইমেইল", icon: Loader2, description: "আপনার ইমেইল ঠিকানা" },
+    { number: 2, title: "প্রোফাইল", icon: Loader2, description: "ব্যবহারকারীর তথ্য" },
+    { number: 3, title: "পাসওয়ার্ড", icon: Loader2, description: "নিরাপত্তা সেটআপ" },
+    { number: 4, title: "শর্তাবলী", icon: Loader2, description: "চূড়ান্ত করুন" },
   ]
 
   const progress = (currentStep / steps.length) * 100
@@ -200,7 +187,7 @@ export default function SignUpPage() {
         setMessageType("success")
 
         // Optionally redirect to sign-in or dashboard after successful signup
-        // router.push("/auth/sign-in");
+        router.push("/auth/sign-in")
 
         // Reset form
         setFormData({
@@ -262,7 +249,7 @@ export default function SignUpPage() {
         return (
           <div className="space-y-4">
             <div className="text-center mb-6">
-              <Mail className="h-12 w-12 mx-auto text-blue-500 mb-2" />
+              <Loader2 className="h-12 w-12 mx-auto text-blue-500 mb-2" />
               <h3 className="text-lg font-semibold">আপনার ইমেইল ঠিকানা</h3>
               <p className="text-sm text-gray-600">আমরা আপনার ইমেইলে একটি কনফার্মেশন লিঙ্ক পাঠাবো</p>
             </div>
@@ -326,7 +313,7 @@ export default function SignUpPage() {
         return (
           <div className="space-y-4">
             <div className="text-center mb-6">
-              <User className="h-12 w-12 mx-auto text-blue-500 mb-2" />
+              <Loader2 className="h-12 w-12 mx-auto text-blue-500 mb-2" />
               <h3 className="text-lg font-semibold">প্রোফাইল তথ্য</h3>
               <p className="text-sm text-gray-600">আপনার ইউজারনেম এবং প্রদর্শনী নাম</p>
             </div>
@@ -355,9 +342,9 @@ export default function SignUpPage() {
                   {checkingUsername ? (
                     <Loader2 className="h-4 w-4 animate-spin text-gray-400" />
                   ) : usernameAvailable === true ? (
-                    <CheckCircle className="h-4 w-4 text-green-500" />
+                    <Loader2 className="h-4 w-4 text-green-500" />
                   ) : usernameAvailable === false ? (
-                    <XCircle className="h-4 w-4 text-red-500" />
+                    <Loader2 className="h-4 w-4 text-red-500" />
                   ) : null}
                 </div>
               </div>
@@ -388,7 +375,7 @@ export default function SignUpPage() {
         return (
           <div className="space-y-4">
             <div className="text-center mb-6">
-              <Lock className="h-12 w-12 mx-auto text-blue-500 mb-2" />
+              <Loader2 className="h-12 w-12 mx-auto text-blue-500 mb-2" />
               <h3 className="text-lg font-semibold">পাসওয়ার্ড সেটআপ</h3>
               <p className="text-sm text-gray-600">একটি শক্তিশালী পাসওয়ার্ড তৈরি করুন</p>
             </div>
@@ -412,9 +399,9 @@ export default function SignUpPage() {
                   disabled={isLoading}
                 >
                   {showPassword ? (
-                    <EyeOff className="h-4 w-4 text-gray-400" />
+                    <Loader2 className="h-4 w-4 text-gray-400" />
                   ) : (
-                    <Eye className="h-4 w-4 text-gray-400" />
+                    <Loader2 className="h-4 w-4 text-gray-400" />
                   )}
                 </button>
               </div>
@@ -440,9 +427,9 @@ export default function SignUpPage() {
                   disabled={isLoading}
                 >
                   {showConfirmPassword ? (
-                    <EyeOff className="h-4 w-4 text-gray-400" />
+                    <Loader2 className="h-4 w-4 text-gray-400" />
                   ) : (
-                    <Eye className="h-4 w-4 text-gray-400" />
+                    <Loader2 className="h-4 w-4 text-gray-400" />
                   )}
                 </button>
               </div>
@@ -465,7 +452,7 @@ export default function SignUpPage() {
         return (
           <div className="space-y-4">
             <div className="text-center mb-6">
-              <FileText className="h-12 w-12 mx-auto text-blue-500 mb-2" />
+              <Loader2 className="h-12 w-12 mx-auto text-blue-500 mb-2" />
               <h3 className="text-lg font-semibold">শর্তাবলী এবং গোপনীয়তা</h3>
               <p className="text-sm text-gray-600">চূড়ান্ত করার আগে শর্তাবলী পড়ুন</p>
             </div>
@@ -519,61 +506,26 @@ export default function SignUpPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4 bengali-font">
+    <div className="flex min-h-screen items-center justify-center bg-gray-100 px-4 py-12 sm:px-6 lg:px-8">
       <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-bold logo-font">Cōdes</CardTitle>
-          <CardDescription>আজই কথোপকথনে যোগ দিন</CardDescription>
-
-          {/* Progress Bar */}
-          <div className="mt-4">
-            <div className="flex justify-between text-xs text-gray-500 mb-2">
-              <span>
-                ধাপ {currentStep} / {steps.length}
-              </span>
-              <span>{Math.round(progress)}% সম্পূর্ণ</span>
-            </div>
-            <Progress value={progress} className="h-2" />
-          </div>
-
-          {/* Step Indicators */}
-          <div className="flex justify-between mt-4">
-            {steps.map((step) => {
-              const Icon = step.icon
-              const isActive = currentStep === step.number
-              const isCompleted = currentStep > step.number
-
-              return (
-                <div key={step.number} className="flex flex-col items-center">
-                  <div
-                    className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-medium ${
-                      isCompleted
-                        ? "bg-green-500 text-white"
-                        : isActive
-                          ? "bg-blue-500 text-white"
-                          : "bg-gray-200 text-gray-500"
-                    }`}
-                  >
-                    {isCompleted ? <CheckCircle className="h-4 w-4" /> : <Icon className="h-4 w-4" />}
-                  </div>
-                  <span className="text-xs mt-1 text-center">{step.title}</span>
-                </div>
-              )
-            })}
-          </div>
+        <CardHeader className="space-y-1 text-center">
+          <CardTitle className="text-3xl font-bold logo-font">Cōdes</CardTitle>
+          <CardDescription>Create your account</CardDescription>
         </CardHeader>
-
         <CardContent>
-          <form onSubmit={handleSubmit}>
+          {message && (
+            <Alert
+              className={`mt-4 ${messageType === "success" ? "border-green-500 bg-green-50" : "border-red-500 bg-red-50"}`}
+            >
+              {messageType === "error" && <AlertCircle className="h-4 w-4" />}
+              <AlertTitle>{messageType === "success" ? "Success" : "Error"}</AlertTitle>
+              <AlertDescription className={messageType === "success" ? "text-green-700" : "text-red-600"}>
+                {message}
+              </AlertDescription>
+            </Alert>
+          )}
+          <form onSubmit={handleSubmit} className="space-y-4">
             {renderStepContent()}
-
-            {message && (
-              <Alert className={`mt-4 ${messageType === "success" ? "border-green-500 bg-green-50" : ""}`}>
-                <AlertDescription className={messageType === "success" ? "text-green-700" : ""}>
-                  {message}
-                </AlertDescription>
-              </Alert>
-            )}
 
             {/* Navigation Buttons */}
             <div className="flex justify-between mt-6">
@@ -584,14 +536,14 @@ export default function SignUpPage() {
                 disabled={currentStep === 1 || isLoading}
                 className="flex items-center bg-transparent"
               >
-                <ArrowLeft className="h-4 w-4 mr-1" />
+                <Loader2 className="h-4 w-4 mr-1" />
                 পূর্ববর্তী
               </Button>
 
               {currentStep < 4 ? (
                 <Button type="button" onClick={nextStep} disabled={isLoading} className="flex items-center">
                   পরবর্তী
-                  <ArrowRight className="h-4 w-4 ml-1" />
+                  <Loader2 className="h-4 w-4 ml-1" />
                 </Button>
               ) : (
                 <Button type="submit" disabled={isLoading || !formData.acceptTerms} className="flex items-center">
@@ -602,13 +554,11 @@ export default function SignUpPage() {
             </div>
           </form>
 
-          <div className="mt-6 text-center">
-            <p className="text-sm text-gray-600">
-              ইতিমধ্যে একটি অ্যাকাউন্ট আছে?{" "}
-              <Link href="/auth/sign-in" className="text-blue-600 hover:underline">
-                সাইন ইন করুন
-              </Link>
-            </p>
+          <div className="mt-6 text-center text-sm">
+            Already have an account?{" "}
+            <Link href="/auth/sign-in" className="underline">
+              Sign In
+            </Link>
           </div>
         </CardContent>
       </Card>

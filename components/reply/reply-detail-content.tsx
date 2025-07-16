@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { Spinner } from "@/components/loader/spinner" // Updated import path
+import Loader from "@/components/loader/loader" // Updated import path
 import { PostCard } from "@/components/dashboard/post-card"
 import { CreatePost } from "@/components/dashboard/create-post"
 import { Button } from "@/components/ui/button"
@@ -13,11 +13,47 @@ interface ReplyDetailContentProps {
   userId: string
 }
 
+interface Post {
+  _id: string
+  content: string
+  authorId: string
+  author: {
+    _id: string
+    username: string
+    displayName: string
+    avatarUrl?: string
+    isVerified: boolean
+  }
+  mediaUrls?: string[]
+  mediaType?: "image" | "video" | "gif"
+  likesCount: number
+  repostsCount: number
+  repliesCount: number
+  isRepost: boolean
+  originalPostId?: string
+  parentPostId?: string
+  hashtags: string[]
+  mentions: string[]
+  isPinned: boolean
+  createdAt: string
+  updatedAt: string
+  isLiked?: boolean
+  isReposted?: boolean
+}
+
+interface CurrentUser {
+  _id: string
+  username: string
+  displayName: string
+  avatarUrl?: string
+  email: string
+}
+
 export function ReplyDetailContent({ replyId, userId }: ReplyDetailContentProps) {
-  const [reply, setReply] = useState<any>(null)
-  const [parentPost, setParentPost] = useState<any>(null)
-  const [subReplies, setSubReplies] = useState<any[]>([])
-  const [currentUser, setCurrentUser] = useState<any>(null)
+  const [reply, setReply] = useState<Post | null>(null)
+  const [parentPost, setParentPost] = useState<Post | null>(null)
+  const [subReplies, setSubReplies] = useState<Post[]>([])
+  const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const router = useRouter()
 
@@ -48,8 +84,8 @@ export function ReplyDetailContent({ replyId, userId }: ReplyDetailContentProps)
       setReply(replyData)
 
       // Fetch parent post if this is a reply
-      if (replyData.replyTo) {
-        const parentResponse = await fetch(`/api/posts/${replyData.replyTo}`)
+      if (replyData.parentPostId) {
+        const parentResponse = await fetch(`/api/posts/${replyData.parentPostId}`)
         if (!parentResponse.ok) throw new Error("Failed to fetch parent post")
         const parentData = await parentResponse.json()
         setParentPost(parentData)
@@ -102,7 +138,7 @@ export function ReplyDetailContent({ replyId, userId }: ReplyDetailContentProps)
   if (isLoading) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
-        <Spinner />
+        <Loader />
       </div>
     )
   }
@@ -133,7 +169,7 @@ export function ReplyDetailContent({ replyId, userId }: ReplyDetailContentProps)
         {parentPost && (
           <div className="border-b bg-gray-50">
             <div className="p-4 text-sm text-gray-600">
-              Replying to <span className="text-blue-600">@{parentPost.username}</span>
+              Replying to <span className="text-blue-600">@{parentPost.author.username}</span>
             </div>
             <PostCard
               post={parentPost}
@@ -167,7 +203,7 @@ export function ReplyDetailContent({ replyId, userId }: ReplyDetailContentProps)
         <div className="divide-y">
           {subReplies.map((subReply) => (
             <PostCard
-              key={subReply._id} // Use _id for MongoDB documents
+              key={subReply._id}
               post={subReply}
               currentUserId={userId}
               currentUser={currentUser}
