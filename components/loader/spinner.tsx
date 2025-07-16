@@ -1,137 +1,153 @@
 "use client"
-import { cn } from "@/lib/utils"
 import type React from "react"
+import { cn } from "@/lib/utils"
 
 interface SpinnerProps {
   size?: string
-  speed?: string
   color?: string
   className?: string
 }
 
-const DotSpinner: React.FC<SpinnerProps> = ({ size = "2.8rem", speed = "0.9s", color = "#183153", className = "" }) => {
+const Loader: React.FC<SpinnerProps> = ({ size = "28px", color = "#69717d", className = "" }) => {
   const spinnerStyle = {
-    "--uib-size": size,
-    "--uib-speed": speed,
-    "--uib-color": color,
+    fontSize: size,
+  } as React.CSSProperties
+
+  const bladeStyle = {
+    backgroundColor: color,
   } as React.CSSProperties
 
   return (
     <>
       <style jsx>{`
-        .dot-spinner {
+        .spinner {
           position: relative;
-          display: flex;
-          align-items: center;
-          justify-content: flex-start;
-          height: var(--uib-size);
-          width: var(--uib-size);
+          display: inline-block;
+          width: 1em;
+          height: 1em;
         }
-
-        .dot-spinner__dot {
+        .spinner.center {
           position: absolute;
-          top: 0;
           left: 0;
-          display: flex;
-          align-items: center;
-          justify-content: flex-start;
-          height: 100%;
-          width: 100%;
+          right: 0;
+          top: 0;
+          bottom: 0;
+          margin: auto;
         }
-
-        .dot-spinner__dot::before {
-          content: '';
-          height: 20%;
-          width: 20%;
-          border-radius: 50%;
-          background-color: var(--uib-color);
-          transform: scale(0);
-          opacity: 0.5;
-          animation: pulse0112 calc(var(--uib-speed) * 1.111) ease-in-out infinite;
-          box-shadow: 0 0 20px rgba(18, 31, 53, 0.3);
+        .spinner .spinner-blade {
+          position: absolute;
+          left: 0.4629em;
+          bottom: 0;
+          width: 0.074em;
+          height: 0.2777em;
+          border-radius: 0.0555em;
+          background-color: transparent;
+          -webkit-transform-origin: center -0.2222em;
+          -ms-transform-origin: center -0.2222em;
+          transform-origin: center -0.2222em;
+          animation: spinner-fade9234 1s infinite linear;
         }
-
-        .dot-spinner__dot:nth-child(2) {
-          transform: rotate(45deg);
+        .spinner .spinner-blade:nth-child(1) {
+          -webkit-animation-delay: 0s;
+          animation-delay: 0s;
+          -webkit-transform: rotate(0deg);
+          -ms-transform: rotate(0deg);
+          transform: rotate(0deg);
         }
-
-        .dot-spinner__dot:nth-child(2)::before {
-          animation-delay: calc(var(--uib-speed) * -0.875);
+        .spinner .spinner-blade:nth-child(2) {
+          -webkit-animation-delay: 0.083s;
+          animation-delay: 0.083s;
+          -webkit-transform: rotate(30deg);
+          -ms-transform: rotate(30deg);
+          transform: rotate(30deg);
         }
-
-        .dot-spinner__dot:nth-child(3) {
+        .spinner .spinner-blade:nth-child(3) {
+          -webkit-animation-delay: 0.166s;
+          animation-delay: 0.166s;
+          -webkit-transform: rotate(60deg);
+          -ms-transform: rotate(60deg);
+          transform: rotate(60deg);
+        }
+        .spinner .spinner-blade:nth-child(4) {
+          -webkit-animation-delay: 0.249s;
+          animation-delay: 0.249s;
+          -webkit-transform: rotate(90deg);
+          -ms-transform: rotate(90deg);
           transform: rotate(90deg);
         }
-
-        .dot-spinner__dot:nth-child(3)::before {
-          animation-delay: calc(var(--uib-speed) * -0.75);
+        .spinner .spinner-blade:nth-child(5) {
+          -webkit-animation-delay: 0.332s;
+          animation-delay: 0.332s;
+          -webkit-transform: rotate(120deg);
+          -ms-transform: rotate(120deg);
+          transform: rotate(120deg);
         }
-
-        .dot-spinner__dot:nth-child(4) {
-          transform: rotate(135deg);
+        .spinner .spinner-blade:nth-child(6) {
+          -webkit-animation-delay: 0.415s;
+          animation-delay: 0.415s;
+          -webkit-transform: rotate(150deg);
+          -ms-transform: rotate(150deg);
+          transform: rotate(150deg);
         }
-
-        .dot-spinner__dot:nth-child(4)::before {
-          animation-delay: calc(var(--uib-speed) * -0.625);
-        }
-
-        .dot-spinner__dot:nth-child(5) {
+        .spinner .spinner-blade:nth-child(7) {
+          -webkit-animation-delay: 0.498s;
+          animation-delay: 0.498s;
+          -webkit-transform: rotate(180deg);
+          -ms-transform: rotate(180deg);
           transform: rotate(180deg);
         }
-
-        .dot-spinner__dot:nth-child(5)::before {
-          animation-delay: calc(var(--uib-speed) * -0.5);
+        .spinner .spinner-blade:nth-child(8) {
+          -webkit-animation-delay: 0.581s;
+          animation-delay: 0.581s;
+          -webkit-transform: rotate(210deg);
+          -ms-transform: rotate(210deg);
+          transform: rotate(210deg);
         }
-
-        .dot-spinner__dot:nth-child(6) {
-          transform: rotate(225deg);
+        .spinner .spinner-blade:nth-child(9) {
+          -webkit-animation-delay: 0.664s;
+          animation-delay: 0.664s;
+          -webkit-transform: rotate(240deg);
+          -ms-transform: rotate(240deg);
+          transform: rotate(240deg);
         }
-
-        .dot-spinner__dot:nth-child(6)::before {
-          animation-delay: calc(var(--uib-speed) * -0.375);
-        }
-
-        .dot-spinner__dot:nth-child(7) {
+        .spinner .spinner-blade:nth-child(10) {
+          -webkit-animation-delay: 0.747s;
+          animation-delay: 0.747s;
+          -webkit-transform: rotate(270deg);
+          -ms-transform: rotate(270deg);
           transform: rotate(270deg);
         }
-
-        .dot-spinner__dot:nth-child(7)::before {
-          animation-delay: calc(var(--uib-speed) * -0.25);
+        .spinner .spinner-blade:nth-child(11) {
+          -webkit-animation-delay: 0.83s;
+          animation-delay: 0.83s;
+          -webkit-transform: rotate(300deg);
+          -ms-transform: rotate(300deg);
+          transform: rotate(300deg);
         }
-
-        .dot-spinner__dot:nth-child(8) {
-          transform: rotate(315deg);
+        .spinner .spinner-blade:nth-child(12) {
+          -webkit-animation-delay: 0.913s;
+          animation-delay: 0.913s;
+          -webkit-transform: rotate(330deg);
+          -ms-transform: rotate(330deg);
+          transform: rotate(330deg);
         }
-
-        .dot-spinner__dot:nth-child(8)::before {
-          animation-delay: calc(var(--uib-speed) * -0.125);
-        }
-
-        @keyframes pulse0112 {
-          0%,
-          100% {
-            transform: scale(0);
-            opacity: 0.5;
+        @keyframes spinner-fade9234 {
+          0% {
+            background-color: var(--spinner-color, #69717d); /* Use CSS variable for color */
           }
-
-          50% {
-            transform: scale(1);
-            opacity: 1;
+          100% {
+            background-color: transparent;
           }
         }
       `}</style>
-      <div className={cn("dot-spinner", className)} style={spinnerStyle}>
-        <div className="dot-spinner__dot"></div>
-        <div className="dot-spinner__dot"></div>
-        <div className="dot-spinner__dot"></div>
-        <div className="dot-spinner__dot"></div>
-        <div className="dot-spinner__dot"></div>
-        <div className="dot-spinner__dot"></div>
-        <div className="dot-spinner__dot"></div>
-        <div className="dot-spinner__dot"></div>
+      <div className={cn("spinner center", className)} style={spinnerStyle}>
+        {Array.from({ length: 12 }).map((_, index) => (
+          <div key={index} className="spinner-blade" style={{ "--spinner-color": color } as React.CSSProperties} />
+        ))}
       </div>
     </>
   )
 }
-export const Spinner = DotSpinner
-export default Spinner
+
+export const Spinner = Loader
+export default Loader

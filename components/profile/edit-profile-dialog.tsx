@@ -1,60 +1,80 @@
 "use client"
 
 import type React from "react"
-
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { supabase } from "@/lib/supabase/client"
-import { updateProfileSchema, type UpdateProfileData } from "@/lib/validations/post"
 import { Loader2, Camera } from "lucide-react"
+import { updateProfileSchema, type UpdateProfileData } from "@/lib/validations/post" // Reusing existing profile schema
+import { useToast } from "@/hooks/use-toast"
+import z from "zod" // Import zod for validation
 
 interface EditProfileDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
-  profile: any
+  profile: {
+    id: string
+    displayName: string
+    username: string
+    bio?: string
+    website?: string
+    location?: string
+    avatarUrl?: string
+    coverUrl?: string
+  }
   onProfileUpdate: (profile: any) => void
 }
 
 export function EditProfileDialog({ open, onOpenChange, profile, onProfileUpdate }: EditProfileDialogProps) {
+  const { toast } = useToast()
   const [formData, setFormData] = useState<UpdateProfileData>({
-    displayName: profile?.display_name || "",
+    displayName: profile?.displayName || "",
     bio: profile?.bio || "",
     website: profile?.website || "",
     location: profile?.location || "",
   })
   const [errors, setErrors] = useState<Partial<UpdateProfileData>>({})
   const [isLoading, setIsLoading] = useState(false)
-  const [avatarUrl, setAvatarUrl] = useState(profile?.avatar_url || "")
-  const [coverUrl, setCoverUrl] = useState(profile?.cover_url || "")
+  const [avatarUrl, setAvatarUrl] = useState(profile?.avatarUrl || "")
+  const [coverUrl, setCoverUrl] = useState(profile?.coverUrl || "")
   const [uploadingAvatar, setUploadingAvatar] = useState(false)
   const [uploadingCover, setUploadingCover] = useState(false)
 
+  useEffect(() => {
+    if (open) {
+      setFormData({
+        displayName: profile?.displayName || "",
+        bio: profile?.bio || "",
+        website: profile?.website || "",
+        location: profile?.location || "",
+      })
+      setAvatarUrl(profile?.avatarUrl || "")
+      setCoverUrl(profile?.coverUrl || "")
+      setErrors({})
+    }
+  }, [open, profile])
+
   const uploadImage = async (file: File, type: "avatar" | "cover") => {
-    const fileExt = file.name.split(".").pop()
-    const fileName = `${profile.id}/${type}-${Date.now()}.${fileExt}`
-    const bucket = type === "avatar" ? "avatars" : "covers"
+    const formData = new FormData()
+    formData.append("file", file)
+    formData.append("type", type)
+    formData.append("userId", profile.id) // Pass user ID for unique file naming
 
-    // Delete old image if exists
-    const oldUrl = type === "avatar" ? avatarUrl : coverUrl
-    if (oldUrl) {
-      const oldPath = oldUrl.split("/").pop()
-      if (oldPath) {
-        await supabase.storage.from(bucket).remove([`${profile.id}/${oldPath}`])
-      }
+    const response = await fetch("/api/upload", {
+      method: "POST",
+      body: formData,
+    })
+
+    if (!response.ok) {
+      const errorData = await response.json()
+      throw new Error(errorData.error || "Failed to upload image")
     }
 
-    const { error: uploadError } = await supabase.storage.from(bucket).upload(fileName, file)
-
-    if (uploadError) {
-      throw uploadError
-    }
-
-    const { data } = supabase.storage.from(bucket).getPublicUrl(fileName)
+    const data = await response.json()
     return data.publicUrl
   }
 
@@ -62,14 +82,21 @@ export function EditProfileDialog({ open, onOpenChange, profile, onProfileUpdate
     const file = e.target.files?.[0]
     if (!file) return
 
-    // Validate file
     if (!file.type.startsWith("image/")) {
-      alert("অনুগ্রহ করে একটি ছবি নির্বাচন করুন")
+      toast({
+        title: "Error",
+        description: "Please select an image file.",
+        variant: "destructive",
+      })
       return
     }
 
     if (file.size > 5 * 1024 * 1024) {
-      alert("ছবির সাইজ ৫ MB এর কম হতে হবে")
+      toast({
+        title: "Error",
+        description: "Image size must be less than 5 MB.",
+        variant: "destructive",
+      })
       return
     }
 
@@ -87,9 +114,17 @@ export function EditProfileDialog({ open, onOpenChange, profile, onProfileUpdate
       } else {
         setCoverUrl(imageUrl)
       }
-    } catch (error) {
+      toast({
+        title: "Success",
+        description: `${type === "avatar" ? "Profile" : "Cover"} image uploaded successfully!`,
+      })
+    } catch (error: any) {
       console.error("Upload error:", error)
-      alert("ছবি আপলোড করতে সমস্যা হয়েছে")
+      toast({
+        title: "Error",
+        description: `Failed to upload image: ${error.message}`,
+        variant: "destructive",
+      })
     } finally {
       if (type === "avatar") {
         setUploadingAvatar(false)
@@ -107,40 +142,45 @@ export function EditProfileDialog({ open, onOpenChange, profile, onProfileUpdate
     try {
       const validatedData = updateProfileSchema.parse(formData)
 
-      const { error } = await supabase
-        .from("profiles")
-        .update({
-          display_name: validatedData.displayName,
+      const response = await fetch("/api/users/profile", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          displayName: validatedData.displayName,
           bio: validatedData.bio || null,
           website: validatedData.website || null,
           location: validatedData.location || null,
-          avatar_url: avatarUrl || null,
-          cover_url: coverUrl || null,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", profile.id)
+          avatarUrl: avatarUrl || null,
+          coverUrl: coverUrl || null,
+        }),
+      })
 
-      if (error) {
-        console.error("Error updating profile:", error)
-      } else {
-        onProfileUpdate({
-          display_name: validatedData.displayName,
-          bio: validatedData.bio,
-          website: validatedData.website,
-          location: validatedData.location,
-          avatar_url: avatarUrl,
-          cover_url: coverUrl,
-        })
-        onOpenChange(false)
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || "Failed to update profile")
       }
-    } catch (error) {
-      if (error instanceof Error) {
-        const zodError = JSON.parse(error.message)
+
+      const updatedProfile = await response.json()
+      onProfileUpdate(updatedProfile)
+      onOpenChange(false)
+      toast({
+        title: "Success",
+        description: "Profile updated successfully!",
+      })
+    } catch (error: any) {
+      if (error instanceof z.ZodError) {
         const fieldErrors: Partial<UpdateProfileData> = {}
-        zodError.forEach((err: any) => {
+        error.errors.forEach((err) => {
           fieldErrors[err.path[0] as keyof UpdateProfileData] = err.message
         })
         setErrors(fieldErrors)
+      } else {
+        console.error("Error updating profile:", error)
+        toast({
+          title: "Error",
+          description: `Failed to save profile: ${error.message}`,
+          variant: "destructive",
+        })
       }
     } finally {
       setIsLoading(false)
@@ -157,15 +197,15 @@ export function EditProfileDialog({ open, onOpenChange, profile, onProfileUpdate
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bengali-font max-w-lg max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>প্রোফাইল সম্পাদনা করুন</DialogTitle>
+          <DialogTitle>Edit Profile</DialogTitle>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Cover Image Upload */}
           <div className="space-y-2">
-            <Label>কভার ছবি</Label>
+            <Label>Cover Photo</Label>
             <div className="relative">
               <div
                 className="w-full h-32 bg-gradient-to-r from-blue-400 to-purple-500 rounded-lg flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity"
@@ -195,7 +235,7 @@ export function EditProfileDialog({ open, onOpenChange, profile, onProfileUpdate
 
           {/* Avatar Upload */}
           <div className="space-y-2">
-            <Label>প্রোফাইল ছবি</Label>
+            <Label>Profile Photo</Label>
             <div className="flex items-center gap-4">
               <div className="relative">
                 <Avatar
@@ -204,7 +244,7 @@ export function EditProfileDialog({ open, onOpenChange, profile, onProfileUpdate
                 >
                   <AvatarImage src={avatarUrl || undefined} />
                   <AvatarFallback className="text-2xl">
-                    {formData.displayName?.charAt(0)?.toUpperCase() || "ব"}
+                    {formData.displayName?.charAt(0)?.toUpperCase() || "U"}
                   </AvatarFallback>
                 </Avatar>
                 {uploadingAvatar && (
@@ -225,31 +265,31 @@ export function EditProfileDialog({ open, onOpenChange, profile, onProfileUpdate
                 disabled={uploadingAvatar}
               />
               <div className="text-sm text-gray-500">
-                <p>ছবি আপলোড করতে ক্লিক করুন</p>
-                <p>সর্বোচ্চ সাইজ: ৫ MB</p>
+                <p>Click to upload photo</p>
+                <p>Max size: 5 MB</p>
               </div>
             </div>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="displayName">প্রদর্শনী নাম</Label>
+            <Label htmlFor="displayName">Display Name</Label>
             <Input
               id="displayName"
               value={formData.displayName}
               onChange={handleChange("displayName")}
-              placeholder="আপনার প্রদর্শনী নাম"
+              placeholder="Your display name"
               disabled={isLoading}
             />
             {errors.displayName && <p className="text-sm text-red-600">{errors.displayName}</p>}
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="bio">বায়ো</Label>
+            <Label htmlFor="bio">Bio</Label>
             <Textarea
               id="bio"
               value={formData.bio}
               onChange={handleChange("bio")}
-              placeholder="নিজের সম্পর্কে লিখুন"
+              placeholder="Tell us about yourself..."
               disabled={isLoading}
               rows={3}
             />
@@ -257,19 +297,19 @@ export function EditProfileDialog({ open, onOpenChange, profile, onProfileUpdate
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="location">অবস্থান</Label>
+            <Label htmlFor="location">Location</Label>
             <Input
               id="location"
               value={formData.location}
               onChange={handleChange("location")}
-              placeholder="আপনার অবস্থান"
+              placeholder="Your location"
               disabled={isLoading}
             />
             {errors.location && <p className="text-sm text-red-600">{errors.location}</p>}
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="website">ওয়েবসাইট</Label>
+            <Label htmlFor="website">Website</Label>
             <Input
               id="website"
               type="url"
@@ -283,11 +323,11 @@ export function EditProfileDialog({ open, onOpenChange, profile, onProfileUpdate
 
           <div className="flex justify-end gap-2">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isLoading}>
-              বাতিল
+              Cancel
             </Button>
             <Button type="submit" disabled={isLoading || uploadingAvatar || uploadingCover}>
               {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              সংরক্ষণ করুন
+              Save
             </Button>
           </div>
         </form>

@@ -15,14 +15,23 @@ export default async function SettingsPage() {
     id: session.user.id,
     email: session.user.email,
     username: session.user.username,
-    avatar_url: session.user.avatarUrl,
+    displayName: session.user.displayName, // Ensure displayName is passed
+    avatarUrl: session.user.avatarUrl,
+    coverUrl: session.user.coverUrl, // Ensure coverUrl is passed
     bio: session.user.bio,
     location: session.user.location,
     website: session.user.website,
-    is_verified: session.user.isVerified,
-    created_at: session.user.createdAt,
-    // Add other properties if SettingsContent expects them
-  } as any
+    isVerified: session.user.isVerified,
+    createdAt: session.user.createdAt,
+    isPrivate: session.user.isPrivate,
+    allowMessages: session.user.allowMessages,
+    showEmail: session.user.showEmail,
+    emailNotifications: session.user.emailNotifications,
+    pushNotifications: session.user.pushNotifications,
+    soundEnabled: session.user.soundEnabled,
+    darkMode: session.user.darkMode,
+    language: session.user.language,
+  } as any // Cast to any for now, but ideally define a proper type for initialUser
 
-  return <SettingsContent user={user} />
+  return <SettingsContent initialUser={user} />
 }
