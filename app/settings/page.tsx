@@ -15,14 +15,14 @@ export default async function SettingsPage() {
     id: session.user.id,
     email: session.user.email,
     username: session.user.username,
-    avatar_url: session.user.avatarUrl,
+    displayName: session.user.name,
+    avatarUrl: session.user.image,
     bio: session.user.bio,
     location: session.user.location,
     website: session.user.website,
-    is_verified: session.user.isVerified,
-    created_at: session.user.createdAt,
-    // Add other properties if SettingsContent expects them
-  } as any
+    isVerified: session.user.isVerified,
+    createdAt: session.user.createdAt,
+  }
 
   return <SettingsContent user={user} />
 }
