@@ -13,10 +13,15 @@ export interface IVerification extends Document {
 
 const verificationSchema = new Schema<IVerification>(
   {
+    userId :{
+      type: string,
+      required:true,
+      ref:"User"
+    },
     conformBy: {
       type: String,
       required: true,
-      ref: "User"
+     // ref: "User"
     },
     letterIs: {
       type: String,

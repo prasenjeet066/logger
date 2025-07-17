@@ -41,7 +41,7 @@ export function VerificationSettings() {
   // Fetch current verification status on component mount
   const fetchVerificationStatus = async () => {
     try {
-      const response = await fetch('/api/verification',{method:'GET'})
+      const response = await fetch('/api/verification')
       if (!response.ok) throw new Error('Failed to fetch verification status')
       
       const data = await response.json()

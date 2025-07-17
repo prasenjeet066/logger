@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { Verification } from "@/lib/mongodb/models/Verification"
+import {User} from "@/lim/mongodb/models/User"
 import mongoose from "mongoose"
 
 // GET - Get all verifications or filter by status
@@ -11,15 +12,22 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const { searchParams } = new URL(req.url)
-    const status = searchParams.get("status")
-
-    const query = status ? { statusIs: status } : {}
-    const verifications = await Verification.find(query)
-      .populate("conformBy", "username displayName")
-      .sort({ createdAt: -1 })
-
+    
+    const verifications = await Verification.find({
+      userId : session.user.id
+    })
+      .select("statusIs")
+    if(verifications.length >0){
     return NextResponse.json(verifications)
+    }else if(verifications.length==0){
+      const VerificationsStatus=  await User.find({_id:session.user.id}).select("statusIs")[0]
+      if (VerificationsStatus) {
+         return NextResponse.json(['A'])
+      }else{
+        return NextResponse.json(['C'])
+      }
+      
+    }
   } catch (error) {
     console.error("GET /api/verification error:", error)
     return NextResponse.json(
