@@ -21,7 +21,7 @@ export function AccountSettings({ user }: AccountSettingsProps) {
   const [uploadedFiles, setUploadedFiles] = useState()
   const [saving, setSaving] = useState(false)
   const [showInageUpload, setShowImageUpload] = useState(false)
-  const [U]
+  
   const [formData, setFormData] = useState({
     displayName: user?.displayName || "",
     username: user?.username || "",
