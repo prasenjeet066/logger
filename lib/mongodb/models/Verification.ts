@@ -14,7 +14,7 @@ export interface IVerification extends Document {
 const verificationSchema = new Schema<IVerification>(
   {
     userId :{
-      type: string,
+      type: String,
       required:true,
       ref:"User"
     },
