@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { Verification } from "@/lib/mongodb/models/Verification"
-import {User} from "@/lim/mongodb/models/User"
+import User from "@//lib/mongodb/models/User"
 import mongoose from "mongoose"
 
 // GET - Get all verifications or filter by status
