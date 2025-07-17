@@ -300,13 +300,17 @@ export function ProfileContent({ username }: ProfileContentProps) {
                 </div>
                 <div className="flex gap-2">
                   {isOwnProfile ? (
-                    <Button variant="outline" onClick={() => setEditDialogOpen(true)}>
+                    <Button
+                    className="rounded-full"
+                    variant="outline" onClick={() => setEditDialogOpen(true)}>
                       Edit Profile
                     </Button>
                   ) : session?.user ? (
                     <>
-                      <Button variant="outline" className="rounded-full"><MessageSquarePlus className="h-4 w-4"/></Button>
-                      <Button variant={profileData.isFollowing ? "outline" : "default"} onClick={handleFollow}>
+                      <Button variant="outline" className="rounded-full w-4 h-4"><MessageSquarePlus className="h-4 w-4"/></Button>
+                      <Button
+                      className="rounded-full"
+                      variant={profileData.isFollowing ? "outline" : "default"} onClick={handleFollow}>
                         {profileData.isFollowing ? (
                           <>
                             <UserCheck className="h-4 w-4 mr-1" />
@@ -322,7 +326,7 @@ export function ProfileContent({ username }: ProfileContentProps) {
                     </>
                   ) : (
                     <Link href="/auth/sign-in">
-                      <Button>
+                      <Button className="rounded-full">
                         <UserPlus className="h-4 w-4 mr-1" />
                         Follow
                       </Button>
