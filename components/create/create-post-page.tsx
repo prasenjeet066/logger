@@ -11,6 +11,8 @@ import { Separator } from "@/components/ui/separator"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
+import { FileUpload } from "@/components/upload/file-upload"
+import type { UploadResult } from "@/lib/blob/client"
 import {
   ImageIcon,
   Smile,
@@ -39,14 +41,6 @@ interface CreatePostPageProps {
   user: any
 }
 
-interface MediaFile {
-  id: string
-  file: File
-  preview: string
-  type: "image" | "video"
-  uploading?: boolean
-}
-
 interface GiphyMedia {
   url: string
   type: "gif" | "sticker"
@@ -56,17 +50,15 @@ interface GiphyMedia {
 export default function CreatePostPage({ user }: CreatePostPageProps) {
   const { data: session } = useSession()
   const router = useRouter()
-  const fileInputRef = useRef<HTMLInputElement>(null)
   const contentEditableRef = useRef<HTMLDivElement>(null)
   const [content, setContent] = useState("")
-  const [mediaFiles, setMediaFiles] = useState<MediaFile[]>([])
+  const [uploadedFiles, setUploadedFiles] = useState<UploadResult[]>([])
   const [giphyMedia, setGiphyMedia] = useState<GiphyMedia[]>([])
   const [gifs, setGifs] = useState<any[]>([])
   const [isPosting, setIsPosting] = useState(false)
-  const [isUploadingMedia, setIsUploadingMedia] = useState(false)
   const [error, setError] = useState("")
   const [showGiphyPicker, setShowGiphyPicker] = useState(false)
-  const [selectedImage, setSelectedImage] = useState<string | null>(null)
+  const [showFileUpload, setShowFileUpload] = useState(false)
   const [isEnhancingText, setIsEnhancingText] = useState(false)
   const [enhancedTextSuggestion, setEnhancedTextSuggestion] = useState<string | null>(null)
   const [showEnhanceModal, setShowEnhanceModal] = useState(false)
@@ -77,12 +69,11 @@ export default function CreatePostPage({ user }: CreatePostPageProps) {
   const [pollDuration, setPollDuration] = useState("1 day")
   const [showAddOptions, setShowAddOptions] = useState(false)
   const cursorPositionRef = useRef<{ node: Node | null; offset: number } | null>(null)
-  const [postUrl, setPostUrl] = useState()
 
   const characterCount = content.length
   const isOverLimit = characterCount > MAX_CHARACTERS
   const progressPercentage = (characterCount / MAX_CHARACTERS) * 100
-  const totalMediaCount = mediaFiles.length + giphyMedia.length
+  const totalMediaCount = uploadedFiles.length + giphyMedia.length
 
   const getProgressColor = () => {
     if (progressPercentage < 70) return "bg-green-500"
@@ -108,22 +99,6 @@ export default function CreatePostPage({ user }: CreatePostPageProps) {
       console.error("Error fetching trending media:", error)
       setError("Failed to load trending GIFs")
     }
-  }
-
-  const validateMediaFile = (file: File): string | null => {
-    const maxSize = 50 * 1024 * 1024 // 50MB
-    const allowedImageTypes = ["image/jpeg", "image/jpg", "image/png", "image/gif", "image/webp"]
-    const allowedVideoTypes = ["video/mp4", "video/webm", "video/mov", "video/avi"]
-
-    if (file.size > maxSize) {
-      return "File size must be less than 50MB"
-    }
-
-    if (!allowedImageTypes.includes(file.type) && !allowedVideoTypes.includes(file.type)) {
-      return "Only images (JPEG, PNG, GIF, WebP) and videos (MP4, WebM, MOV, AVI) are allowed"
-    }
-
-    return null
   }
 
   const handleAddPollOption = () => {
@@ -152,110 +127,13 @@ export default function CreatePostPage({ user }: CreatePostPageProps) {
     setError("")
   }
 
-  const handleMediaUpload = useCallback(
-    async (files: FileList) => {
-      if (files.length === 0) return
+  const handleFilesUploaded = useCallback((files: UploadResult[]) => {
+    setUploadedFiles((prev) => [...prev, ...files])
+    setShowFileUpload(false)
+  }, [])
 
-      const validationErrors: string[] = []
-      const validFiles: File[] = []
-
-      Array.from(files).forEach((file, index) => {
-        const error = validateMediaFile(file)
-        if (error) {
-          validationErrors.push(`File ${index + 1}: ${error}`)
-        } else {
-          validFiles.push(file)
-        }
-      })
-
-      if (validationErrors.length > 0) {
-        setError(validationErrors.join("; "))
-        return
-      }
-
-      if (totalMediaCount + validFiles.length > MAX_MEDIA_FILES) {
-        setError("You can only upload up to 4 media files")
-        return
-      }
-
-      setIsUploadingMedia(true)
-      setError("")
-
-      try {
-        const newMediaFiles: MediaFile[] = validFiles.map((file) => ({
-          id: Math.random().toString(36).substr(2, 9),
-          file,
-          preview: URL.createObjectURL(file),
-          type: file.type.startsWith("video/") ? "video" : "image",
-          uploading: true,
-        }))
-
-        setMediaFiles((prev) => [...prev, ...newMediaFiles])
-
-        // For now, we'll use local URLs. In production, you'd upload to a cloud storage service
-        const uploadPromises = validFiles.map(async (file, index) => {
-          try {
-            // Simulate upload delay
-            await new Promise((resolve) => setTimeout(resolve, 1000))
-
-            return {
-              originalIndex: mediaFiles.length + index,
-              publicUrl: URL.createObjectURL(file),
-            }
-          } catch (err) {
-            throw err
-          }
-        })
-
-        const uploadResults = await Promise.allSettled(uploadPromises)
-
-        setMediaFiles((prev) => {
-          const updated = [...prev]
-          uploadResults.forEach((result, index) => {
-            if (result.status === "fulfilled") {
-              const targetIndex = result.value.originalIndex
-              if (updated[targetIndex]) {
-                updated[targetIndex].uploading = false
-              }
-            }
-          })
-          return updated
-        })
-
-        const failedUploads = uploadResults.filter((result) => result.status === "rejected")
-        if (failedUploads.length > 0) {
-          const errorMessages = failedUploads.map((result: any, index) => `File ${index + 1}: ${result.reason}`)
-          setError(`Some uploads failed: ${errorMessages.join("; ")}`)
-        }
-      } catch (err: any) {
-        console.error("Media upload error:", err)
-        setError(err.message || "Failed to upload media. Please try again.")
-
-        mediaFiles.forEach((media) => {
-          if (media.preview.startsWith("blob:")) {
-            URL.revokeObjectURL(media.preview)
-          }
-        })
-
-        setMediaFiles([])
-      } finally {
-        setIsUploadingMedia(false)
-        if (fileInputRef.current) {
-          fileInputRef.current.value = ""
-        }
-      }
-    },
-    [mediaFiles.length, totalMediaCount],
-  )
-
-  const removeMediaFile = (id: string) => {
-    setMediaFiles((prev) => {
-      const file = prev.find((f) => f.id === id)
-      if (file && file.preview.startsWith("blob:")) {
-        URL.revokeObjectURL(file.preview)
-      }
-      return prev.filter((f) => f.id !== id)
-    })
+  const removeUploadedFile = (urlToRemove: string) => {
+    setUploadedFiles((prev) => prev.filter((file) => file.url !== urlToRemove))
   }
 
   const handleGiphySelect = (gif: any, type: "gif" | "sticker") => {
@@ -332,18 +210,16 @@ export default function CreatePostPage({ user }: CreatePostPageProps) {
     try {
       const validatedData = createPostSchema.parse({ content })
 
-      if (mediaFiles.some((media) => media.uploading)) {
-        setError("Please wait for media uploads to complete")
-        return
-      }
-
-      const uploadedMediaUrls = mediaFiles.filter((media) => !media.uploading).map((media) => media.preview)
+      // Combine uploaded files and Giphy media URLs
+      const uploadedMediaUrls = uploadedFiles.map((file) => file.url)
       const giphyUrls = giphyMedia.map((gif) => gif.url)
       const allMediaUrls = [...uploadedMediaUrls, ...giphyUrls]
 
       let mediaType = null
       if (allMediaUrls.length > 0) {
-        if (mediaFiles.some((media) => media.type === "video")) {
+        // Check if any uploaded files are videos
+        const hasVideo = uploadedFiles.some((file) => file.contentType.startsWith("video/"))
+        if (hasVideo) {
           mediaType = "video"
         } else if (giphyMedia.length > 0) {
           mediaType = "gif"
@@ -370,13 +246,8 @@ export default function CreatePostPage({ user }: CreatePostPageProps) {
 
       const postData = await response.json()
 
-      mediaFiles.forEach((media) => {
-        if (media.preview.startsWith("blob:")) {
-          URL.revokeObjectURL(media.preview)
-        }
-      })
-
-      setMediaFiles([])
+      // Reset form
+      setUploadedFiles([])
       setGiphyMedia([])
       setContent("")
       setShowPollCreator(false)
@@ -472,7 +343,6 @@ export default function CreatePostPage({ user }: CreatePostPageProps) {
   const remainingChars = MAX_CHARACTERS - characterCount
 
   const highlightContent = (text: string) => {
-    // Sanitize text to prevent XSS
     const div = document.createElement("div")
     div.textContent = text
     let escapedText = div.innerHTML
@@ -496,8 +366,8 @@ export default function CreatePostPage({ user }: CreatePostPageProps) {
     {
       icon: ImageIcon,
       label: "Photo/Video",
-      onClick: () => fileInputRef.current?.click(),
-      disabled: isUploadingMedia || totalMediaCount >= MAX_MEDIA_FILES,
+      onClick: () => setShowFileUpload(true),
+      disabled: totalMediaCount >= MAX_MEDIA_FILES,
     },
     {
       icon: Smile,
@@ -597,12 +467,7 @@ export default function CreatePostPage({ user }: CreatePostPageProps) {
           <h1 className="text-lg font-semibold">Create Post</h1>
           <Button
             onClick={handlePost}
-            disabled={
-              isPosting ||
-              (!content.trim() && totalMediaCount === 0 && !showPollCreator) ||
-              isOverLimit ||
-              isUploadingMedia
-            }
+            disabled={isPosting || (!content.trim() && totalMediaCount === 0 && !showPollCreator) || isOverLimit}
             className="bg-blue-500 text-white px-4 py-2 rounded-full hover:bg-blue-600 font-semibold"
           >
             {isPosting ? <Loader2 className="h-5 w-5 animate-spin" /> : "Post"}
@@ -756,30 +621,25 @@ export default function CreatePostPage({ user }: CreatePostPageProps) {
           </div>
         </div>
 
-        {(mediaFiles.length > 0 || giphyMedia.length > 0) && (
+        {/* Media Previews */}
+        {(uploadedFiles.length > 0 || giphyMedia.length > 0) && (
           <div className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-2">
-            {mediaFiles.map((media) => (
-              <div key={media.id} className="relative aspect-video rounded-lg overflow-hidden border border-gray-200">
-                {media.type === "image" ? (
+            {uploadedFiles.map((file) => (
+              <div key={file.url} className="relative aspect-video rounded-lg overflow-hidden border border-gray-200">
+                {file.contentType.startsWith("image/") ? (
                   <img
-                    src={media.preview || "/placeholder.svg"}
+                    src={file.url || "/placeholder.svg"}
                     alt="Media preview"
                     className="w-full h-full object-cover"
                   />
                 ) : (
-                  <video src={media.preview} controls className="w-full h-full object-cover" />
-                )}
-                {media.uploading && (
-                  <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 text-white">
-                    <Loader2 className="h-8 w-8 animate-spin" />
-                  </div>
+                  <video src={file.url} controls className="w-full h-full object-cover" />
                 )}
                 <Button
                   variant="ghost"
                   size="icon"
                   className="absolute top-1 right-1 bg-black bg-opacity-50 text-white rounded-full h-6 w-6"
-                  onClick={() => removeMediaFile(media.id)}
-                  disabled={media.uploading}
+                  onClick={() => removeUploadedFile(file.url)}
                 >
                   <X className="h-4 w-4" />
                 </Button>
@@ -840,19 +700,29 @@ export default function CreatePostPage({ user }: CreatePostPageProps) {
         )}
       </div>
 
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept="image/*,video/*"
-        multiple
-        className="hidden"
-        onChange={(e) => {
-          if (e.target.files && e.target.files.length > 0) {
-            handleMediaUpload(e.target.files)
-          }
-        }}
-      />
+      {/* File Upload Modal */}
+      {showFileUpload && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-2 sm:p-4">
+          <Card className="w-full max-w-2xl shadow-none border max-h-[90vh] overflow-y-auto">
+            <CardHeader className="flex flex-row items-center justify-between pb-2 p-4">
+              <h2 className="text-lg font-semibold">Upload Files</h2>
+              <Button variant="ghost" size="icon" onClick={() => setShowFileUpload(false)}>
+                <X className="h-5 w-5" />
+              </Button>
+            </CardHeader>
+            <CardContent className="pt-2 p-4">
+              <FileUpload
+                onUploadComplete={handleFilesUploaded}
+                maxFiles={MAX_MEDIA_FILES - totalMediaCount}
+                pathPrefix={`posts/${session?.user?.id}`}
+                className="w-full"
+              />
+            </CardContent>
+          </Card>
+        </div>
+      )}
 
+      {/* Giphy Picker Modal */}
       {showGiphyPicker && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-2 sm:p-4">
           <Card className="w-full max-w-lg shadow-none border">
@@ -880,6 +750,7 @@ export default function CreatePostPage({ user }: CreatePostPageProps) {
         </div>
       )}
 
+      {/* Enhance Text Modal */}
       {showEnhanceModal && enhancedTextSuggestion && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-2 sm:p-4">
           <Card className="w-full max-w-lg shadow-none border">

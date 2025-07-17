@@ -1,8 +1,8 @@
 "use client"
 
-const Loader = () => {
+const Spinner = () => {
   return (
-    <div className="spinner-container">
+    <div className="spinner-wrapper">
       <div className="spinner center">
         <div className="spinner-blade" />
         <div className="spinner-blade" />
@@ -17,15 +17,8 @@ const Loader = () => {
         <div className="spinner-blade" />
         <div className="spinner-blade" />
       </div>
+
       <style jsx>{`
-        .spinner-container {
-          display: flex;
-          justify-content: center;
-          align-items: center;
-          width: 100%;
-          height: 100%;
-        }
-        
         .spinner {
           font-size: 28px;
           position: relative;
@@ -128,5 +121,5 @@ const Loader = () => {
   )
 }
 
-export { Loader as Spinner }
-export default Loader
+export default Spinner
+export { Spinner }
