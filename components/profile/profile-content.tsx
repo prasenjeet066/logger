@@ -10,7 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Sidebar } from "@/components/dashboard/sidebar"
 import { PostCard } from "@/components/dashboard/post-card"
 import { EditProfileDialog } from "./edit-profile-dialog"
-import { Menu, X, UserPlus, UserCheck, Calendar, MapPin, LinkIcon } from "lucide-react"
+import { Menu, X, UserPlus, UserCheck, Calendar, MapPin, LinkIcon ,MessageSquarePlus} from "lucide-react"
 import { formatDistanceToNow } from "date-fns"
 import Link from "next/link"
 import { ImageViewer } from "@/components/media/image-viewer"
@@ -305,7 +305,7 @@ export function ProfileContent({ username }: ProfileContentProps) {
                     </Button>
                   ) : session?.user ? (
                     <>
-                      <Button variant="outline">Message</Button>
+                      <Button variant="outline" className="rounded-full"><MessageSquarePlus className="h-4 w-4"/></Button>
                       <Button variant={profileData.isFollowing ? "outline" : "default"} onClick={handleFollow}>
                         {profileData.isFollowing ? (
                           <>
