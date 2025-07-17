@@ -4,18 +4,7 @@ import { useEffect, useState, useCallback } from "react"
 import { useSession } from "next-auth/react"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import {
-  Search,
-  Settings,
-  MoreHorizontal,
-  MessageCircle,
-  Repeat2,
-  Heart,
-  Share,
-  Bookmark,
-  UserPlus,
-  ArrowLeft,
-} from "lucide-react"
+import { Search, Settings, MoreHorizontal, UserPlus, ArrowLeft } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { VerificationBadge } from "@/components/badge/verification-badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -23,7 +12,7 @@ import Link from "next/link"
 import { debounce } from "lodash"
 import { signOut } from "next-auth/react"
 import { Spinner } from "@/components/loader/spinner"
-import { formatDistanceToNowStrict } from "date-fns"
+import { PostCard } from "@/components/dashboard/post-card" // Import PostCard
 
 interface UserProfile {
   _id: string
@@ -369,92 +358,15 @@ export function ExploreContent() {
                             </div>
                           </article>
                         ))}
-                        {/* Display top posts */}
+                        {/* Display top posts using PostCard */}
                         {posts.slice(0, 3).map((post) => (
-                          <article key={post._id} className="p-4 hover:bg-gray-50 transition-colors cursor-pointer">
-                            <div className="flex space-x-3">
-                              <Link href={`/profile/${post.author.username}`}>
-                                <Avatar className="w-10 h-10 rounded-full">
-                                  <AvatarImage src={post.author.avatarUrl || undefined} />
-                                  <AvatarFallback>
-                                    {post.author.displayName?.charAt(0)?.toUpperCase() || "U"}
-                                  </AvatarFallback>
-                                </Avatar>
-                              </Link>
-                              <div className="flex-1 min-w-0">
-                                <div className="flex items-center space-x-2">
-                                  <Link href={`/profile/${post.author.username}`}>
-                                    <h3 className="font-semibold text-black truncate hover:underline">
-                                      {post.author.displayName}
-                                    </h3>
-                                  </Link>
-                                  {post.author.isVerified && (
-                                    <VerificationBadge verified={true} size={16} className="h-4 w-4" />
-                                  )}
-                                  <span className="text-gray-500 text-sm">@{post.author.username}</span>
-                                  <span className="text-gray-500 text-sm">·</span>
-                                  <span className="text-gray-500 text-sm">
-                                    {formatDistanceToNowStrict(new Date(post.createdAt), { addSuffix: true })}
-                                  </span>
-                                  <Button variant="ghost" size="icon" className="ml-auto">
-                                    <MoreHorizontal className="w-4 h-4 text-gray-500" />
-                                  </Button>
-                                </div>
-
-                                <p className="mt-2 text-black whitespace-pre-wrap">{post.content}</p>
-
-                                {post.mediaUrls && post.mediaUrls.length > 0 && (
-                                  <div className="mt-3 rounded-xl overflow-hidden">
-                                    <img
-                                      src={post.mediaUrls[0] || "/placeholder.svg"}
-                                      alt="Post media"
-                                      className="w-full h-64 object-cover"
-                                    />
-                                  </div>
-                                )}
-
-                                <div className="flex items-center justify-between mt-4 max-w-md text-gray-500">
-                                  <Button variant="ghost" size="icon" className="flex items-center space-x-2 group">
-                                    <MessageCircle className="w-4 h-4" />
-                                    <span className="text-sm">{formatNumber(post.repliesCount)}</span>
-                                  </Button>
-
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    onClick={() => handleRepost(post._id, post.isReposted)}
-                                    className={`flex items-center space-x-2 group ${
-                                      post.isReposted ? "text-green-500" : ""
-                                    }`}
-                                  >
-                                    <Repeat2 className="w-4 h-4" />
-                                    <span className="text-sm">{formatNumber(post.repostsCount)}</span>
-                                  </Button>
-
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    onClick={() => handleLike(post._id, post.isLiked)}
-                                    className={`flex items-center space-x-2 group ${
-                                      post.isLiked ? "text-red-500" : ""
-                                    }`}
-                                  >
-                                    <Heart className="w-4 h-4" />
-                                    <span className="text-sm">{formatNumber(post.likesCount)}</span>
-                                  </Button>
-
-                                  <Button variant="ghost" size="icon" className="flex items-center space-x-2 group">
-                                    <Bookmark className="w-4 h-4" />
-                                    <span className="text-sm">0</span> {/* Bookmarks not implemented */}
-                                  </Button>
-
-                                  <Button variant="ghost" size="icon" className="p-2">
-                                    <Share className="w-4 h-4" />
-                                  </Button>
-                                </div>
-                              </div>
-                            </div>
-                          </article>
+                          <PostCard
+                            key={post._id}
+                            post={post as any} // Cast to any if Post type is not fully compatible
+                            onLike={handleLike}
+                            onRepost={handleRepost}
+                            onReply={() => router.push(`/post/${post._id}`)} // Example onReply handler
+                          />
                         ))}
                       </div>
                     ) : (
@@ -476,90 +388,13 @@ export function ExploreContent() {
                     posts.length > 0 ? (
                       <div className="divide-y divide-gray-200">
                         {posts.map((post) => (
-                          <article key={post._id} className="p-4 hover:bg-gray-50 transition-colors cursor-pointer">
-                            <div className="flex space-x-3">
-                              <Link href={`/profile/${post.author.username}`}>
-                                <Avatar className="w-10 h-10 rounded-full">
-                                  <AvatarImage src={post.author.avatarUrl || undefined} />
-                                  <AvatarFallback>
-                                    {post.author.displayName?.charAt(0)?.toUpperCase() || "U"}
-                                  </AvatarFallback>
-                                </Avatar>
-                              </Link>
-                              <div className="flex-1 min-w-0">
-                                <div className="flex items-center space-x-2">
-                                  <Link href={`/profile/${post.author.username}`}>
-                                    <h3 className="font-semibold text-black truncate hover:underline">
-                                      {post.author.displayName}
-                                    </h3>
-                                  </Link>
-                                  {post.author.isVerified && (
-                                    <VerificationBadge verified={true} size={16} className="h-4 w-4" />
-                                  )}
-                                  <span className="text-gray-500 text-sm">@{post.author.username}</span>
-                                  <span className="text-gray-500 text-sm">·</span>
-                                  <span className="text-gray-500 text-sm">
-                                    {formatDistanceToNowStrict(new Date(post.createdAt), { addSuffix: true })}
-                                  </span>
-                                  <Button variant="ghost" size="icon" className="ml-auto">
-                                    <MoreHorizontal className="w-4 h-4 text-gray-500" />
-                                  </Button>
-                                </div>
-
-                                <p className="mt-2 text-black whitespace-pre-wrap">{post.content}</p>
-
-                                {post.mediaUrls && post.mediaUrls.length > 0 && (
-                                  <div className="mt-3 rounded-xl overflow-hidden">
-                                    <img
-                                      src={post.mediaUrls[0] || "/placeholder.svg"}
-                                      alt="Post media"
-                                      className="w-full h-64 object-cover"
-                                    />
-                                  </div>
-                                )}
-
-                                <div className="flex items-center justify-between mt-4 max-w-md text-gray-500">
-                                  <Button variant="ghost" size="icon" className="flex items-center space-x-2 group">
-                                    <MessageCircle className="w-4 h-4" />
-                                    <span className="text-sm">{formatNumber(post.repliesCount)}</span>
-                                  </Button>
-
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    onClick={() => handleRepost(post._id, post.isReposted)}
-                                    className={`flex items-center space-x-2 group ${
-                                      post.isReposted ? "text-green-500" : ""
-                                    }`}
-                                  >
-                                    <Repeat2 className="w-4 h-4" />
-                                    <span className="text-sm">{formatNumber(post.repostsCount)}</span>
-                                  </Button>
-
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    onClick={() => handleLike(post._id, post.isLiked)}
-                                    className={`flex items-center space-x-2 group ${
-                                      post.isLiked ? "text-red-500" : ""
-                                    }`}
-                                  >
-                                    <Heart className="w-4 h-4" />
-                                    <span className="text-sm">{formatNumber(post.likesCount)}</span>
-                                  </Button>
-
-                                  <Button variant="ghost" size="icon" className="flex items-center space-x-2 group">
-                                    <Bookmark className="w-4 h-4" />
-                                    <span className="text-sm">0</span> {/* Bookmarks not implemented */}
-                                  </Button>
-
-                                  <Button variant="ghost" size="icon" className="p-2">
-                                    <Share className="w-4 h-4" />
-                                  </Button>
-                                </div>
-                              </div>
-                            </div>
-                          </article>
+                          <PostCard
+                            key={post._id}
+                            post={post as any} // Cast to any if Post type is not fully compatible
+                            onLike={handleLike}
+                            onRepost={handleRepost}
+                            onReply={() => router.push(`/post/${post._id}`)} // Example onReply handler
+                          />
                         ))}
                       </div>
                     ) : (
