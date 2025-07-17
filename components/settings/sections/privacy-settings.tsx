@@ -1,83 +1,77 @@
 "use client"
 
 import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Switch } from "@/components/ui/switch"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Label } from "@/components/ui/label"
+import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import {
-  Lock,
-  Eye,
-  EyeOff,
-  Users,
-  MessageCircle,
-  Tag,
-  Download,
-  Trash2,
-  Shield,
-  AlertTriangle,
-  Globe,
-} from "lucide-react"
-import { toast } from "sonner"
+import { Badge } from "@/components/ui/badge"
+import { useToast } from "@/hooks/use-toast"
+import { Shield, Eye, Lock, Users, MessageSquare, Search, Download, Trash2, Save } from "lucide-react"
 
 export function PrivacySettings() {
-  const [isLoading, setIsLoading] = useState(false)
+  const { toast } = useToast()
+  const [saving, setSaving] = useState(false)
 
   const [privacySettings, setPrivacySettings] = useState({
-    accountPrivacy: "public", // public, private
-    profileVisibility: "everyone", // everyone, followers, nobody
-    postVisibility: "everyone", // everyone, followers, mentioned
-    allowMessages: "everyone", // everyone, followers, nobody
-    allowTagging: "everyone", // everyone, followers, nobody
+    privateAccount: false,
+    allowMessages: true,
+    showEmail: false,
+    showLocation: true,
     showOnlineStatus: true,
-    showReadReceipts: true,
-    allowSearchEngines: true,
-    showInSuggestions: true,
+    allowTagging: true,
+    searchable: true,
+    showFollowers: true,
+    showFollowing: true,
+    allowDataDownload: true,
   })
 
-  const [blockedUsers] = useState([
-    { id: "1", username: "spammer123", displayName: "Spam Account", blockedDate: "2024-01-15" },
-    { id: "2", username: "troll456", displayName: "Troll User", blockedDate: "2024-01-10" },
-  ])
-
-  const handleSettingChange = (key: string, value: string | boolean) => {
-    setPrivacySettings((prev) => ({ ...prev, [key]: value }))
-  }
-
   const handleSave = async () => {
-    setIsLoading(true)
+    setSaving(true)
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1000))
-      toast.success("Privacy settings updated!")
+      const response = await fetch("/api/users/privacy", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(privacySettings),
+      })
+
+      if (!response.ok) throw new Error("Failed to update privacy settings")
+
+      toast({
+        title: "Success",
+        description: "Privacy settings updated!",
+      })
     } catch (error) {
-      toast.error("Failed to update settings")
+      toast({
+        title: "Error",
+        description: "Failed to save privacy settings",
+        variant: "destructive",
+      })
     } finally {
-      setIsLoading(false)
+      setSaving(false)
     }
   }
 
-  const handleUnblockUser = async (userId: string) => {
+  const handleDataDownload = async () => {
     try {
-      await new Promise((resolve) => setTimeout(resolve, 500))
-      toast.success("User unblocked successfully")
-    } catch (error) {
-      toast.error("Failed to unblock user")
-    }
-  }
+      const response = await fetch("/api/users/data-export", {
+        method: "POST",
+      })
 
-  const handleExportData = async () => {
-    try {
-      await new Promise((resolve) => setTimeout(resolve, 2000))
-      toast.success("Data export started. You'll receive an email when ready.")
-    } catch (error) {
-      toast.error("Failed to start data export")
-    }
-  }
+      if (!response.ok) throw new Error("Failed to request data export")
 
-  const handleDeleteAccount = () => {
-    toast.error("Account deletion requires additional verification")
+      toast({
+        title: "Success",
+        description: "Data export requested. You'll receive an email when ready.",
+      })
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to request data export",
+        variant: "destructive",
+      })
+    }
   }
 
   return (
@@ -86,92 +80,119 @@ export function PrivacySettings() {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Lock className="h-5 w-5" />
+            <Shield className="h-5 w-5" />
             Account Privacy
           </CardTitle>
-          <CardDescription>Control who can see your profile and posts</CardDescription>
         </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="space-y-4">
-            <div className="flex items-center justify-between p-4 border rounded-lg">
-              <div className="flex items-center gap-3">
-                <div
-                  className={`p-2 rounded-lg ${privacySettings.accountPrivacy === "private" ? "bg-orange-100" : "bg-green-100"}`}
-                >
-                  {privacySettings.accountPrivacy === "private" ? (
-                    <EyeOff className="h-4 w-4 text-orange-600" />
-                  ) : (
-                    <Eye className="h-4 w-4 text-green-600" />
-                  )}
-                </div>
-                <div>
-                  <p className="font-medium">Account Type</p>
-                  <p className="text-sm text-gray-600">
-                    {privacySettings.accountPrivacy === "private"
-                      ? "Only approved followers can see your posts"
-                      : "Anyone can see your public posts"}
-                  </p>
-                </div>
+        <CardContent className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="space-y-1">
+              <div className="flex items-center gap-2">
+                <Label>Private Account</Label>
+                {privacySettings.privateAccount && (
+                  <Badge variant="secondary" className="bg-blue-100 text-blue-800">
+                    <Lock className="h-3 w-3 mr-1" />
+                    Private
+                  </Badge>
+                )}
               </div>
-              <Select
-                value={privacySettings.accountPrivacy}
-                onValueChange={(value) => handleSettingChange("accountPrivacy", value)}
-              >
-                <SelectTrigger className="w-32">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="public">
-                    <div className="flex items-center gap-2">
-                      <Globe className="h-4 w-4" />
-                      Public
-                    </div>
-                  </SelectItem>
-                  <SelectItem value="private">
-                    <div className="flex items-center gap-2">
-                      <Lock className="h-4 w-4" />
-                      Private
-                    </div>
-                  </SelectItem>
-                </SelectContent>
-              </Select>
+              <p className="text-sm text-gray-500">Only approved followers can see your posts and profile</p>
             </div>
+            <Switch
+              checked={privacySettings.privateAccount}
+              onCheckedChange={(checked) => setPrivacySettings((prev) => ({ ...prev, privateAccount: checked }))}
+            />
+          </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Profile Visibility</label>
-                <Select
-                  value={privacySettings.profileVisibility}
-                  onValueChange={(value) => handleSettingChange("profileVisibility", value)}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="everyone">Everyone</SelectItem>
-                    <SelectItem value="followers">Followers Only</SelectItem>
-                    <SelectItem value="nobody">Nobody</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+          <Separator />
 
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Post Visibility</label>
-                <Select
-                  value={privacySettings.postVisibility}
-                  onValueChange={(value) => handleSettingChange("postVisibility", value)}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="everyone">Everyone</SelectItem>
-                    <SelectItem value="followers">Followers Only</SelectItem>
-                    <SelectItem value="mentioned">Mentioned Users Only</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+          <div className="flex items-center justify-between">
+            <div>
+              <Label className="flex items-center gap-2">
+                <Search className="h-4 w-4" />
+                Discoverable
+              </Label>
+              <p className="text-sm text-gray-500">Allow others to find you in search results</p>
             </div>
+            <Switch
+              checked={privacySettings.searchable}
+              onCheckedChange={(checked) => setPrivacySettings((prev) => ({ ...prev, searchable: checked }))}
+            />
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Profile Visibility */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Eye className="h-5 w-5" />
+            Profile Visibility
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <Label>Show Email Address</Label>
+              <p className="text-sm text-gray-500">Display your email on your profile</p>
+            </div>
+            <Switch
+              checked={privacySettings.showEmail}
+              onCheckedChange={(checked) => setPrivacySettings((prev) => ({ ...prev, showEmail: checked }))}
+            />
+          </div>
+
+          <Separator />
+
+          <div className="flex items-center justify-between">
+            <div>
+              <Label>Show Location</Label>
+              <p className="text-sm text-gray-500">Display your location on your profile</p>
+            </div>
+            <Switch
+              checked={privacySettings.showLocation}
+              onCheckedChange={(checked) => setPrivacySettings((prev) => ({ ...prev, showLocation: checked }))}
+            />
+          </div>
+
+          <Separator />
+
+          <div className="flex items-center justify-between">
+            <div>
+              <Label>Show Online Status</Label>
+              <p className="text-sm text-gray-500">Let others see when you're online</p>
+            </div>
+            <Switch
+              checked={privacySettings.showOnlineStatus}
+              onCheckedChange={(checked) => setPrivacySettings((prev) => ({ ...prev, showOnlineStatus: checked }))}
+            />
+          </div>
+
+          <Separator />
+
+          <div className="flex items-center justify-between">
+            <div>
+              <Label className="flex items-center gap-2">
+                <Users className="h-4 w-4" />
+                Show Followers
+              </Label>
+              <p className="text-sm text-gray-500">Display your followers list publicly</p>
+            </div>
+            <Switch
+              checked={privacySettings.showFollowers}
+              onCheckedChange={(checked) => setPrivacySettings((prev) => ({ ...prev, showFollowers: checked }))}
+            />
+          </div>
+
+          <div className="flex items-center justify-between">
+            <div>
+              <Label>Show Following</Label>
+              <p className="text-sm text-gray-500">Display who you're following publicly</p>
+            </div>
+            <Switch
+              checked={privacySettings.showFollowing}
+              onCheckedChange={(checked) => setPrivacySettings((prev) => ({ ...prev, showFollowing: checked }))}
+            />
           </div>
         </CardContent>
       </Card>
@@ -180,185 +201,88 @@ export function PrivacySettings() {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Users className="h-5 w-5" />
+            <MessageSquare className="h-5 w-5" />
             Interaction Settings
           </CardTitle>
-          <CardDescription>Control how others can interact with you</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <label className="text-sm font-medium flex items-center gap-2">
-                <MessageCircle className="h-4 w-4" />
-                Direct Messages
-              </label>
-              <Select
-                value={privacySettings.allowMessages}
-                onValueChange={(value) => handleSettingChange("allowMessages", value)}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="everyone">Everyone</SelectItem>
-                  <SelectItem value="followers">Followers Only</SelectItem>
-                  <SelectItem value="nobody">Nobody</SelectItem>
-                </SelectContent>
-              </Select>
+          <div className="flex items-center justify-between">
+            <div>
+              <Label>Allow Direct Messages</Label>
+              <p className="text-sm text-gray-500">Let others send you direct messages</p>
             </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium flex items-center gap-2">
-                <Tag className="h-4 w-4" />
-                Tagging
-              </label>
-              <Select
-                value={privacySettings.allowTagging}
-                onValueChange={(value) => handleSettingChange("allowTagging", value)}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="everyone">Everyone</SelectItem>
-                  <SelectItem value="followers">Followers Only</SelectItem>
-                  <SelectItem value="nobody">Nobody</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+            <Switch
+              checked={privacySettings.allowMessages}
+              onCheckedChange={(checked) => setPrivacySettings((prev) => ({ ...prev, allowMessages: checked }))}
+            />
           </div>
 
           <Separator />
 
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="font-medium">Show Online Status</p>
-                <p className="text-sm text-gray-600">Let others see when you're active</p>
-              </div>
-              <Switch
-                checked={privacySettings.showOnlineStatus}
-                onCheckedChange={(value) => handleSettingChange("showOnlineStatus", value)}
-              />
+          <div className="flex items-center justify-between">
+            <div>
+              <Label>Allow Tagging</Label>
+              <p className="text-sm text-gray-500">Let others tag you in posts and comments</p>
             </div>
-
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="font-medium">Read Receipts</p>
-                <p className="text-sm text-gray-600">Show when you've read messages</p>
-              </div>
-              <Switch
-                checked={privacySettings.showReadReceipts}
-                onCheckedChange={(value) => handleSettingChange("showReadReceipts", value)}
-              />
-            </div>
-
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="font-medium">Search Engine Indexing</p>
-                <p className="text-sm text-gray-600">Allow search engines to index your profile</p>
-              </div>
-              <Switch
-                checked={privacySettings.allowSearchEngines}
-                onCheckedChange={(value) => handleSettingChange("allowSearchEngines", value)}
-              />
-            </div>
-
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="font-medium">Show in Suggestions</p>
-                <p className="text-sm text-gray-600">Appear in "Who to Follow" suggestions</p>
-              </div>
-              <Switch
-                checked={privacySettings.showInSuggestions}
-                onCheckedChange={(value) => handleSettingChange("showInSuggestions", value)}
-              />
-            </div>
+            <Switch
+              checked={privacySettings.allowTagging}
+              onCheckedChange={(checked) => setPrivacySettings((prev) => ({ ...prev, allowTagging: checked }))}
+            />
           </div>
         </CardContent>
       </Card>
 
-      {/* Blocked Users */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Shield className="h-5 w-5" />
-            Blocked Users
-          </CardTitle>
-          <CardDescription>Manage users you've blocked</CardDescription>
-        </CardHeader>
-        <CardContent>
-          {blockedUsers.length > 0 ? (
-            <div className="space-y-3">
-              {blockedUsers.map((user) => (
-                <div key={user.id} className="flex items-center justify-between p-3 border rounded-lg">
-                  <div>
-                    <p className="font-medium">{user.displayName}</p>
-                    <p className="text-sm text-gray-600">@{user.username}</p>
-                    <p className="text-xs text-gray-500">Blocked on {user.blockedDate}</p>
-                  </div>
-                  <Button variant="outline" size="sm" onClick={() => handleUnblockUser(user.id)}>
-                    Unblock
-                  </Button>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-8 text-gray-500">
-              <Shield className="h-12 w-12 mx-auto mb-4 text-gray-300" />
-              <p>No blocked users</p>
-              <p className="text-sm">Users you block will appear here</p>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Data & Account Management */}
+      {/* Data & Privacy */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Download className="h-5 w-5" />
-            Data & Account Management
+            Data & Privacy
           </CardTitle>
-          <CardDescription>Export your data or delete your account</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="flex items-center justify-between p-4 border rounded-lg">
+          <div className="flex items-center justify-between">
             <div>
-              <p className="font-medium">Export Your Data</p>
-              <p className="text-sm text-gray-600">Download a copy of your posts, profile, and settings</p>
+              <Label>Data Download</Label>
+              <p className="text-sm text-gray-500">Download a copy of your data</p>
             </div>
-            <Button variant="outline" onClick={handleExportData}>
+            <Button variant="outline" onClick={handleDataDownload}>
               <Download className="h-4 w-4 mr-2" />
-              Export Data
+              Request Data
             </Button>
           </div>
 
-          <Alert className="border-red-200 bg-red-50">
-            <AlertTriangle className="h-4 w-4 text-red-600" />
-            <AlertDescription className="text-red-800">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="font-medium">Delete Account</p>
-                  <p className="text-sm">Permanently delete your account and all data</p>
-                </div>
-                <Button variant="destructive" size="sm" onClick={handleDeleteAccount}>
-                  <Trash2 className="h-4 w-4 mr-2" />
-                  Delete Account
-                </Button>
+          <Separator />
+
+          <div className="bg-red-50 p-4 rounded-lg">
+            <div className="flex items-center justify-between">
+              <div>
+                <Label className="text-red-700">Delete Account</Label>
+                <p className="text-sm text-red-600">Permanently delete your account and all associated data</p>
               </div>
-            </AlertDescription>
-          </Alert>
+              <Button variant="destructive" size="sm">
+                <Trash2 className="h-4 w-4 mr-2" />
+                Delete Account
+              </Button>
+            </div>
+          </div>
         </CardContent>
       </Card>
 
-      <Separator />
-
       {/* Save Button */}
-      <div className="flex justify-end gap-3">
-        <Button variant="outline">Reset to Default</Button>
-        <Button onClick={handleSave} disabled={isLoading}>
-          {isLoading ? "Saving..." : "Save Changes"}
+      <div className="flex justify-end">
+        <Button onClick={handleSave} disabled={saving} className="min-w-32">
+          {saving ? (
+            <>
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+              Saving...
+            </>
+          ) : (
+            <>
+              <Save className="h-4 w-4 mr-2" />
+              Save Changes
+            </>
+          )}
         </Button>
       </div>
     </div>
