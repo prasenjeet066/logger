@@ -304,19 +304,22 @@ export function ProfileContent({ username }: ProfileContentProps) {
                       Edit Profile
                     </Button>
                   ) : session?.user ? (
-                    <Button variant={profileData.isFollowing ? "outline" : "default"} onClick={handleFollow}>
-                      {profileData.isFollowing ? (
-                        <>
-                          <UserCheck className="h-4 w-4 mr-1" />
-                          Following
-                        </>
-                      ) : (
-                        <>
-                          <UserPlus className="h-4 w-4 mr-1" />
-                          Follow
-                        </>
-                      )}
-                    </Button>
+                    <>
+                      <Button variant="outline">Message</Button>
+                      <Button variant={profileData.isFollowing ? "outline" : "default"} onClick={handleFollow}>
+                        {profileData.isFollowing ? (
+                          <>
+                            <UserCheck className="h-4 w-4 mr-1" />
+                            Following
+                          </>
+                        ) : (
+                          <>
+                            <UserPlus className="h-4 w-4 mr-1" />
+                            Follow
+                          </>
+                        )}
+                      </Button>
+                    </>
                   ) : (
                     <Link href="/auth/sign-in">
                       <Button>
