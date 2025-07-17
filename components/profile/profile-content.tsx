@@ -307,7 +307,7 @@ export function ProfileContent({ username }: ProfileContentProps) {
                     </Button>
                   ) : session?.user ? (
                     <>
-                      <Button variant="outline" className="rounded-full w-4 h-4"><MessageSquarePlus className="h-4 w-4"/></Button>
+                      <Button variant="outline" className="rounded-full"><MessageSquarePlus className="h-4 w-4"/></Button>
                       <Button
                       className="rounded-full"
                       variant={profileData.isFollowing ? "outline" : "default"} onClick={handleFollow}>
