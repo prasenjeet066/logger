@@ -42,6 +42,12 @@ const settingsItems = [
     description: "Email and push notification preferences",
   },
   {
+    id:"verification",
+    label:"Verification",
+    icon:User,
+    description:""
+  },
+  {
     id: "privacy",
     label: "Privacy",
     icon: Shield,
@@ -80,12 +86,10 @@ export function SettingsSidebar({ activeSection, onSectionChange, isMobile = fal
       <div className="p-6 border-b border-gray-200">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-blue-100 rounded-lg">
-              <SettingsIcon className="h-5 w-5 text-blue-600" />
-            </div>
+           
             <div>
               <h1 className="text-xl font-semibold text-gray-900">Settings</h1>
-              <p className="text-sm text-gray-500">Manage your account preferences</p>
+
             </div>
           </div>
           {isMobile && onClose && (
@@ -116,7 +120,6 @@ export function SettingsSidebar({ activeSection, onSectionChange, isMobile = fal
               }}
             >
               <div className="flex items-center gap-3 flex-1">
-                <Icon className={cn("h-5 w-5 flex-shrink-0", isActive ? "text-blue-600" : "text-gray-400")} />
                 <div className="flex-1 min-w-0">
                   <div className="font-medium text-sm">{item.label}</div>
                   <div className="text-xs text-gray-500 mt-0.5 line-clamp-2">{item.description}</div>

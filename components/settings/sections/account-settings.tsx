@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+//import VerificationSettings from"@/components/settings/sections/verification"
 import { Textarea } from "@/components/ui/textarea"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { useToast } from "@/hooks/use-toast"
@@ -84,7 +85,7 @@ export function AccountSettings({ user }: AccountSettingsProps) {
               <AvatarFallback className="text-2xl">{user?.displayName?.charAt(0)?.toUpperCase() || "U"}</AvatarFallback>
             </Avatar>
             <div className="space-y-2">
-              <Button variant="outline" className="flex items-center gap-2 bg-transparent" onClick={()=>setShowImageUpload(true)}>
+              <Button variant="outline" className="flex items-center gap-2 bg-transparent" onClick={()=>{setShowImageUpload(true)}}>
                 <Camera className="h-4 w-4" />
                 Change Photo
               </Button>
@@ -101,7 +102,7 @@ export function AccountSettings({ user }: AccountSettingsProps) {
            <FileUpload
                 onUploadComplete={handleFilesUploaded}
                 maxFiles={1}
-                pathPrefix={`posts/${session?.user?.id}`}
+                pathPrefix={`posts/${user.id}`}
                 className="w-full"
               />
         )
@@ -216,9 +217,10 @@ export function AccountSettings({ user }: AccountSettingsProps) {
             />
             <p className="text-xs text-gray-500">This won't be shown publicly. Used for age-appropriate content.</p>
           </div>
+          
         </CardContent>
       </Card>
-
+      
       {/* Save Button */}
       <div className="flex justify-end">
         <Button onClick={handleSave} disabled={saving} className="min-w-32">

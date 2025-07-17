@@ -9,6 +9,7 @@ import { AccountSettings } from "./sections/account-settings"
 import { SecuritySettings } from "./sections/security-settings"
 import { NotificationSettings } from "./sections/notification-settings"
 import { PrivacySettings } from "./sections/privacy-settings"
+import {VerificationSettings} from "@/components/settings/sections/verification"
 import { useMobile } from "@/hooks/use-mobile"
 import { Menu, ArrowLeft } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
@@ -36,6 +37,8 @@ export function SettingsContent({ user }: SettingsContentProps) {
         return <NotificationSettings />
       case "privacy":
         return <PrivacySettings />
+      case "verification":
+        return<VerificationSettings/>
       case "appearance":
         return <div className="p-8 text-center text-gray-500">Appearance settings coming soon...</div>
       case "language":
