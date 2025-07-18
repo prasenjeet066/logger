@@ -10,7 +10,7 @@ import { MobileBottomNav } from "./mobile-bottom-nav"
 import { SearchDialog } from "./search-dialog"
 import { NotificationDialog } from "./notification-dialog"
 import { Button } from "@/components/ui/button"
-import { Menu, UserIcon, Plus } from "lucide-react"
+import { Menu, UserIcon, Plus , Search} from "lucide-react"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { useMobile } from "@/hooks/use-mobile"
@@ -94,10 +94,11 @@ export function DashboardContent({ user }: DashboardContentProps) {
             </Sheet>
 )}
 {!isMobile && (<>
-  <div className='flex flex-row items-center gap-2 bg-gray-50 rounded-full px-4'>
+  <div className='flex flex-row items-center gap-2 bg-none border-2 border-gray-300 rounded-full px-4'>
     <input type ='text' className='outline-none bg-none border-0' placeholder='Search with us...'/>
+    <Search className='h-3 w-3'/>
   </div>
-  <Button className="bg-gray-800 text-white px-4">
+  <Button className="bg-gray-800 text-white px-4  rounded-full mr-4">
     <Plus className="h-4 w-4"/>
     <small>Create New</small>
   </Button>
