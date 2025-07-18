@@ -111,7 +111,7 @@ export function WebDashboardContent({ user }: DashboardContentProps) {
       
       <div className="flex h-full">
         {/* Desktop Sidebar */}
-        <div className="border-r max-h-screen h-full sticky top-0 w-auto">
+        <div className="border-r max-h-screen max-w-64 h-full sticky top-0 w-auto">
           <Sidebar profile={profile} onSignOut={handleSignOut} isExpand={sidebarExpand}/>
         </div>
 

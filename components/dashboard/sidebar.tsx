@@ -57,7 +57,7 @@ export function Sidebar({ isExpand = true, profile, onSignOut }: SidebarProps) {
 
       </nav>
 
-      <div className="border-t pt-3 mt-3">
+      <div className="border-t w-auto pt-3 mt-3">
         {isExpand == false? (
         <Link href="/create">
           <Button className="w-full justify-center mt-4 py-3 lg:py-6">
