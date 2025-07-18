@@ -95,7 +95,7 @@ export function DashboardContent({ user }: DashboardContentProps) {
 )}
 {!isMobile && (<>
   <div className='flex flex-row items-center gap-2 bg-gray-50 rounded-full px-4'>
-    <input type ='text' className='outline-none bg-none border-0' placeholder='Search...'/>
+    <input type ='text' className='outline-none bg-none border-0' placeholder='Search with us...'/>
   </div>
   <Button className="bg-gray-800 text-white px-4">
     <Plus className="h-4 w-4"/>
