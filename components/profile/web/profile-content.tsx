@@ -222,11 +222,13 @@ export function WebProfileContent({ username }: ProfileContentProps) {
     <div className="min-h-screen bg-gray-50 font-english">
       {/* Desktop Header */}
       <div className="sticky top-0 border-b bg-white bg-white/50 z-30 backdrop-blur-md px-4 py-2">
-        <div className="flex items-center gap-2 justify-start">
+        <div className="flex items-center justify-between">
+          <div className='flex flex-row items-center gap-2'>
           <Menu className=' ml-2 h-4 w-4' onClick={()=>{
             setIsExpand(!isExpand)
           }}/>
           <h1 className="text-xl font-bold logo-font">Cōdes</h1>
+          </div>
           <div className="flex flex-row items-center gap-4">
             {/* Desktop Search Bar */}
             <div className='flex flex-row items-center gap-2 bg-none border-2 border-gray-300 rounded-full px-4 py-2'>
