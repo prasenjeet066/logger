@@ -46,9 +46,9 @@ export function Sidebar({ isExpand = true, profile, onSignOut }: SidebarProps) {
           <Link key={item.href} href={item.href}>
             <Button variant="ghost" className="w-full justify-start text-base lg:text-lg py-3 lg:py-6 px-3">
               <item.icon className="mr-3 h-5 w-5 lg:h-6 lg:w-6" />
-              {!isExpand && (
+              {isExpand==true || isMobile ?  (
               <span className="truncate">{item.label}</span>
-              )}
+              ):<></>}
             </Button>
           </Link>
         ))}
@@ -56,16 +56,16 @@ export function Sidebar({ isExpand = true, profile, onSignOut }: SidebarProps) {
         {/* Create Post Button */}
 
       </nav>
-
+      {isMobile && (
       <div className="border-t w-auto pt-3 mt-3">
-        {isExpand == false? (
+        
         <Link href="/create">
           <Button className="w-full justify-center mt-4 py-3 lg:py-6">
             <Plus className="mr-2 h-5 w-5" />
             <span>Create Post</span>
           </Button>
         </Link>
-        ):<></>}
+        
         <Button
           variant="ghost"
           className="w-full justify-start mt-2 text-red-600 hover:text-red-700 hover:bg-red-50 text-sm"
@@ -74,7 +74,7 @@ export function Sidebar({ isExpand = true, profile, onSignOut }: SidebarProps) {
           <LogOut className="mr-3 h-4 w-4" />
           {isExpand==false? "Sign Out": ""}
         </Button>
-      </div>
+      </div>)}
     </div>
   )
 }
