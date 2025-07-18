@@ -222,8 +222,8 @@ export function WebProfileContent({ username }: ProfileContentProps) {
     <div className="min-h-screen bg-gray-50 font-english">
       {/* Desktop Header */}
       <div className="sticky top-0 border-b bg-white bg-white/50 z-30 backdrop-blur-md px-4 py-2">
-        <div className="flex items-center justify-between">
-          <Menu className='h-4 w-4' onClick={()=>{
+        <div className="flex items-center gap-2 justify-start">
+          <Menu className=' ml-2 h-4 w-4' onClick={()=>{
             setIsExpand(!isExpand)
           }}/>
           <h1 className="text-xl font-bold logo-font">Cōdes</h1>

@@ -58,14 +58,14 @@ export function Sidebar({ isExpand=true , profile, onSignOut }: SidebarProps) {
       </nav>
 
       <div className="border-t pt-3 mt-3">
-        {isExpand && (
+        {isExpand ? (
         <Link href="/create">
           <Button className="w-full justify-center mt-4 py-3 lg:py-6">
             <Plus className="mr-2 h-5 w-5" />
             <span>Create Post</span>
           </Button>
         </Link>
-        )}
+        ):<></>}
         <Button
           variant="ghost"
           className="w-full justify-start mt-2 text-red-600 hover:text-red-700 hover:bg-red-50 text-sm"

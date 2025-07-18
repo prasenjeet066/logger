@@ -75,8 +75,8 @@ export function WebDashboardContent({ user }: DashboardContentProps) {
     <div className="min-h-screen bg-white">
       {/* Desktop Header */}
       <div className="sticky top-0 border-b bg-white bg-white/50 z-30 backdrop-blur-md px-4 py-2">
-        <div className="flex items-center gap-2 justify-between">
-          <Menu className='h-4 w-4' onClick={()=>{
+        <div className="flex items-center gap-2 justify-start">
+          <Menu className='h-4 ml-2 w-4' onClick={()=>{
             setSidebarExpand(!sidebarExpand)
           }}/>
           <h1 className="text-xl font-bold logo-font">Cōdes</h1>
