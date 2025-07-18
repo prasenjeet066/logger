@@ -42,7 +42,7 @@ export function WebDashboardContent({ user }: DashboardContentProps) {
   const [profile, setProfile] = useState < IUser | null > (null)
   const [isLoading, setIsLoading] = useState(true)
   const [Posts, setPosts] = useState([])
-  const [Users, setUsers] = useState < UserProfile[]> ([])
+  const [Users, setUsers] = useState < UserProfile[] > ([])
   const [searchQuery, setSearchQuery] = useState("")
   const [sidebarExpand, setSidebarExpand] = useState < boolean > (false)
   const debouncedSearch = useCallback(
@@ -138,23 +138,31 @@ export function WebDashboardContent({ user }: DashboardContentProps) {
           </div>
           <div className="flex flex-row items-center gap-4">
             {/* Desktop Search Bar */}
-            <div className=' relative flex flex-row items-center gap-2 bg-none h-8 border-2 border-gray-300 rounded-full px-4 py-2'>
+            <div className=' relative flex flex-row items-center justify-between gap-2 bg-none h-8 border-2 border-gray-300 rounded-full px-4 py-2'>
               <input
   type='text'
-  className='outline-none bg-none border-0 pl-10 text-sm lg:text-base'
+  className='outline-none bg-none border-0 w-full pl-10 text-sm lg:text-base'
   placeholder='Search with us...'
   value={searchQuery}
   onChange={(e) => setSearchQuery(e.target.value)}
   onKeyPress={(e) => e.key === "Enter" && searchUsers()}
 />
               <Search className='h-3 w-3'/>
-              {Users.length>0 && (
-                <div className='fiexd top-[20px] w-full shadow-md rounded-md flex flex-col items-start'>
+              {searchQuery.length> 0 && (
+                <div className='fixed top-[20px] w-full shadow-md rounded-md flex flex-col items-start'>
+                  {Users.length > 0 ? (<>
                   {Users.map((user) => (
   <Link key={user._id} href={`/profile/${user.username}`}>
-    <small>{user.displayName}</small>
+    <div className='flex items-center justify-between p-2 border-b w-full'>
+     <small>{user.displayName}</small>
+    </div>
   </Link>
+
 ))}
+</>
+                 ):<>
+                   <small>{`Search for ${searchQuery}`}</small>
+                 </>} 
                 </div>
               )}
             </div>
