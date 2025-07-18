@@ -266,13 +266,13 @@ export function WebProfileContent({ username }: ProfileContentProps) {
       <div className="flex h-full">
         {/* Sidebar - only show if logged in */}
         {session?.user && currentUser && (
-          <div className=" h-full bg-white border-r sticky top-0 max-h-screen">
+          <div className="w-auto h-full bg-white border-r sticky top-0 max-h-screen">
             <Sidebar profile={currentUser} onSignOut={handleSignOut} isExpand = {isExpand} />
           </div>
         )}
 
         {/* Main content */}
-        <div className="flex-1 w-full">
+        <div className="w-full">
           <div className="border-x bg-white min-h-screen">
             <div className="sticky top-0 bg-white/50 z-30 backdrop-blur-md border-b px-4 py-3">
               <h2 className="text-xl font-bold">{profileData.displayName}</h2>
