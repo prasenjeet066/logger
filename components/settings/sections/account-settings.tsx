@@ -1,38 +1,32 @@
 "use client"
 
-import { useState,useCallback } from "react"
+import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-//import VerificationSettings from"@/components/settings/sections/verification"
 import { Textarea } from "@/components/ui/textarea"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { useToast } from "@/hooks/use-toast"
 import { Camera, Save, Mail, User, MapPin, Globe, Calendar } from "lucide-react"
-import { FileUpload } from "@/components/upload/file-upload"
-import type { UploadResult } from "@/lib/blob/client"
+
 interface AccountSettingsProps {
   user: any
 }
 
 export function AccountSettings({ user }: AccountSettingsProps) {
   const { toast } = useToast()
-  const [uploadedFiles, setUploadedFiles] = useState()
   const [saving, setSaving] = useState(false)
-  const [showInageUpload, setShowImageUpload] = useState(false)
-  
   const [formData, setFormData] = useState({
     displayName: user?.displayName || "",
     username: user?.username || "",
-    avatarUrl: user?.avatarUrl || "",
     email: user?.email || "",
     bio: user?.bio || "",
     location: user?.location || "",
     website: user?.website || "",
     birthDate: user?.birthDate || "",
   })
-  
+
   const handleSave = async () => {
     setSaving(true)
     try {
@@ -41,9 +35,9 @@ export function AccountSettings({ user }: AccountSettingsProps) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
       })
-      
+
       if (!response.ok) throw new Error("Failed to update profile")
-      
+
       toast({
         title: "Success",
         description: "Profile updated successfully!",
@@ -59,15 +53,11 @@ export function AccountSettings({ user }: AccountSettingsProps) {
       setSaving(false)
     }
   }
-  
+
   const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }))
   }
-  const handleFilesUploaded = useCallback((files: UploadResult[]) => {
-    setUploadedFiles(files[0].url)
-    handleInputChange('avatarUrl',uploadedFiles)
-    setShowImageUpload(false)
-  }, [])
+
   return (
     <div className="space-y-6">
       {/* Profile Picture */}
@@ -85,7 +75,7 @@ export function AccountSettings({ user }: AccountSettingsProps) {
               <AvatarFallback className="text-2xl">{user?.displayName?.charAt(0)?.toUpperCase() || "U"}</AvatarFallback>
             </Avatar>
             <div className="space-y-2">
-              <Button variant="outline" className="flex items-center gap-2 bg-transparent" onClick={()=>{setShowImageUpload(true)}}>
+              <Button variant="outline" className="flex items-center gap-2 bg-transparent">
                 <Camera className="h-4 w-4" />
                 Change Photo
               </Button>
@@ -97,17 +87,8 @@ export function AccountSettings({ user }: AccountSettingsProps) {
           </div>
         </CardContent>
       </Card>
-      {
-        showInageUpload && (
-           <FileUpload
-                onUploadComplete={handleFilesUploaded}
-                maxFiles={1}
-                pathPrefix={`posts/${user.id}`}
-                className="w-full"
-              />
-        )
-      }
 
+      {/* Basic Information */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -217,10 +198,9 @@ export function AccountSettings({ user }: AccountSettingsProps) {
             />
             <p className="text-xs text-gray-500">This won't be shown publicly. Used for age-appropriate content.</p>
           </div>
-          
         </CardContent>
       </Card>
-      
+
       {/* Save Button */}
       <div className="flex justify-end">
         <Button onClick={handleSave} disabled={saving} className="min-w-32">
