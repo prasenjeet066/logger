@@ -94,11 +94,11 @@ export function DashboardContent({ user }: DashboardContentProps) {
             </Sheet>
 )}
 {!isMobile && (<>
-  <div className='flex flex-row items-center gap-2 bg-none border-2 border-gray-300 rounded-full px-4'>
+  <div className='flex flex-row items-center gap-2 bg-none border-2 border-gray-300 rounded-full px-4 py-2'>
     <input type ='text' className='outline-none bg-none border-0' placeholder='Search with us...'/>
     <Search className='h-3 w-3'/>
   </div>
-  <Button className="bg-gray-800 text-white px-4  rounded-full mr-4">
+  <Button className="bg-gray-800 text-white px-4 py-2 rounded-full mr-4">
     <Plus className="h-4 w-4"/>
     <small>Create New</small>
   </Button>
@@ -117,10 +117,10 @@ export function DashboardContent({ user }: DashboardContentProps) {
         </div>
       </div>
       
-      <div className="flex">
+      <div className="flex h-full">
         {/* Desktop Sidebar */}
         {!isMobile &&(
-        <div className="lg:block w-64 xl:w-80 border-r min-h-screen sticky top-0">
+        <div className="lg:block w-64 xl:w-80 border-r max-h-screen h-full sticky top-0">
           <Sidebar profile={profile} onSignOut={handleSignOut} />
         </div>)}
 

@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import { useSession } from "next-auth/react"
+import { useMobile } from "@/hooks/use-mobile"
 import { Button } from "@/components/ui/button"
 import { Spinner } from "@/components/loader/spinner" // Corrected import path
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -10,7 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Sidebar } from "@/components/dashboard/sidebar"
 import { PostCard } from "@/components/dashboard/post-card"
 import { EditProfileDialog } from "./edit-profile-dialog"
-import { Menu, X, UserPlus, UserCheck, Calendar, MapPin, LinkIcon } from "lucide-react"
+import { Menu, X, UserPlus, UserCheck, Calendar, MapPin, LinkIcon , Plus , Search} from "lucide-react"
 import { formatDistanceToNow } from "date-fns"
 import Link from "next/link"
 import { ImageViewer } from "@/components/media/image-viewer"
@@ -41,19 +42,20 @@ interface ProfileData {
 
 export function ProfileContent({ username }: ProfileContentProps) {
   const { data: session, status } = useSession()
-  const [currentUser, setCurrentUser] = useState<any>(null)
-  const [profileData, setProfileData] = useState<ProfileData | null>(null)
-  const [posts, setPosts] = useState<Post[]>([])
-  const [replies, setReplies] = useState<Post[]>([])
-  const [reposts, setReposts] = useState<Post[]>([])
-  const [media, setMedia] = useState<Post[]>([])
+  const [currentUser, setCurrentUser] = useState < any > (null)
+  const [profileData, setProfileData] = useState < ProfileData | null > (null)
+  const [posts, setPosts] = useState < Post[] > ([])
+  const [replies, setReplies] = useState < Post[] > ([])
+  const [reposts, setReposts] = useState < Post[] > ([])
+  const [media, setMedia] = useState < Post[] > ([])
   const [isLoading, setIsLoading] = useState(true)
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const isMobile = useMobile()
   const [editDialogOpen, setEditDialogOpen] = useState(false)
   const [activeTab, setActiveTab] = useState("posts")
-  const [imageViewerOpen, setImageViewerOpen] = useState<string | null>(null)
+  const [imageViewerOpen, setImageViewerOpen] = useState < string | null > (null)
   const router = useRouter()
-
+  
   const fetchProfileData = useCallback(async () => {
     try {
       setIsLoading(true)
@@ -65,26 +67,26 @@ export function ProfileContent({ username }: ProfileContentProps) {
           setCurrentUser(currentUserData)
         }
       }
-
+      
       // Get profile data and posts
       const profileResponse = await fetch(`/api/users/${username}`)
       if (!profileResponse.ok) {
         router.push("/")
         return
       }
-
+      
       const { user: profile, posts: userPosts } = await profileResponse.json()
       setProfileData(profile)
-
+      
       // Separate posts by type
       const regularPosts = userPosts.filter((post: Post) => !post.parentPostId && !post.isRepost)
       const replyPosts = userPosts.filter((post: Post) => post.parentPostId)
       const mediaPosts = userPosts.filter((post: Post) => post.mediaUrls && post.mediaUrls.length > 0)
-
+      
       setPosts(regularPosts)
       setReplies(replyPosts)
       setMedia(mediaPosts)
-
+      
       // Get reposts separately (already handled by the API route now)
       const repostsResponse = await fetch(`/api/users/${username}/reposts`)
       if (repostsResponse.ok) {
@@ -97,19 +99,19 @@ export function ProfileContent({ username }: ProfileContentProps) {
       setIsLoading(false)
     }
   }, [username, session, router])
-
+  
   useEffect(() => {
     fetchProfileData()
   }, [fetchProfileData])
-
+  
   const handleFollow = async () => {
     if (!profileData || !session?.user) return
-
+    
     try {
       const response = await fetch(`/api/users/${profileData.username}/follow`, {
         method: "POST",
       })
-
+      
       if (response.ok) {
         const result = await response.json()
         setProfileData((prevProfile) => {
@@ -125,24 +127,23 @@ export function ProfileContent({ username }: ProfileContentProps) {
       console.error("Error toggling follow:", error)
     }
   }
-
+  
   const handleLike = async (postId: string, isLiked: boolean) => {
     if (!session?.user) return
-
+    
     try {
       const response = await fetch(`/api/posts/${postId}/like`, {
         method: "POST",
       })
-
+      
       if (response.ok) {
         const result = await response.json()
         const updatePosts = (postsList: Post[]) =>
           postsList.map((post) =>
-            post._id === postId
-              ? { ...post, isLiked: result.liked, likesCount: post.likesCount + (result.liked ? 1 : -1) }
-              : post,
+            post._id === postId ? { ...post, isLiked: result.liked, likesCount: post.likesCount + (result.liked ? 1 : -1) } :
+            post,
           )
-
+        
         setPosts(updatePosts(posts))
         setReplies(updatePosts(replies))
         setReposts(updatePosts(reposts))
@@ -152,15 +153,15 @@ export function ProfileContent({ username }: ProfileContentProps) {
       console.error("Error toggling like:", error)
     }
   }
-
+  
   const handleRepost = async (postId: string, isReposted: boolean) => {
     if (!session?.user) return
-
+    
     try {
       const response = await fetch(`/api/posts/${postId}/repost`, {
         method: "POST",
       })
-
+      
       if (response.ok) {
         const result = await response.json()
         // If a repost was created/deleted, we need to refetch reposts or update state carefully.
@@ -171,12 +172,12 @@ export function ProfileContent({ username }: ProfileContentProps) {
       console.error("Error toggling repost:", error)
     }
   }
-
+  
   const handleSignOut = async () => {
     await signOut()
     router.push("/")
   }
-
+  
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -184,7 +185,7 @@ export function ProfileContent({ username }: ProfileContentProps) {
       </div>
     )
   }
-
+  
   if (!profileData) {
     return (
       <div className="min-h-screen flex items-center justify-center font-english">
@@ -199,9 +200,9 @@ export function ProfileContent({ username }: ProfileContentProps) {
       </div>
     )
   }
-
+  
   const isOwnProfile = profileData._id === currentUser?._id
-
+  
   const renderTabContent = (tabPosts: Post[], emptyMessage: string) => (
     <div>
       {tabPosts.length === 0 ? (
@@ -221,14 +222,16 @@ export function ProfileContent({ username }: ProfileContentProps) {
       )}
     </div>
   )
-
+  
   return (
     <div className="min-h-screen bg-gray-50 font-english">
       {" "}
       {/* Changed to font-english */}
-      {/* Mobile header */}
+      
+      
       <div className="lg:hidden bg-white border-b px-4 py-3 flex items-center justify-between">
         <h1 className="text-xl font-bold logo-font">Cōdes</h1>
+        
         <div className="flex items-center gap-2">
           {session?.user && (
             <>
@@ -253,10 +256,14 @@ export function ProfileContent({ username }: ProfileContentProps) {
             </Link>
           )}
         </div>
+        
+        
       </div>
+      
+      
       <div className="flex">
         {/* Sidebar - only show if logged in */}
-        {session?.user && currentUser && (
+        {session?.user && currentUser  &&(
           <div
             className={`${sidebarOpen ? "block" : "hidden"} lg:block fixed lg:relative inset-y-0 left-0 z-50 w-64 bg-white border-r lg:border-r-0`}
           >
