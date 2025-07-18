@@ -5,6 +5,7 @@ import type React from "react"
 import { useState, useCallback, useMemo } from "react"
 import { formatDistanceToNow } from "date-fns"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { useMobile } from "@/hooks/use-mobile"
 import { Button } from "@/components/ui/button"
 import { Loader2, Languages, Repeat2, Share, Pin, AlertCircle, Heart, MessageCircle } from "lucide-react"
 import Link from "next/link"
@@ -76,7 +77,7 @@ export function PostCard({ post, onLike, onRepost, onReply }: PostCardProps) {
     targetLang: "bn",
     error: null,
   })
-
+  const isMobile = useMobile()
   const router = useRouter()
   const pathname = usePathname()
 
@@ -324,7 +325,7 @@ export function PostCard({ post, onLike, onRepost, onReply }: PostCardProps) {
 
   return (
     <article
-      className="border-b hover:bg-gray-50 transition-colors cursor-pointer"
+      className={isMobile==true ? "border-b hover:bg-gray-50 transition-colors cursor-pointer":"space-y-2 hover:bg-gray-50 transition-colors cursor-pointer rounded-md border-2 border-gray-50 "}
       onClick={handlePostClick}
       aria-label={`Post by ${post.author.displayName}`}
     >
