@@ -80,9 +80,7 @@ export function SettingsSidebar({ activeSection, onSectionChange, isMobile = fal
       <div className="p-6 border-b border-gray-200">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-blue-100 rounded-lg">
-              <SettingsIcon className="h-5 w-5 text-blue-600" />
-            </div>
+          
             <div>
               <h1 className="text-xl font-semibold text-gray-900">Settings</h1>
               <p className="text-sm text-gray-500">Manage your account preferences</p>
