@@ -8,7 +8,7 @@ import { TrendingHashtags } from "@/components/dashboard/trending-hashtags"
 import { SearchDialog } from "@/components/dashboard/search-dialog"
 import { NotificationDialog } from "@/components/dashboard/notification-dialog"
 import { Button } from "@/components/ui/button"
-import { Plus, Search , User as UserIcon} from "lucide-react"
+import { Plus, Menu ,Search , User as UserIcon} from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import Link from "next/link"
 import type { IUser } from "@/lib/mongodb/models/User" // Import IUser type
@@ -27,7 +27,9 @@ interface DashboardContentProps {
 export function WebDashboardContent({ user }: DashboardContentProps) {
   const [profile, setProfile] = useState<IUser | null>(null)
   const [isLoading, setIsLoading] = useState(true)
-
+  
+  const [sidebarExpand , setSidebarExpand] = useState<boolean>(false)
+  
   useEffect(() => {
     fetchProfile()
   }, [user.id]) // Depend on user.id to refetch if user changes
@@ -73,7 +75,10 @@ export function WebDashboardContent({ user }: DashboardContentProps) {
     <div className="min-h-screen bg-white">
       {/* Desktop Header */}
       <div className="sticky top-0 border-b bg-white bg-white/50 z-30 backdrop-blur-md px-4 py-2">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2 justify-between">
+          <Menu className='h-4 w-4' onClick={()=>{
+            setSidebarExpand(!sidebarExpand)
+          }}/>
           <h1 className="text-xl font-bold logo-font">Cōdes</h1>
           <div className="flex flex-row items-center gap-4">
             {/* Desktop Search Bar */}
@@ -104,7 +109,7 @@ export function WebDashboardContent({ user }: DashboardContentProps) {
       <div className="flex h-full">
         {/* Desktop Sidebar */}
         <div className="w-64 xl:w-80 border-r max-h-screen h-full sticky top-0">
-          <Sidebar profile={profile} onSignOut={handleSignOut} />
+          <Sidebar profile={profile} onSignOut={handleSignOut} isExpand={sidebarExpand}/>
         </div>
 
         {/* Main Content */}

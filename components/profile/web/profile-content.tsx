@@ -10,7 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Sidebar } from "@/components/dashboard/sidebar"
 import { PostCard } from "@/components/dashboard/post-card"
 import { EditProfileDialog } from "@/components/profile/edit-profile-dialog"
-import { UserPlus, UserCheck, Calendar, MapPin, LinkIcon, Plus, Search } from "lucide-react"
+import { UserPlus, UserCheck, Calendar,Menu, MapPin, LinkIcon, Plus, Search } from "lucide-react"
 import { formatDistanceToNow } from "date-fns"
 import Link from "next/link"
 import { ImageViewer } from "@/components/media/image-viewer"
@@ -52,7 +52,7 @@ export function WebProfileContent({ username }: ProfileContentProps) {
   const [activeTab, setActiveTab] = useState("posts")
   const [imageViewerOpen, setImageViewerOpen] = useState<string | null>(null)
   const router = useRouter()
-  
+  const [isExpand , setIsExpand ] = useState<boolean>(false)
   const fetchProfileData = useCallback(async () => {
     try {
       setIsLoading(true)
@@ -223,6 +223,9 @@ export function WebProfileContent({ username }: ProfileContentProps) {
       {/* Desktop Header */}
       <div className="sticky top-0 border-b bg-white bg-white/50 z-30 backdrop-blur-md px-4 py-2">
         <div className="flex items-center justify-between">
+          <Menu className='h-4 w-4' onClick={()=>{
+            setIsExpand(!isExpand)
+          }}/>
           <h1 className="text-xl font-bold logo-font">Cōdes</h1>
           <div className="flex flex-row items-center gap-4">
             {/* Desktop Search Bar */}
@@ -262,7 +265,7 @@ export function WebProfileContent({ username }: ProfileContentProps) {
         {/* Sidebar - only show if logged in */}
         {session?.user && currentUser && (
           <div className="w-64 xl:w-80 h-full bg-white border-r sticky top-0 max-h-screen">
-            <Sidebar profile={currentUser} onSignOut={handleSignOut} />
+            <Sidebar profile={currentUser} onSignOut={handleSignOut} isExpand = {isExpand} />
           </div>
         )}
 

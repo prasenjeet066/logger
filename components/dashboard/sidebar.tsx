@@ -7,10 +7,11 @@ import { Home, Search, Bell, Mail, Bookmark, User, LogOut, X, Settings, Plus } f
 import { useMobile } from "@/hooks/use-mobile"
 interface SidebarProps {
   profile: any
+  isExpand : boolean
   onSignOut: () => void
 }
 
-export function Sidebar({ profile, onSignOut }: SidebarProps) {
+export function Sidebar({ isExpand=true , profile, onSignOut }: SidebarProps) {
   const isMobile = useMobile()
   const menuItems = [
     { icon: Home, label: "Home", href: "/dashboard" },
@@ -45,7 +46,9 @@ export function Sidebar({ profile, onSignOut }: SidebarProps) {
           <Link key={item.href} href={item.href}>
             <Button variant="ghost" className="w-full justify-start text-base lg:text-lg py-3 lg:py-6 px-3">
               <item.icon className="mr-3 h-5 w-5 lg:h-6 lg:w-6" />
+              {!isExpand && (
               <span className="truncate">{item.label}</span>
+              )}
             </Button>
           </Link>
         ))}
@@ -55,20 +58,21 @@ export function Sidebar({ profile, onSignOut }: SidebarProps) {
       </nav>
 
       <div className="border-t pt-3 mt-3">
-        
+        {isExpand && (
         <Link href="/create">
           <Button className="w-full justify-center mt-4 py-3 lg:py-6">
             <Plus className="mr-2 h-5 w-5" />
             <span>Create Post</span>
           </Button>
         </Link>
+        )}
         <Button
           variant="ghost"
           className="w-full justify-start mt-2 text-red-600 hover:text-red-700 hover:bg-red-50 text-sm"
           onClick={onSignOut}
         >
           <LogOut className="mr-3 h-4 w-4" />
-          Sign Out
+          {isExpand ? "Sign Out": ""}
         </Button>
       </div>
     </div>
