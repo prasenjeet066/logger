@@ -111,12 +111,12 @@ export function WebDashboardContent({ user }: DashboardContentProps) {
       
       <div className="flex h-full">
         {/* Desktop Sidebar */}
-        <div className="border-r max-h-screen max-w-64 h-full sticky top-0 w-max">
+        <div className="border-r max-h-screen max-w-64 h-full sticky top-0">
           <Sidebar profile={profile} onSignOut={handleSignOut} isExpand={sidebarExpand}/>
         </div>
 
         {/* Main Content */}
-        <div className="w-full max-w-2xl border-r">
+        <div className="w-full border-r">
           <Timeline userId={profile._id} /> {/* Pass MongoDB _id */}
         </div>
 
