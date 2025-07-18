@@ -107,7 +107,7 @@ export function DashboardContent({ user }: DashboardContentProps) {
       </div>
       
       <div className="flex h-full">
-        {/* Desktop Sidebar */}
+      
         
 
         {/* Main Content */}

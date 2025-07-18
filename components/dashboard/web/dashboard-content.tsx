@@ -1,5 +1,4 @@
 "use client"
-
 import { useState, useEffect } from "react"
 import { signOut } from "next-auth/react" // Import signOut from next-auth/react
 import { Spinner } from "@/components/loader/spinner" // Updated import path
@@ -9,7 +8,7 @@ import { TrendingHashtags } from "@/components/dashboard/trending-hashtags"
 import { SearchDialog } from "@/components/dashboard/search-dialog"
 import { NotificationDialog } from "@/components/dashboard/notification-dialog"
 import { Button } from "@/components/ui/button"
-import { Plus, Search } from "lucide-react"
+import { Plus, Search , User as UserIcon} from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import Link from "next/link"
 import type { IUser } from "@/lib/mongodb/models/User" // Import IUser type
