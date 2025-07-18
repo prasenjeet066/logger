@@ -3,7 +3,7 @@ import { getServerSession } from "next-auth"
 import { useMobile } from "@/hooks/use-mobile"
 import { authOptions } from "@/lib/auth/auth-config"
 import { DashboardContent } from "@/components/dashboard/dashboard-content"
-import {WebDashboardContent} from "@/components/dashboard/web/dashboard-content"
+import { WebDashboardContent } from "@/components/dashboard/web/dashboard-content"
 
 export default async function DashboardPage() {
   const session = await getServerSession(authOptions)
@@ -11,7 +11,7 @@ export default async function DashboardPage() {
   if (!session?.user) {
     redirect("/auth/sign-in")
   }
-
+  
   // Map session.user properties to what DashboardContent expects
   const user = {
     id: session.user.id,
@@ -19,12 +19,13 @@ export default async function DashboardPage() {
     username: session.user.username,
     avatar_url: session.user.avatarUrl,
     // Add other properties if DashboardContent expects them
-  } as any
-  /**if (isMobile) {
+  }
+  
+  
+  if (isMobile) {
     return <DashboardContent user={user} />
-  }else if (!isMobile) {
+  } else if (!isMobile) {
     return <WebDashboardContent user={user} />
-  }**/
-  return <WebDashboardContent user={user} />
+  }
   
 }
