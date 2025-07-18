@@ -81,6 +81,7 @@ export function DashboardContent({ user }: DashboardContentProps) {
         <div className="flex items-center justify-between">
           <h1 className="text-xl font-bold logo-font">Cōdes</h1>
           <div className="flex flex-row w-full items-center justify-end">
+            {isMobile && (
             <Sheet>
               <SheetTrigger asChild>
                 <Button variant="ghost" size="icon">
@@ -91,6 +92,17 @@ export function DashboardContent({ user }: DashboardContentProps) {
                 <Sidebar profile={profile} onSignOut={handleSignOut} />
               </SheetContent>
             </Sheet>
+)}
+{!isMobile && (<>
+  <div className='flex flex-row items-center gap-2 bg-gray-50 rounded-full px-4'>
+    <input type ='text' className='outline-none bg-none border-0' placeholder='Search...'/>
+  </div>
+  <Button className="bg-gray-800 text-white px-4">
+    <Plus className="h-4 w-4"/>
+    <small>Create New</small>
+  </Button>
+  </>
+)}
 
             <Link href={`/profile/${profile?.username}`}>
               <Avatar className="h-8 w-8">
@@ -106,9 +118,10 @@ export function DashboardContent({ user }: DashboardContentProps) {
       
       <div className="flex">
         {/* Desktop Sidebar */}
+        {!isMobile &&(
         <div className="lg:block w-64 xl:w-80 border-r min-h-screen sticky top-0">
           <Sidebar profile={profile} onSignOut={handleSignOut} />
-        </div>
+        </div>)}
 
         {/* Main Content */}
         <div className="flex-1 max-w-2xl border-r">
@@ -127,13 +140,14 @@ export function DashboardContent({ user }: DashboardContentProps) {
       </div>
 
       {/* Mobile Create Post FAB */}
+      {isMobile && (
       <div className="lg:hidden fixed bottom-20 right-4 z-40">
         <Link href="/create">
           <Button size="icon" className="h-14 w-14 rounded-full shadow-lg">
             <Plus className="h-6 w-6" />
           </Button>
         </Link>
-      </div>
+      </div>)}
 
       <SearchDialog />
       <NotificationDialog />

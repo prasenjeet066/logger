@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { PostCard } from "./post-card"
+import { useMobile } from "@/hooks/use-mobile"
 import { Spinner } from "@/components/loader/spinner"
 
 interface Post {
@@ -37,7 +38,7 @@ export function Timeline() {
   const [posts, setPosts] = useState<Post[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-
+  const isMobile = useMobile()
   useEffect(() => {
     fetchPosts()
   }, [])
@@ -122,7 +123,7 @@ export function Timeline() {
   }
 
   return (
-    <div className="space-y-0">
+    <div className={`space-y-0 ${!isMobile && 'flex flex-col gap-2'}`}>
       {posts.map((post) => (
         <PostCard
           key={post._id}
