@@ -20,10 +20,11 @@ export default async function DashboardPage() {
     avatar_url: session.user.avatarUrl,
     // Add other properties if DashboardContent expects them
   } as any
-  if (isMobile) {
+  /**if (isMobile) {
     return <DashboardContent user={user} />
   }else if (!isMobile) {
     return <WebDashboardContent user={user} />
-  }
+  }**/
+  return <WebDashboardContent user={user} />
   
 }
