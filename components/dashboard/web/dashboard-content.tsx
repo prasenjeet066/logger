@@ -76,7 +76,7 @@ export function WebDashboardContent({ user }: DashboardContentProps) {
         // setIsLoading(false)
       }
     }, 300),
-    [session?.user],
+    [],
   )
   useEffect(() => {
     fetchProfile()
