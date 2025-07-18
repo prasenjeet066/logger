@@ -261,7 +261,7 @@ export function WebProfileContent({ username }: ProfileContentProps) {
       <div className="flex h-full">
         {/* Sidebar - only show if logged in */}
         {session?.user && currentUser && (
-          <div className="w-64 xl:w-80  h-full bg-white border-r sticky top-0 max-h-screen">
+          <div className="w-64 xl:w-80 h-full bg-white border-r sticky top-0 max-h-screen">
             <Sidebar profile={currentUser} onSignOut={handleSignOut} />
           </div>
         )}
