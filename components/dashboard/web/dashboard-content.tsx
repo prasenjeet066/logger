@@ -13,6 +13,8 @@ import { SearchDialog } from "@/components/dashboard/search-dialog"
 import { NotificationDialog } from "@/components/dashboard/notification-dialog"
 import { Button } from "@/components/ui/button"
 import { Plus, Menu, Search, User as UserIcon } from "lucide-react"
+import debounce from 'lodash.debounce'
+
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import Link from "next/link"
 import type { IUser } from "@/lib/mongodb/models/User" // Import IUser type
@@ -24,7 +26,7 @@ interface UserProfile {
   avatarUrl: string | null
   followersCount: number
   isFollowing: boolean
-  isVerified?: boolean
+  isVerified ? : boolean
 }
 interface DashboardContentProps {
   // The user prop now represents the session user from NextAuth, which should align with IUser
@@ -40,9 +42,9 @@ interface DashboardContentProps {
 export function WebDashboardContent({ user }: DashboardContentProps) {
   const [profile, setProfile] = useState < IUser | null > (null)
   const [isLoading, setIsLoading] = useState(true)
-  const [Posts,setPosts] = useState([])
-  const [Users,setUsers] = useState<UserProfile>([])
-  const [searchQuery, setSearchQuery] = useState()
+  const [Posts, setPosts] = useState([])
+  const [Users, setUsers] = useState < UserProfile[]> ([])
+  const [searchQuery, setSearchQuery] = useState("")
   const [sidebarExpand, setSidebarExpand] = useState < boolean > (false)
   const debouncedSearch = useCallback(
     debounce(async (query: string) => {
@@ -72,7 +74,7 @@ export function WebDashboardContent({ user }: DashboardContentProps) {
       } catch (error) {
         console.error("Error searching:", error)
       } finally {
-       // setIsLoading(false)
+        // setIsLoading(false)
       }
     }, 300),
     [session?.user],
@@ -138,18 +140,22 @@ export function WebDashboardContent({ user }: DashboardContentProps) {
           <div className="flex flex-row items-center gap-4">
             {/* Desktop Search Bar */}
             <div className=' relative flex flex-row items-center gap-2 bg-none h-8 border-2 border-gray-300 rounded-full px-4 py-2'>
-              <input type='text' className='outline-none bg-none border-0' placeholder='Search with us...' value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 text-sm lg:text-base"
-                onKeyPress={(e) => e.key === "Enter" && searchUsers()}/>
+              <input
+  type='text'
+  className='outline-none bg-none border-0 pl-10 text-sm lg:text-base'
+  placeholder='Search with us...'
+  value={searchQuery}
+  onChange={(e) => setSearchQuery(e.target.value)}
+  onKeyPress={(e) => e.key === "Enter" && searchUsers()}
+/>
               <Search className='h-3 w-3'/>
               {Users.length>0 && (
                 <div className='fiexd top-[20px] w-full shadow-md rounded-md flex flex-col items-start'>
-                  {Users.map((user)=>{
-                    <Link href={`/profile/${post.username}`}>
-                      <small>{post.displayName}</small>
-                    </Link>
-                  })}
+                  {Users.map((user) => (
+  <Link key={user._id} href={`/profile/${user.username}`}>
+    <small>{user.displayName}</small>
+  </Link>
+))}
                 </div>
               )}
             </div>
