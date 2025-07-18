@@ -13,8 +13,7 @@ import { SearchDialog } from "@/components/dashboard/search-dialog"
 import { NotificationDialog } from "@/components/dashboard/notification-dialog"
 import { Button } from "@/components/ui/button"
 import { Plus, Menu, Search, User as UserIcon } from "lucide-react"
-import debounce from 'lodash.debounce'
-
+import { debounce } from "lodash"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import Link from "next/link"
 import type { IUser } from "@/lib/mongodb/models/User" // Import IUser type
