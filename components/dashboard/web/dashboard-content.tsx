@@ -1,5 +1,9 @@
 "use client"
-import { useState, useEffect } from "react"
+import {
+  useState,
+  useEffect,
+  useCallback
+} from "react"
 import { signOut } from "next-auth/react" // Import signOut from next-auth/react
 import { Spinner } from "@/components/loader/spinner" // Updated import path
 import { Sidebar } from "@/components/dashboard/sidebar"
@@ -8,11 +12,20 @@ import { TrendingHashtags } from "@/components/dashboard/trending-hashtags"
 import { SearchDialog } from "@/components/dashboard/search-dialog"
 import { NotificationDialog } from "@/components/dashboard/notification-dialog"
 import { Button } from "@/components/ui/button"
-import { Plus, Menu ,Search , User as UserIcon} from "lucide-react"
+import { Plus, Menu, Search, User as UserIcon } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import Link from "next/link"
 import type { IUser } from "@/lib/mongodb/models/User" // Import IUser type
-
+interface UserProfile {
+  _id: string
+  username: string
+  displayName: string
+  bio: string | null
+  avatarUrl: string | null
+  followersCount: number
+  isFollowing: boolean
+  isVerified?: boolean
+}
 interface DashboardContentProps {
   // The user prop now represents the session user from NextAuth, which should align with IUser
   user: {
@@ -20,20 +33,59 @@ interface DashboardContentProps {
     email: string
     username: string
     displayName: string
-    avatarUrl?: string
+    avatarUrl ? : string
   }
 }
 
 export function WebDashboardContent({ user }: DashboardContentProps) {
-  const [profile, setProfile] = useState<IUser | null>(null)
+  const [profile, setProfile] = useState < IUser | null > (null)
   const [isLoading, setIsLoading] = useState(true)
-  
-  const [sidebarExpand , setSidebarExpand] = useState<boolean>(false)
-  
+  const [Posts,setPosts] = useState([])
+  const [Users,setUsers] = useState<UserProfile>([])
+  const [searchQuery, setSearchQuery] = useState()
+  const [sidebarExpand, setSidebarExpand] = useState < boolean > (false)
+  const debouncedSearch = useCallback(
+    debounce(async (query: string) => {
+      if (!query.trim()) {
+        setUsers([])
+        setPosts([])
+        return
+      }
+      
+      //setIsLoading(true)
+      try {
+        // Search users and posts
+        const [usersResponse, postsResponse] = await Promise.all([
+          fetch(`/api/users/search?q=${encodeURIComponent(query)}`),
+          fetch(`/api/posts/search?q=${encodeURIComponent(query)}`),
+        ])
+        
+        if (usersResponse.ok) {
+          const usersData = await usersResponse.json()
+          setUsers(usersData)
+        }
+        
+        if (postsResponse.ok) {
+          const postsData = await postsResponse.json()
+          setPosts(postsData)
+        }
+      } catch (error) {
+        console.error("Error searching:", error)
+      } finally {
+       // setIsLoading(false)
+      }
+    }, 300),
+    [session?.user],
+  )
   useEffect(() => {
     fetchProfile()
   }, [user.id]) // Depend on user.id to refetch if user changes
-
+  useEffect(() => {
+    debouncedSearch(searchQuery)
+  }, [searchQuery, debouncedSearch])
+  const searchUsers = () => {
+    
+  }
   const fetchProfile = async () => {
     try {
       // Fetch profile from your new MongoDB-backed API route
@@ -50,11 +102,11 @@ export function WebDashboardContent({ user }: DashboardContentProps) {
       setIsLoading(false)
     }
   }
-
+  
   const handleSignOut = async () => {
     await signOut({ callbackUrl: "/auth/sign-in" }) // Redirect to sign-in page after sign out
   }
-
+  
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -62,7 +114,7 @@ export function WebDashboardContent({ user }: DashboardContentProps) {
       </div>
     )
   }
-
+  
   if (!profile) {
     return (
       <div className="flex items-center justify-center min-h-screen text-red-500">
@@ -70,7 +122,7 @@ export function WebDashboardContent({ user }: DashboardContentProps) {
       </div>
     )
   }
-
+  
   return (
     <div className="min-h-screen bg-white">
       {/* Desktop Header */}
@@ -85,13 +137,27 @@ export function WebDashboardContent({ user }: DashboardContentProps) {
           </div>
           <div className="flex flex-row items-center gap-4">
             {/* Desktop Search Bar */}
-            <div className='flex flex-row items-center gap-2 bg-none border-2 border-gray-300 rounded-full px-4 py-2'>
-              <input type='text' className='outline-none bg-none border-0' placeholder='Search with us...'/>
+            <div className=' relative flex flex-row items-center gap-2 bg-none h-8 border-2 border-gray-300 rounded-full px-4 py-2'>
+              <input type='text' className='outline-none bg-none border-0' placeholder='Search with us...' value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10 text-sm lg:text-base"
+                onKeyPress={(e) => e.key === "Enter" && searchUsers()}/>
               <Search className='h-3 w-3'/>
+              {Users.length>0 && (
+                <div className='fiexd top-[20px] w-full shadow-md rounded-md flex flex-col items-start'>
+                  {Users.map((user)=>{
+                    <Link href={`/profile/${post.username}`}>
+                      <small>{post.displayName}</small>
+                    </Link>
+                  })}
+                </div>
+              )}
             </div>
             
             {/* Create New Button */}
-            <Button className="bg-gray-800 text-white px-4 py-2 rounded-full">
+            <Button className="bg-gray-800 text-white px-4 h-8 py-2 rounded-full" onClick={()=>{
+              
+            }}>
               <Plus className="h-4 w-4"/>
               <small>Create New</small>
             </Button>
@@ -109,14 +175,14 @@ export function WebDashboardContent({ user }: DashboardContentProps) {
         </div>
       </div>
       
-      <div className="flex h-full">
+      <div className="flex  gap-2 h-full">
         {/* Desktop Sidebar */}
         <div className={`border-r max-h-screen max-w-64 h-screen sticky top-0 ${sidebarExpand == false && "w-16"}`}>
           <Sidebar profile={profile} onSignOut={handleSignOut} isExpand={sidebarExpand}/>
         </div>
 
         {/* Main Content */}
-        <div className="w-full border-r">
+        <div className="w-full mt">
           <Timeline userId={profile._id} /> {/* Pass MongoDB _id */}
         </div>
 

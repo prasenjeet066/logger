@@ -231,13 +231,13 @@ export function WebProfileContent({ username }: ProfileContentProps) {
           </div>
           <div className="flex flex-row items-center gap-4">
             {/* Desktop Search Bar */}
-            <div className='flex flex-row items-center gap-2 bg-none border-2 border-gray-300 rounded-full px-4 py-2'>
+            <div className='flex flex-row items-center gap-2 bg-none border-2 border-gray-300 rounded-full h-8 px-4 py-2'>
               <input type='text' className='outline-none bg-none border-0' placeholder='Search with us...'/>
               <Search className='h-3 w-3'/>
             </div>
             
             {/* Create New Button */}
-            <Button className="bg-gray-800 text-white px-4 py-2 rounded-full">
+            <Button className="bg-gray-800 text-white px-4 py-2 h-8 rounded-full">
               <Plus className="h-4 w-4"/>
               <small>Create New</small>
             </Button>
@@ -272,7 +272,7 @@ export function WebProfileContent({ username }: ProfileContentProps) {
         )}
 
         {/* Main content */}
-        <div className="w-full">
+        <div className="w-full ">
           <div className="border-x bg-white min-h-screen">
             <div className="sticky top-0 bg-white/50 z-30 backdrop-blur-md border-b px-4 py-3">
               <h2 className="text-xl font-bold">{profileData.displayName}</h2>
@@ -415,7 +415,7 @@ export function WebProfileContent({ username }: ProfileContentProps) {
                   Media
                 </TabsTrigger>
               </TabsList>
-
+              
               <TabsContent value="posts" className="mt-0">
                 {renderTabContent(posts, "No posts yet")}
               </TabsContent>
@@ -433,6 +433,9 @@ export function WebProfileContent({ username }: ProfileContentProps) {
               </TabsContent>
             </Tabs>
           </div>
+        </div>
+        <div className='flex h-full'>
+          
         </div>
       </div>
 
