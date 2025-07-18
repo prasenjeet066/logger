@@ -13,7 +13,7 @@ import { Button } from "@/components/ui/button"
 import { Menu, UserIcon, Plus , Search} from "lucide-react"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { useMobile } from "@/hooks/use-mobile"
+
 import Link from "next/link"
 import type { IUser } from "@/lib/mongodb/models/User" // Import IUser type
 
@@ -31,7 +31,7 @@ interface DashboardContentProps {
 export function DashboardContent({ user }: DashboardContentProps) {
   const [profile, setProfile] = useState<IUser | null>(null)
   const [isLoading, setIsLoading] = useState(true)
-  const isMobile = useMobile();
+  //const isMobile = useMobile();
 
   useEffect(() => {
     fetchProfile()
@@ -81,7 +81,7 @@ export function DashboardContent({ user }: DashboardContentProps) {
         <div className="flex items-center justify-between">
           <h1 className="text-xl font-bold logo-font">Cōdes</h1>
           <div className="flex flex-row w-full items-center justify-end">
-            {isMobile && (
+            
             <Sheet>
               <SheetTrigger asChild>
                 <Button variant="ghost" size="icon">
@@ -92,18 +92,7 @@ export function DashboardContent({ user }: DashboardContentProps) {
                 <Sidebar profile={profile} onSignOut={handleSignOut} />
               </SheetContent>
             </Sheet>
-)}
-{!isMobile && (<>
-  <div className='flex flex-row items-center gap-2 bg-none border-2 border-gray-300 rounded-full px-4 py-2'>
-    <input type ='text' className='outline-none bg-none border-0' placeholder='Search with us...'/>
-    <Search className='h-3 w-3'/>
-  </div>
-  <Button className="bg-gray-800 text-white px-4 py-2 rounded-full mr-4">
-    <Plus className="h-4 w-4"/>
-    <small>Create New</small>
-  </Button>
-  </>
-)}
+
 
             <Link href={`/profile/${profile?.username}`}>
               <Avatar className="h-8 w-8">
@@ -119,10 +108,7 @@ export function DashboardContent({ user }: DashboardContentProps) {
       
       <div className="flex h-full">
         {/* Desktop Sidebar */}
-        {!isMobile &&(
-        <div className="lg:block w-64 xl:w-80 border-r max-h-screen h-full sticky top-0">
-          <Sidebar profile={profile} onSignOut={handleSignOut} />
-        </div>)}
+        
 
         {/* Main Content */}
         <div className="flex-1 max-w-2xl border-r">
@@ -141,14 +127,14 @@ export function DashboardContent({ user }: DashboardContentProps) {
       </div>
 
       {/* Mobile Create Post FAB */}
-      {isMobile && (
+      
       <div className="lg:hidden fixed bottom-20 right-4 z-40">
         <Link href="/create">
           <Button size="icon" className="h-14 w-14 rounded-full shadow-lg">
             <Plus className="h-6 w-6" />
           </Button>
         </Link>
-      </div>)}
+      </div>
 
       <SearchDialog />
       <NotificationDialog />
