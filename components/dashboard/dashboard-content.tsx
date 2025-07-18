@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button"
 import { Menu, UserIcon, Plus } from "lucide-react"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { useMobile } from "@/hooks/use-mobile"
 import Link from "next/link"
 import type { IUser } from "@/lib/mongodb/models/User" // Import IUser type
 
@@ -30,6 +31,7 @@ interface DashboardContentProps {
 export function DashboardContent({ user }: DashboardContentProps) {
   const [profile, setProfile] = useState<IUser | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const isMobile = useMobile();
 
   useEffect(() => {
     fetchProfile()
@@ -74,7 +76,7 @@ export function DashboardContent({ user }: DashboardContentProps) {
 
   return (
     <div className="min-h-screen bg-white">
-      {/* Mobile Header */}
+      
       <div className="lg:hidden sticky top-0 border-b bg-white bg-white/50 z-30 backdrop-blur-md px-4 py-2">
         <div className="flex items-center justify-between">
           <h1 className="text-xl font-bold logo-font">Cōdes</h1>
@@ -101,10 +103,10 @@ export function DashboardContent({ user }: DashboardContentProps) {
           </div>
         </div>
       </div>
-
+      
       <div className="flex">
         {/* Desktop Sidebar */}
-        <div className="hidden lg:block w-64 xl:w-80 border-r min-h-screen sticky top-0">
+        <div className="lg:block w-64 xl:w-80 border-r min-h-screen sticky top-0">
           <Sidebar profile={profile} onSignOut={handleSignOut} />
         </div>
 
