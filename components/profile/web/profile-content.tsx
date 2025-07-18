@@ -3,7 +3,6 @@
 import { useEffect, useState, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import { useSession } from "next-auth/react"
-import { useMobile } from "@/hooks/use-mobile"
 import { Button } from "@/components/ui/button"
 import { Spinner } from "@/components/loader/spinner" // Corrected import path
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -11,7 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Sidebar } from "@/components/dashboard/sidebar"
 import { PostCard } from "@/components/dashboard/post-card"
 import { EditProfileDialog } from "./edit-profile-dialog"
-import { Menu, X, UserPlus, UserCheck, Calendar, MapPin, LinkIcon , Plus , Search} from "lucide-react"
+import { UserPlus, UserCheck, Calendar, MapPin, LinkIcon, Plus, Search } from "lucide-react"
 import { formatDistanceToNow } from "date-fns"
 import Link from "next/link"
 import { ImageViewer } from "@/components/media/image-viewer"
@@ -40,20 +39,18 @@ interface ProfileData {
   isFollowing: boolean // Added for current user's follow status
 }
 
-export function ProfileContent({ username }: ProfileContentProps) {
+export function WebProfileContent({ username }: ProfileContentProps) {
   const { data: session, status } = useSession()
-  const [currentUser, setCurrentUser] = useState < any > (null)
-  const [profileData, setProfileData] = useState < ProfileData | null > (null)
-  const [posts, setPosts] = useState < Post[] > ([])
-  const [replies, setReplies] = useState < Post[] > ([])
-  const [reposts, setReposts] = useState < Post[] > ([])
-  const [media, setMedia] = useState < Post[] > ([])
+  const [currentUser, setCurrentUser] = useState<any>(null)
+  const [profileData, setProfileData] = useState<ProfileData | null>(null)
+  const [posts, setPosts] = useState<Post[]>([])
+  const [replies, setReplies] = useState<Post[]>([])
+  const [reposts, setReposts] = useState<Post[]>([])
+  const [media, setMedia] = useState<Post[]>([])
   const [isLoading, setIsLoading] = useState(true)
-  const [sidebarOpen, setSidebarOpen] = useState(false)
-  const isMobile = useMobile()
   const [editDialogOpen, setEditDialogOpen] = useState(false)
   const [activeTab, setActiveTab] = useState("posts")
-  const [imageViewerOpen, setImageViewerOpen] = useState < string | null > (null)
+  const [imageViewerOpen, setImageViewerOpen] = useState<string | null>(null)
   const router = useRouter()
   
   const fetchProfileData = useCallback(async () => {
@@ -189,8 +186,6 @@ export function ProfileContent({ username }: ProfileContentProps) {
   if (!profileData) {
     return (
       <div className="min-h-screen flex items-center justify-center font-english">
-        {" "}
-        {/* Changed to font-english */}
         <div className="text-center">
           <p className="text-xl mb-4">Profile not found</p>
           <Link href="/">
@@ -225,48 +220,48 @@ export function ProfileContent({ username }: ProfileContentProps) {
   
   return (
     <div className="min-h-screen bg-gray-50 font-english">
-      {" "}
-      {/* Changed to font-english */}
-      
-      
-      <div className="lg:hidden bg-white border-b px-4 py-3 flex items-center justify-between">
-        <h1 className="text-xl font-bold logo-font">Cōdes</h1>
-        
-        <div className="flex items-center gap-2">
-          {session?.user && (
-            <>
-              <Button variant="ghost" size="icon" onClick={() => setSidebarOpen(!sidebarOpen)}>
-                {sidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-              </Button>
-              <Button variant="ghost" size="icon" asChild>
-                <Link href={`/profile/${currentUser?.username}`}>
-                  <Avatar className="h-8 w-8" onClick={() => setImageViewerOpen(currentUser?.avatarUrl || null)}>
-                    <AvatarImage src={currentUser?.avatarUrl || undefined} />
-                    <AvatarFallback className="text-xs">
-                      {currentUser?.displayName?.charAt(0)?.toUpperCase() || "U"}
-                    </AvatarFallback>
-                  </Avatar>
-                </Link>
-              </Button>
-            </>
-          )}
-          {!session?.user && (
-            <Link href="/auth/sign-in">
-              <Button size="sm">Sign In</Button>
-            </Link>
-          )}
+      {/* Desktop Header */}
+      <div className="sticky top-0 border-b bg-white bg-white/50 z-30 backdrop-blur-md px-4 py-2">
+        <div className="flex items-center justify-between">
+          <h1 className="text-xl font-bold logo-font">Cōdes</h1>
+          <div className="flex flex-row items-center gap-4">
+            {/* Desktop Search Bar */}
+            <div className='flex flex-row items-center gap-2 bg-none border-2 border-gray-300 rounded-full px-4 py-2'>
+              <input type='text' className='outline-none bg-none border-0' placeholder='Search with us...'/>
+              <Search className='h-3 w-3'/>
+            </div>
+            
+            {/* Create New Button */}
+            <Button className="bg-gray-800 text-white px-4 py-2 rounded-full">
+              <Plus className="h-4 w-4"/>
+              <small>Create New</small>
+            </Button>
+
+            {/* User Avatar */}
+            {session?.user && currentUser && (
+              <Link href={`/profile/${currentUser?.username}`}>
+                <Avatar className="h-8 w-8">
+                  <AvatarImage src={currentUser?.avatarUrl || undefined} />
+                  <AvatarFallback className="text-xs">
+                    {currentUser?.displayName?.charAt(0)?.toUpperCase() || "U"}
+                  </AvatarFallback>
+                </Avatar>
+              </Link>
+            )}
+            
+            {!session?.user && (
+              <Link href="/auth/sign-in">
+                <Button size="sm">Sign In</Button>
+              </Link>
+            )}
+          </div>
         </div>
-        
-        
       </div>
-      
       
       <div className="flex">
         {/* Sidebar - only show if logged in */}
-        {session?.user && currentUser  &&(
-          <div
-            className={`${sidebarOpen ? "block" : "hidden"} lg:block fixed lg:relative inset-y-0 left-0 z-50 w-64 bg-white border-r lg:border-r-0`}
-          >
+        {session?.user && currentUser && (
+          <div className="w-64 xl:w-80 bg-white border-r">
             <Sidebar profile={currentUser} onSignOut={handleSignOut} />
           </div>
         )}
@@ -435,10 +430,7 @@ export function ProfileContent({ username }: ProfileContentProps) {
           </div>
         </div>
       </div>
-      {/* Mobile overlay */}
-      {sidebarOpen && (
-        <div className="lg:hidden fixed inset-0 bg-black bg-opacity-50 z-40" onClick={() => setSidebarOpen(false)} />
-      )}
+
       {/* Edit Profile Dialog */}
       {isOwnProfile && (
         <EditProfileDialog
@@ -456,6 +448,7 @@ export function ProfileContent({ username }: ProfileContentProps) {
           }}
         />
       )}
+      
       {/* Image Viewer */}
       {imageViewerOpen && (
         <ImageViewer
