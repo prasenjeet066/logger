@@ -19,7 +19,7 @@ import {
 import { useToast } from "@/hooks/use-toast"
 import { FileUpload } from "@/components/upload/file-upload"
 import type { UploadResult } from "@/lib/blob/client"
-import { useTextHighlighter } from "@/components/utils/text-highlighter"
+import { useTextHighlighter } from "@/components/dashboard/utils/text-highlighter"
 
 const MAX_CHARACTERS = 280
 const MAX_MEDIA_FILES = 4
