@@ -51,7 +51,7 @@ interface Hashtag {
   postsCount: number
 }
 
-export function ExploreContent() {
+export function ExploreContent({params}) {
   const { data: session } = useSession()
   const [searchQuery, setSearchQuery] = useState("")
   const [users, setUsers] = useState<UserProfile[]>([])
@@ -71,7 +71,7 @@ export function ExploreContent() {
     { id: "media", label: "Media" },
     { id: "lists", label: "Lists" },
   ]
-
+  
   const formatNumber = (num: number): string => {
     if (num >= 1000000) return (num / 1000000).toFixed(1) + "M"
     if (num >= 1000) return (num / 1000).toFixed(1) + "K"
@@ -82,9 +82,12 @@ export function ExploreContent() {
     if (session?.user) {
       fetchCurrentUser()
     }
+    if (params!==null) {
+      setSearchQuery(params)
+    }
     fetchTrendingHashtags()
     fetchSuggestedUsers()
-  }, [session])
+  }, [session,params])
 
   const fetchCurrentUser = async () => {
     if (!session?.user?.email) return
@@ -157,7 +160,7 @@ export function ExploreContent() {
         setIsLoading(false)
       }
     }, 300),
-    [session?.user],
+    [session?.user,params],
   )
 
   useEffect(() => {
