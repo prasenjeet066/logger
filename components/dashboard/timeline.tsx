@@ -157,7 +157,7 @@ export function Timeline(userId: string) {
   
   return (
     <div className={`space-y-0 ${!isMobile && 'flex flex-col gap-2'}`}>
-      <div className='flex flex-roe  gap-4 items-center justify-start max-h-8 w-full space-y-2'>
+      <div className='flex flex-row  gap-4 items-center justify-start max-h-8 w-full space-y-2'>
         {algorithmLevels.map((lavel) => (
   <Button
     key={lavel.alg}
