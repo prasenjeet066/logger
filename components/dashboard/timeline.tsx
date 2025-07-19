@@ -157,11 +157,11 @@ export function Timeline(userId: string) {
   
   return (
     <div className={`space-y-0 ${!isMobile && 'flex flex-col gap-2'}`}>
-      <div className='flex flex-row  gap-4 items-center justify-start max-h-8 w-full space-y-2'>
+      <div className='flex flex-row  gap-4 items-center justify-start  w-full my-4'>
         {algorithmLevels.map((lavel) => (
   <Button
     key={lavel.alg}
-    className={currentAlg === lavel.alg ? 'bg-gray-800 text-white rounded-full px-4 text-xs' : 'bg-gray-100 text-gray-800 rounded-full text-xs'}
+    className={currentAlg === lavel.alg ? 'bg-gray-800 text-white max-h-8 rounded-full px-4 text-xs' : 'bg-gray-100 text-gray-800 rounded-full max-h-8 text-xs'}
     onClick={() => {
       if (currentAlg !== lavel.alg) {
         setCurrentAlg(lavel.alg)
