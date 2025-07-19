@@ -482,8 +482,8 @@ export default function CreatePostPage({ user }: CreatePostPageProps) {
             <AvatarFallback>{"U"}</AvatarFallback>
           </Avatar>
           <div>
-            <span className="font-semibold text-lg">{session?.user?.name || "User"}</span>
-            <span className="text-sm text-gray-700">@{session?.user?.username || "username"}</span>
+            <span className="font-semibold text-lg">{session?.user?. displayName|| "User"}</span>
+            <span className="text-xs text-gray-700">@{session?.user?.username || "username"}</span>
           </div>
         </div>
 
