@@ -3,7 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/auth-config";
 import { connectDB } from "@/lib/mongodb/connection";
 import { User } from "@/lib/mongodb/models/User";
-import { SuperUser } from "@/lib/mongodb/models/SuperUser"; // adjust import if needed
+import { SuperUser } from "@/lib/mongodb/models/SuperUsers"; // adjust import if needed
 
 export async function GET(request: NextRequest) {
   try {
