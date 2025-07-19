@@ -3,6 +3,7 @@ import CredentialsProvider from "next-auth/providers/credentials"
 import GoogleProvider from "next-auth/providers/google"
 import { connectDB } from "@/lib/mongodb/connection"
 import User from "@/lib/mongodb/models/User"
+import { SuperUser } from "@/lib/mongodb/models/SuperUser"
 import bcrypt from "bcryptjs"
 
 export const authOptions: NextAuthOptions = {
@@ -16,7 +17,7 @@ export const authOptions: NextAuthOptions = {
       async authorize(credentials) {
         await connectDB()
         const user = await User.findOne({ email: credentials?.email })
-
+        
         if (user && (await bcrypt.compare(credentials?.password || "", user.password))) {
           return {
             id: user._id.toString(),
@@ -41,11 +42,14 @@ export const authOptions: NextAuthOptions = {
   ],
   pages: {
     signIn: "/auth/sign-in",
-    error: "/auth/sign-in", // Error page for authentication errors
+    error: "/auth/sign-in",
   },
   callbacks: {
     async jwt({ token, user }) {
+      await connectDB();
+      
       if (user) {
+        // Basic user info from credentials/google
         token.id = user.id
         token.username = (user as any).username
         token.avatarUrl = (user as any).avatarUrl
@@ -54,8 +58,20 @@ export const authOptions: NextAuthOptions = {
         token.website = (user as any).website
         token.isVerified = (user as any).isVerified
         token.createdAt = (user as any).createdAt
+        
+        // Now check if this user is SuperUser
+        const superUser = await SuperUser.findOne({ userId: user.id }).lean();
+        
+        if (superUser) {
+          token.isSuperUser = true;
+          token.needsSuperVerification = true; // শুরুতে true রাখবে
+        } else {
+          token.isSuperUser = false;
+          token.needsSuperVerification = false;
+        }
       }
-      return token
+      
+      return token;
     },
     async session({ session, token }) {
       if (token) {
@@ -67,8 +83,12 @@ export const authOptions: NextAuthOptions = {
         session.user.website = token.website as string
         session.user.isVerified = token.isVerified as boolean
         session.user.createdAt = token.createdAt as Date
+        
+        // SuperUser flags
+        session.user.isSuperUser = token.isSuperUser as boolean
+        session.user.needsSuperVerification = token.needsSuperVerification as boolean
       }
-      return session
+      return session;
     },
   },
   session: {
