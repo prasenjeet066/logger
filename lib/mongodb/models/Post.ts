@@ -5,7 +5,7 @@ export interface IPost extends Document {
   content: string
   authorId: string
   mediaUrls?: string[]
-  mediaType?: "image" | "video" | "gif"
+  mediaType?: "image" | "video" | "gif" 
   likesCount: number
   repostsCount: number
   repliesCount: number
