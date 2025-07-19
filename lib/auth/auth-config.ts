@@ -50,7 +50,7 @@ export const authOptions: NextAuthOptions = {
       
       if (user) {
         // Basic user info from credentials/google
-        token.id = user.id
+        token.id = user._id.toString()
         token.username = (user as any).username
         token.avatarUrl = (user as any).avatarUrl
         token.bio = (user as any).bio
@@ -60,7 +60,7 @@ export const authOptions: NextAuthOptions = {
         token.createdAt = (user as any).createdAt
         
         // Now check if this user is SuperUser
-        const superUser = await SuperUser.findOne({ userId: user.id }).lean();
+        const superUser = await SuperUser.findOne({ userId: user._id.toString() }).lean();
         
         if (superUser) {
           token.isSuperUser = true;
