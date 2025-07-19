@@ -58,7 +58,7 @@ export function Timeline(userId: string) {
   const [loading, setLoading] = useState(true)
   const [loadingPost, setLoadingPost] = useState(true)
   const [error, setError] = useState < string | null > (null)
-  const [currentAlg, setCurrentAlg] = useState(algorithmLevels[0].alg);
+  const [currentAlg, setCurrentAlg] = useState('algorithmic');
   const isMobile = useMobile()
   useEffect(() => {
     fetchPosts()
