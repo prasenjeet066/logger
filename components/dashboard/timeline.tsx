@@ -57,15 +57,16 @@ export function Timeline(userId:string) {
   const [posts, setPosts] = useState < Post[] > ([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState < string | null > (null)
+  const [currentAlg , setCurrentAlg] = useState('chronological');
   const isMobile = useMobile()
   useEffect(() => {
     fetchPosts()
-  }, [])
+  }, [currentAlg])
   
   const fetchPosts = async () => {
     try {
       setLoading(true)
-      const timeline = await fetch('/api/alg?hook=trending')
+      const timeline = await fetch(`/api/alg?algorithm=${currentAlg}`)
       if (timeline.ok) {
         const timelinePost= await timeline.json()
         setPosts(timelinePost.posts)
@@ -98,7 +99,21 @@ export function Timeline(userId:string) {
       console.error("Error toggling like:", error)
     }
   }
-  
+  const algorithmLevels = [
+    {
+      name : 'For You',
+      alg : 'algorithmic',
+    },
+    {
+      name : 'Trending',
+      alg : 'trending'
+      
+    },
+    {
+      name : 'Most Recently',
+      alg : 'chronological'
+    }
+  ]
   const handleRepost = async (postId: string, isReposted: boolean) => {
     try {
       const response = await fetch(`/api/posts/${postId}/repost`, {
@@ -141,6 +156,17 @@ export function Timeline(userId:string) {
   
   return (
     <div className={`space-y-0 ${!isMobile && 'flex flex-col gap-2'}`}>
+      <div className='flex gap-4 items-center justify-start'>
+        {algorithmLevels.map((lavel)=>{
+          <button className={currentAlg === lavel.alg ? 'bg-gray-800 text-white rounded-full px-4' : 'bg-gray-100 text-gray-800 rounded-full'} onClick={(val)=>{
+            if (currentAlg!== lavel.alg) {
+              setCurrentAlg(lavel.alg)
+            }
+          }}>
+            {lavel.name}
+          </button>
+        })}
+      </div>
       {posts.map((post) => (
         <PostCard
           key={post._id}
