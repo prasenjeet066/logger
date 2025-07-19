@@ -305,8 +305,8 @@ export async function GET(request: NextRequest) {
 
     const { searchParams } = new URL(request.url)
     const algorithm = searchParams.get("algorithm") || "algorithmic"
-    const algorithmHook =searchParams.get('hook') || "myfeed";
-    if (algorithmHook !== 'trending'){
+    
+    
     const page = Number.parseInt(searchParams.get("page") || "1")
     const limit = Number.parseInt(searchParams.get("limit") || "20")
     const skip = (page - 1) * limit
@@ -405,10 +405,13 @@ export async function GET(request: NextRequest) {
         isReposted: repostedOriginalPostIds.has(post._id.toString())
       }
     }).filter(post => post.author.id) // Filter out posts with missing authors
-
+    if (algorithm === 'trending') {
+      getTrendingPosts(request)
+    }
     // Apply algorithm-specific sorting
     if (algorithm === "algorithmic") {
       const timelineAlgorithm = new TimelineAlgorithm()
+      
       const followingSet = new Set(followingIds)
 
       // Calculate algorithmic scores
@@ -447,11 +450,8 @@ export async function GET(request: NextRequest) {
         finalCount: finalPosts.length
       } : undefined
     })
-    }else if (algorithmHook === 'trending') {
-      return getTrendingPosts(request)
-    }{
+    
       
-    }
   } catch (error) {
     console.error("Timeline API error:", error)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
