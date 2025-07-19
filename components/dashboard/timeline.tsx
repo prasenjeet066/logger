@@ -53,11 +53,11 @@ interface Post {
   repostedBy ? : string
 }
 
-export function Timeline(userId:string) {
+export function Timeline(userId: string) {
   const [posts, setPosts] = useState < Post[] > ([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState < string | null > (null)
-  const [currentAlg , setCurrentAlg] = useState('chronological');
+  const [currentAlg, setCurrentAlg] = useState('chronological');
   const isMobile = useMobile()
   useEffect(() => {
     fetchPosts()
@@ -68,7 +68,7 @@ export function Timeline(userId:string) {
       setLoading(true)
       const timeline = await fetch(`/api/alg?algorithm=${currentAlg}`)
       if (timeline.ok) {
-        const timelinePost= await timeline.json()
+        const timelinePost = await timeline.json()
         setPosts(timelinePost.posts)
       }
       
@@ -90,8 +90,7 @@ export function Timeline(userId:string) {
       const result = await response.json()
       setPosts((prevPosts) =>
         prevPosts.map((post) =>
-          post._id === postId ?
-          { ...post, isLiked: result.liked, likesCount: post.likesCount + (result.liked ? 1 : -1) } :
+          post._id === postId ? { ...post, isLiked: result.liked, likesCount: post.likesCount + (result.liked ? 1 : -1) } :
           post,
         ),
       )
@@ -100,20 +99,19 @@ export function Timeline(userId:string) {
     }
   }
   const algorithmLevels = [
-    {
-      name : 'For You',
-      alg : 'algorithmic',
-    },
-    {
-      name : 'Trending',
-      alg : 'trending'
-      
-    },
-    {
-      name : 'Most Recently',
-      alg : 'chronological'
-    }
-  ]
+  {
+    name: 'For You',
+    alg: 'algorithmic',
+  },
+  {
+    name: 'Trending',
+    alg: 'trending'
+    
+  },
+  {
+    name: 'Most Recently',
+    alg: 'chronological'
+  }]
   const handleRepost = async (postId: string, isReposted: boolean) => {
     try {
       const response = await fetch(`/api/posts/${postId}/repost`, {
@@ -125,8 +123,7 @@ export function Timeline(userId:string) {
       const result = await response.json()
       setPosts((prevPosts) =>
         prevPosts.map((post) =>
-          post._id === postId ?
-          { ...post, isReposted: result.reposted, repostsCount: post.repostsCount + (result.reposted ? 1 : -1) } :
+          post._id === postId ? { ...post, isReposted: result.reposted, repostsCount: post.repostsCount + (result.reposted ? 1 : -1) } :
           post,
         ),
       )
@@ -157,16 +154,20 @@ export function Timeline(userId:string) {
   return (
     <div className={`space-y-0 ${!isMobile && 'flex flex-col gap-2'}`}>
       <div className='flex gap-4 items-center justify-start w-full space-y-2'>
-        ggggggg
-        {algorithmLevels.map((lavel)=>{
-          <Button className={currentAlg === lavel.alg ? 'bg-gray-800 text-white rounded-full px-4 text-xs' : 'bg-gray-100 text-gray-800 rounded-full text-xs'} onClick={(val)=>{
-            if (currentAlg!== lavel.alg) {
-              setCurrentAlg(lavel.alg)
-            }
-          }}>
-            {lavel.name}
-          </Button>
-        })}
+        {algorithmLevels.map((lavel) => (
+  <Button
+    key={lavel.alg}
+    className={currentAlg === lavel.alg ? 'bg-gray-800 text-white rounded-full px-4 text-xs' : 'bg-gray-100 text-gray-800 rounded-full text-xs'}
+    onClick={() => {
+      if (currentAlg !== lavel.alg) {
+        setCurrentAlg(lavel.alg)
+      }
+    }}
+  >
+    {lavel.name}
+  </Button>
+))}
+        
       </div>
       {posts.map((post) => (
         <PostCard
