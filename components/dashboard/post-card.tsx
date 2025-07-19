@@ -138,7 +138,7 @@ export function PostCard({ post, onLike, onRepost, onReply }: PostCardProps) {
       )
       .replace(
         /#([a-zA-Z0-9_\u0980-\u09FF]+)/g,
-        `<a href="/explore?q=#$1" class="text-blue-600 hover:underline cursor-pointer font-medium transition-colors">#$1</a>`,
+        `<a href="/explore?q=${encodeURIComponent('#$1')}" class="text-blue-600 hover:underline cursor-pointer font-medium transition-colors">#$1</a>`,
       )
       .replace(
         /@([a-zA-Z0-9_]+)/g,
