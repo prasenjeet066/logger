@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { getPersonalizedTimeline } from "@/lib/timeline-algorithms"
+
 import { PostCard } from "./post-card"
 import { useMobile } from "@/hooks/use-mobile"
 import { Spinner } from "@/components/loader/spinner"
@@ -65,21 +65,12 @@ export function Timeline(userId:string) {
   const fetchPosts = async () => {
     try {
       setLoading(true)
-      const response = await fetch("/api/posts")
-      
-      if (!response.ok) {
-        throw new Error("Failed to fetch posts")
+      const timeline = await fetch('/api/alg?algorithm=algorithmic')
+      if (timeline.ok) {
+        const timelinePost= await timeline.json()
+        setPosts(timelinePost)
       }
       
-      const data = await response.json()
-      const timeline = await getPersonalizedTimeline(
-        userId,
-        'algorithmic', // or 'chronological'
-        50, // limit
-        0, // skip
-        { engagementWeight: 0.4 } // optional config override
-      )
-      setPosts(timeline)
     } catch (err) {
       setError(err instanceof Error ? err.message : "An error occurred")
     } finally {
