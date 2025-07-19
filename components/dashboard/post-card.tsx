@@ -355,7 +355,7 @@ export function PostCard({ post, onLike, onRepost, onReply }: PostCardProps) {
           </div>
         )}
 
-        <div className="flex gap-3">
+        <div className="flex flex-col gap-3">
           <Link
             href={`/profile/${post.author.username}`}
             className="flex-shrink-0"
