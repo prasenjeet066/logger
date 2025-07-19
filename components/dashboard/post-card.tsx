@@ -370,6 +370,7 @@ export function PostCard({ post, onLike, onRepost, onReply }: PostCardProps) {
           </Link>
 
           <div className="flex-1 min-w-0">
+            
             <div className="flex flex-col items-left gap-1">
               <Link
                 href={`/profile/${post.author.username}`}
@@ -391,7 +392,8 @@ export function PostCard({ post, onLike, onRepost, onReply }: PostCardProps) {
             </div>
 
             {/* Post content */}
-            {post.content && (
+           </div>
+           {post.content && (
               <div className="mt-2 mb-3">
                 <div
                   className="text-gray-900 whitespace-pre-wrap text-sm lg:text-base leading-relaxed"
@@ -531,7 +533,7 @@ export function PostCard({ post, onLike, onRepost, onReply }: PostCardProps) {
                 onPinPost={handlePinPost}
               />
             </div>
-          </div>
+          
         </div>
       </div>
     </article>

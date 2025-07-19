@@ -13,7 +13,7 @@ import { TrendingHashtags } from "@/components/dashboard/trending-hashtags"
 import { SearchDialog } from "@/components/dashboard/search-dialog"
 import { NotificationDialog } from "@/components/dashboard/notification-dialog"
 import { Button } from "@/components/ui/button"
-import { Plus, Menu, Search, User as UserIcon } from "lucide-react"
+import { Plus,Bell, Menu, Search, User as UserIcon } from "lucide-react"
 import { debounce } from "lodash"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import Link from "next/link"
@@ -169,6 +169,7 @@ export function WebDashboardContent({ user }: DashboardContentProps) {
             </div>
             
             {/* Create New Button */}
+            <Bell className ='h-4 w-4'/>
             <Button className="bg-gray-800 text-white px-4 h-8 py-2 rounded-full" onClick={()=>{
               
             }}>
