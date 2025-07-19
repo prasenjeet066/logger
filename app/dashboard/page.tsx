@@ -16,7 +16,17 @@ export default async function DashboardPage() {
     email: session.user.email,
     username: session.user.username,
     avatarUrl: session.user.avatarUrl,
+    needsSuperVerification : session.user.needsSuperVerification
+  }
+  if (!user.needsSuperVerification
+  ) {
+    return <DashboardWrapper user={user} />
+  }else{
+     return (
+       <div>
+         Need Verification 
+       </div>
+     )
   }
   
-  return <DashboardWrapper user={user} />
 }

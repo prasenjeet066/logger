@@ -42,7 +42,6 @@ export default function SignInPage() {
         setMessage(result.error)
       } else if (result?.ok) {
         // check....
-        
         router.push("/dashboard")
       }
     } catch (error) {
