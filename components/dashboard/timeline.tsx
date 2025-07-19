@@ -58,7 +58,7 @@ export function Timeline(userId: string) {
   const [loading, setLoading] = useState(true)
   const [loadingPost, setLoadingPost] = useState(true)
   const [error, setError] = useState < string | null > (null)
-  const [currentAlg, setCurrentAlg] = useState('chronological');
+  const [currentAlg, setCurrentAlg] = useState(algorithmLevels[0].alg);
   const isMobile = useMobile()
   useEffect(() => {
     fetchPosts()
@@ -67,8 +67,10 @@ export function Timeline(userId: string) {
   const fetchPosts = async () => {
     try {
       setLoadingPost(true)
+      
       const timeline = await fetch(`/api/alg?algorithm=${currentAlg}`)
       if (timeline.ok) {
+        
         const timelinePost = await timeline.json()
         setPosts(timelinePost.posts)
       }
@@ -76,6 +78,7 @@ export function Timeline(userId: string) {
     } catch (err) {
       setError(err instanceof Error ? err.message : "An error occurred")
     } finally {
+      setLoading(false)
       setLoadingPost(false)
     }
   }
@@ -154,7 +157,7 @@ export function Timeline(userId: string) {
   
   return (
     <div className={`space-y-0 ${!isMobile && 'flex flex-col gap-2'}`}>
-      <div className='flex gap-4 items-center justify-start w-full space-y-2'>
+      <div className='flex flex-roe  gap-4 items-center justify-start max-h-8 w-full space-y-2'>
         {algorithmLevels.map((lavel) => (
   <Button
     key={lavel.alg}
