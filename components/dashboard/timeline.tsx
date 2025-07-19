@@ -65,10 +65,10 @@ export function Timeline(userId:string) {
   const fetchPosts = async () => {
     try {
       setLoading(true)
-      const timeline = await fetch('/api/alg?algorithm=algorithmic')
+      const timeline = await fetch('/api/alg?hook=trending')
       if (timeline.ok) {
         const timelinePost= await timeline.json()
-        setPosts(timelinePost)
+        setPosts(timelinePost.posts)
       }
       
     } catch (err) {
