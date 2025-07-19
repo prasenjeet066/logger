@@ -1,10 +1,29 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { getPersonalizedTimeline } from "@/lib/timeline-algorithms"
 import { PostCard } from "./post-card"
 import { useMobile } from "@/hooks/use-mobile"
 import { Spinner } from "@/components/loader/spinner"
+// Get user's personalized timeline
+/*
+const timeline = await getPersonalizedTimeline(
+  userId,
+  'algorithmic', // or 'chronological'
+  50, // limit
+  0,  // skip
+  { engagementWeight: 0.4 } // optional config override
+)
 
+// Get trending posts
+const trending = await getTrendingPosts(20, 24) // 20 posts from last 24 hours
+
+// Custom sorting
+const sortedPosts = await sortPostsAlgorithmically(
+  posts,
+  'algorithmic',
+  userId
+)*/
 interface Post {
   _id: string
   content: string
@@ -14,11 +33,11 @@ interface Post {
   repliesCount: number
   repostsCount: number
   viewsCount: number
-  mediaUrls?: string[]
-  mediaType?: "image" | "video" | "gif"
+  mediaUrls ? : string[]
+  mediaType ? : "image" | "video" | "gif"
   isRepost: boolean
-  originalPostId?: string
-  parentPostId?: string
+  originalPostId ? : string
+  parentPostId ? : string
   hashtags: string[]
   mentions: string[]
   isPinned: boolean
@@ -26,41 +45,48 @@ interface Post {
     id: string
     username: string
     displayName: string
-    avatarUrl?: string
+    avatarUrl ? : string
     isVerified: boolean
   }
   isLiked: boolean
   isReposted: boolean
-  repostedBy?: string
+  repostedBy ? : string
 }
 
-export function Timeline() {
-  const [posts, setPosts] = useState<Post[]>([])
+export function Timeline(userId:string) {
+  const [posts, setPosts] = useState < Post[] > ([])
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const [error, setError] = useState < string | null > (null)
   const isMobile = useMobile()
   useEffect(() => {
     fetchPosts()
   }, [])
-
+  
   const fetchPosts = async () => {
     try {
       setLoading(true)
       const response = await fetch("/api/posts")
-
+      
       if (!response.ok) {
         throw new Error("Failed to fetch posts")
       }
-
+      
       const data = await response.json()
-      setPosts(data)
+      const timeline = await getPersonalizedTimeline(
+        userId,
+        'algorithmic', // or 'chronological'
+        50, // limit
+        0, // skip
+        { engagementWeight: 0.4 } // optional config override
+      )
+      setPosts(timeline)
     } catch (err) {
       setError(err instanceof Error ? err.message : "An error occurred")
     } finally {
       setLoading(false)
     }
   }
-
+  
   const handleLike = async (postId: string, isLiked: boolean) => {
     try {
       const response = await fetch(`/api/posts/${postId}/like`, {
@@ -72,16 +98,16 @@ export function Timeline() {
       const result = await response.json()
       setPosts((prevPosts) =>
         prevPosts.map((post) =>
-          post._id === postId
-            ? { ...post, isLiked: result.liked, likesCount: post.likesCount + (result.liked ? 1 : -1) }
-            : post,
+          post._id === postId ?
+          { ...post, isLiked: result.liked, likesCount: post.likesCount + (result.liked ? 1 : -1) } :
+          post,
         ),
       )
     } catch (error) {
       console.error("Error toggling like:", error)
     }
   }
-
+  
   const handleRepost = async (postId: string, isReposted: boolean) => {
     try {
       const response = await fetch(`/api/posts/${postId}/repost`, {
@@ -93,19 +119,19 @@ export function Timeline() {
       const result = await response.json()
       setPosts((prevPosts) =>
         prevPosts.map((post) =>
-          post._id === postId
-            ? { ...post, isReposted: result.reposted, repostsCount: post.repostsCount + (result.reposted ? 1 : -1) }
-            : post,
+          post._id === postId ?
+          { ...post, isReposted: result.reposted, repostsCount: post.repostsCount + (result.reposted ? 1 : -1) } :
+          post,
         ),
       )
     } catch (error) {
       console.error("Error toggling repost:", error)
     }
   }
-
+  
   // No longer need handlePostUpdate or handleNewPost here as PostCard handles its own state updates
   // and Timeline fetches all posts.
-
+  
   if (loading) {
     return (
       <div className="flex justify-center items-center py-8">
@@ -113,15 +139,15 @@ export function Timeline() {
       </div>
     )
   }
-
+  
   if (error) {
     return <div className="text-center py-8 text-red-500">Error: {error}</div>
   }
-
+  
   if (posts.length === 0) {
     return <div className="text-center py-8 text-muted-foreground">No posts yet. Be the first to post!</div>
   }
-
+  
   return (
     <div className={`space-y-0 ${!isMobile && 'flex flex-col gap-2'}`}>
       {posts.map((post) => (
