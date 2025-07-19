@@ -242,7 +242,7 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
 
           <div className="flex-1">
             <div className="flex items-center space-x-2 mb-2">
-              <span className="font-semibold text-gray-900">{session?.user?.displayName|| "User"}</span>
+              <span className="font-semibold text-gray-900">{session.user.displayName}</span>
             </div>
             
             <div className="flex items-center space-x-2 mb-2">

@@ -233,7 +233,7 @@ export default function CreatePostPage({ user }: CreatePostPageProps) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           content: validatedData.content,
-          mediaUrls: allMediaUrls.length > 0 ? allMediaUrls : null,
+          mediaUrls: allMediaUrls.length > 0 ? allMediaUrls : [],
           mediaType: mediaType,
         }),
       })
