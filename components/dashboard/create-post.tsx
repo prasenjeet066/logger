@@ -124,7 +124,7 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
         <div className="p-4 pb-0">
           <div className="flex space-x-3">
             <Avatar className="h-10 w-10 ring-2 ring-gray-100">
-              <AvatarImage src={session.user.image} alt={session.user.name} />
+              <AvatarImage src={session.user.avatarUrl} alt={session.user.name} />
               <AvatarFallback className="bg-blue-500 text-white font-semibold">
                 {session.user.name?.charAt(0) || "U"}
               </AvatarFallback>
@@ -132,7 +132,7 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
 
             <div className="flex-1">
               <div className="flex items-center space-x-2 mb-2">
-                <span className="font-semibold text-gray-900">{session.user.name}</span>
+                <span className="font-semibold text-gray-900">{session.user.displayName}</span>
                 {isExpanded && (
                   <div className="relative">
                     <Button
@@ -178,7 +178,7 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
                   value={content}
                   onChange={(e) => setContent(e.target.value)}
                   onFocus={handleTextareaFocus}
-                  className={`border-0 resize-none focus-visible:ring-0 p-0 bg-transparent placeholder:text-gray-500 ${
+                  className={`border-0 resize-none outline-none focus-visible:ring-0 p-0 bg-transparent placeholder:text-gray-500 ${
                     isExpanded ? 'min-h-[100px] text-base' : 'min-h-[60px] text-lg'
                   }`}
                   maxLength={280}
