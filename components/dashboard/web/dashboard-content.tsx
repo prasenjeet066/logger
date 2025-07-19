@@ -6,6 +6,7 @@ import {
 } from "react"
 import { signOut } from "next-auth/react" // Import signOut from next-auth/react
 import { Spinner } from "@/components/loader/spinner" // Updated import path
+import {CreatePost} from '@/components/dashboard/create-post'
 import { Sidebar } from "@/components/dashboard/sidebar"
 import { Timeline } from "@/components/dashboard/timeline"
 import { TrendingHashtags } from "@/components/dashboard/trending-hashtags"
@@ -196,6 +197,11 @@ export function WebDashboardContent({ user }: DashboardContentProps) {
 
         {/* Main Content */}
         <div className="w-full mt">
+          <div className =''>
+            <CreatePost onPostCreated={(post)=>{
+              
+            }}/>
+          </div>
           <Timeline userId={profile._id} /> {/* Pass MongoDB _id */}
         </div>
 
