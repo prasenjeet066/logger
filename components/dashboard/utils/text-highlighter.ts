@@ -130,17 +130,14 @@ function highlightMentions(text: string, config: NonNullable < HighlightConfig['
       color: config.color,
       'font-weight': config.fontWeight
     })
-    let user = await fetch(`/api/profile/search/q=${match}`)
-    if (user.ok) {
-      user = await user.json()
-      
+    
       const attributes = [
         config.className && `class="${config.className}"`,
         styles && `style="${styles}"`
       ].filter(Boolean).join(' ')
       
-      return `<span ${attributes}>${match} <User className='h-2 w-2'/></span>`
-    }
+      return `<span ${attributes}>${match}</span>`
+    
   })
 }
 
