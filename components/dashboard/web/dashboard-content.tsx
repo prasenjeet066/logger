@@ -149,7 +149,7 @@ export function WebDashboardContent({ user }: DashboardContentProps) {
 />
               <Search className='h-3 w-3'/>
               {searchQuery.length> 0 && (
-                <div className='fixed top-[20px] w-full shadow-md rounded-md flex flex-col items-start'>
+                <div className='fixed top-[20px] bg-white shadow-md rounded-md flex flex-col items-start'>
                   {Users.length > 0 ? (<>
                   {Users.map((user) => (
   <Link key={user._id} href={`/profile/${user.username}`}>
