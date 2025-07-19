@@ -56,6 +56,7 @@ interface Post {
 export function Timeline(userId: string) {
   const [posts, setPosts] = useState < Post[] > ([])
   const [loading, setLoading] = useState(true)
+  const [loadingPost, setLoadingPost] = useState(true)
   const [error, setError] = useState < string | null > (null)
   const [currentAlg, setCurrentAlg] = useState('chronological');
   const isMobile = useMobile()
@@ -65,7 +66,7 @@ export function Timeline(userId: string) {
   
   const fetchPosts = async () => {
     try {
-      setLoading(true)
+      setLoadingPost(true)
       const timeline = await fetch(`/api/alg?algorithm=${currentAlg}`)
       if (timeline.ok) {
         const timelinePost = await timeline.json()
@@ -75,7 +76,7 @@ export function Timeline(userId: string) {
     } catch (err) {
       setError(err instanceof Error ? err.message : "An error occurred")
     } finally {
-      setLoading(false)
+      setLoadingPost(false)
     }
   }
   
@@ -169,6 +170,14 @@ export function Timeline(userId: string) {
 ))}
         
       </div>
+      {loadingPost === true ? (
+        <>
+          <div className="flex justify-center items-center py-8">
+        <Spinner />
+      </div>
+        </>
+      ) : (
+      <div>
       {posts.map((post) => (
         <PostCard
           key={post._id}
@@ -178,6 +187,9 @@ export function Timeline(userId: string) {
           // onReply is not directly handled by Timeline, but by PostCard itself
         />
       ))}
+      </div>
+      
+    )}
     </div>
   )
 }
