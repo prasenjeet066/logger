@@ -97,15 +97,15 @@ const userSchema = new Schema < IUser > (
     },
     verificationWays: {
       emailOtp: {
-        type: boolean,
+        type: Boolean,
         default: false
       },
       phoneOtp: {
-        type: boolean,
+        type: Boolean,
         default: false
       },
       fingerPrint: {
-        type: boolean,
+        type: Boolean,
         default: false
       }
     }
