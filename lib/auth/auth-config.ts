@@ -20,12 +20,14 @@ export const authOptions: NextAuthOptions = {
         if (user && (await bcrypt.compare(credentials?.password || "", user.password))) {
           return {
             id: user._id.toString(),
-            name: user.username,
+            name: user.displayName,
             email: user.email,
             image: user.avatarUrl,
             username: user.username,
+            
             bio: user.bio,
             location: user.location,
+            superAccess : user.superAccess || null,
             website: user.website,
             isVerified: user.isVerified,
             createdAt: user.createdAt,
@@ -48,10 +50,12 @@ export const authOptions: NextAuthOptions = {
       if (user) {
         token.id = user.id
         token.username = (user as any).username
+        token.displayName =(user as any).name
         token.avatarUrl = (user as any).avatarUrl
         token.bio = (user as any).bio
         token.location = (user as any).location
         token.website = (user as any).website
+        token.superAccess = (user as any).superAccess
         token.isVerified = (user as any).isVerified
         token.createdAt = (user as any).createdAt
       }
@@ -66,6 +70,8 @@ export const authOptions: NextAuthOptions = {
         session.user.location = token.location as string
         session.user.website = token.website as string
         session.user.isVerified = token.isVerified as boolean
+        session.user.superAccess = token.superAccess as object
+        session.user.displayName = token.displayName as string
         session.user.createdAt = token.createdAt as Date
       }
       return session

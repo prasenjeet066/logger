@@ -16,18 +16,7 @@ export function Sidebar({ isExpand = true, profile, onSignOut }: SidebarProps) {
   const isMobile = useMobile()
   const [isSA,setIsSA] = useState(null)
   
-  const isSuperAccess = async () =>{
-    const __data = await fetch('/api/users/current');
-    if (__data.ok) {
-      const __dataJson =  __data.json().superAccess.role || null;
-      console.log(__data);
-      setIsSA(__dataJson);
-    }
-  }
-  useEffect(()=>{
-    isSuperAccess()
-  },[])
-  console.log(isSA);
+  
   const menuItems = [
     { icon: Home, label: "Home", href: "/dashboard" },
     { icon: Search, label: "Explore", href: "/explore" },

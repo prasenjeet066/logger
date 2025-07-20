@@ -478,12 +478,12 @@ export default function CreatePostPage({ user }: CreatePostPageProps) {
       <div className="max-w-2xl mx-auto p-4">
         <div className="flex items-center gap-3 mb-4">
           <Avatar className="h-12 w-12">
-            <AvatarImage src={session?.user?.image || "https://placehold.co/48x48/aabbcc/ffffff?text=U"} />
+            <AvatarImage src={session?.user?.avatarUrl || "https://placehold.co/48x48/aabbcc/ffffff?text=U"} />
             <AvatarFallback>{"U"}</AvatarFallback>
           </Avatar>
           <div>
             <span className="font-semibold text-lg">{session?.user?. displayName|| "User"}</span>
-            <span className="text-xs text-gray-700">@{session?.user?.username || "username"}</span>
+            <span className="text-xs text-gray-600">@{session?.user?.username || "username"}</span>
           </div>
         </div>
 

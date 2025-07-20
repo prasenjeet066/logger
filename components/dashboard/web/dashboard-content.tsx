@@ -6,14 +6,14 @@ import {
 } from "react"
 import { signOut } from "next-auth/react" // Import signOut from next-auth/react
 import { Spinner } from "@/components/loader/spinner" // Updated import path
-import {CreatePost} from '@/components/dashboard/create-post'
+import { CreatePost } from '@/components/dashboard/create-post'
 import { Sidebar } from "@/components/dashboard/sidebar"
 import { Timeline } from "@/components/dashboard/timeline"
 import { TrendingHashtags } from "@/components/dashboard/trending-hashtags"
 import { SearchDialog } from "@/components/dashboard/search-dialog"
 import { NotificationDialog } from "@/components/dashboard/notification-dialog"
 import { Button } from "@/components/ui/button"
-import { Plus,Bell, Menu, Search, User as UserIcon } from "lucide-react"
+import { Plus, Bell, Menu, Search, User as UserIcon } from "lucide-react"
 import { debounce } from "lodash"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import Link from "next/link"
@@ -170,13 +170,23 @@ export function WebDashboardContent({ user }: DashboardContentProps) {
             
             {/* Create New Button */}
             <Bell className ='h-4 w-4'/>
+            <div>
             <Button className="bg-gray-800 text-white px-4 h-8 py-2 rounded-full" onClick={()=>{
               
             }}>
               <Plus className="h-4 w-4"/>
               <small>Create New</small>
             </Button>
-
+            {user.superAccess!==null && user.superAccess.role === 'context' ? (<><small className='text-[8px] text-gray-500'>or</small>
+            
+             <Button className="bg-gray-700 text-white px-4 h-8 py-2 rounded-full" onClick={()=>{
+              
+            }}>
+              <Plus className="h-4 w-4"/>
+              <small>New Context</small>
+            </Button></>):<></>}
+            
+            </div>
             {/* User Avatar */}
             <Link href={`/profile/${profile?.username}`}>
               <Avatar className="h-8 w-8">
