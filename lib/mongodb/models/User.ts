@@ -84,7 +84,7 @@ const userSchema = new Schema < IUser > (
   },
   superAccess: {
     role: {
-      type:string,
+      type:String,
       enum: ['admin'|'context','moderator']
     },
     createdAt: {
