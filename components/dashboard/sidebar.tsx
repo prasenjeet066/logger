@@ -1,9 +1,10 @@
 "use client"
 
 import Link from "next/link"
+import {useState,useEffect} from "react"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Home, Search, Bell, Mail, Bookmark, User, LogOut, X, Settings, Plus } from "lucide-react"
+import { Home, Search, Bell, Mail, Bookmark, User, LogOut, X, Settings,Key, Plus } from "lucide-react"
 import { useMobile } from "@/hooks/use-mobile"
 interface SidebarProps {
   profile: any
@@ -13,15 +14,35 @@ interface SidebarProps {
 
 export function Sidebar({ isExpand = true, profile, onSignOut }: SidebarProps) {
   const isMobile = useMobile()
+  const [isSA,setIsSA] = useState(null)
+  
+  const isSuperAccess = async () =>{
+    const __data = await fetch('/api/users/current');
+    if (__data.ok) {
+      const __dataJson = await __data.json().superAccess?.role || null;
+      setIsSA(__dataJson);
+    }
+  }
+  useEffect(()=>{
+    isSuperAccess()
+  },[])
   const menuItems = [
     { icon: Home, label: "Home", href: "/dashboard" },
     { icon: Search, label: "Explore", href: "/explore" },
     { icon: Bell, label: "Notifications", href: "/notifications" },
+    
     { icon: Mail, label: "Messages", href: "/messages" },
     { icon: Bookmark, label: "Bookmarks", href: "/bookmarks" },
     { icon: User, label: "Profile", href: `/profile/${profile?.username}` },
     { icon: Settings, label: "Settings", href: "/settings" },
   ]
+  if (isSA!== null) {
+    menuItems.push({
+      icon: Key,
+      label:"Super Access",
+      href: "/super-access"
+    })
+  }
   
   return (
     <div className="h-full flex flex-col p-3 z-50">
@@ -72,7 +93,7 @@ export function Sidebar({ isExpand = true, profile, onSignOut }: SidebarProps) {
           onClick={onSignOut}
         >
           <LogOut className="mr-3 h-4 w-4" />
-          {isExpand==false? "Sign Out": ""}
+          Sign Out
         </Button>
       </div>)}
     </div>

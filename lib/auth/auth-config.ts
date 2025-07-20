@@ -15,31 +15,23 @@ export const authOptions: NextAuthOptions = {
       },
       async authorize(credentials) {
         await connectDB()
-        
-        if (!credentials?.email || !credentials?.password) return null
-        
-        const user = await User.findOne({ email: credentials.email })
-        if (!user) return null
-        
-        const passwordMatches = await bcrypt.compare(credentials.password, user.password)
-        if (!passwordMatches) return null
-        
-        const verifyWays = user.getEnabledVerificationWays?.() || []
-        
-        return {
-          id: user._id.toString(),
-          name: user.username,
-          email: user.email,
-          avatarUrl: user.avatarUrl,
-          username: user.username,
-          bio: user.bio,
-          location: user.location,
-          website: user.website,
-          isVerified: user.isVerified,
-          createdAt: user.createdAt,
-          needMoreVerify: verifyWays.length > 0,
-          verifyWays
+        const user = await User.findOne({ email: credentials?.email })
+
+        if (user && (await bcrypt.compare(credentials?.password || "", user.password))) {
+          return {
+            id: user._id.toString(),
+            name: user.username,
+            email: user.email,
+            image: user.avatarUrl,
+            username: user.username,
+            bio: user.bio,
+            location: user.location,
+            website: user.website,
+            isVerified: user.isVerified,
+            createdAt: user.createdAt,
+          }
         }
+        return null
       },
     }),
     GoogleProvider({
@@ -49,7 +41,7 @@ export const authOptions: NextAuthOptions = {
   ],
   pages: {
     signIn: "/auth/sign-in",
-    error: "/auth/sign-in",
+    error: "/auth/sign-in", // Error page for authentication errors
   },
   callbacks: {
     async jwt({ token, user }) {
@@ -62,25 +54,19 @@ export const authOptions: NextAuthOptions = {
         token.website = (user as any).website
         token.isVerified = (user as any).isVerified
         token.createdAt = (user as any).createdAt
-        token.needMoreVerify = (user as any).needMoreVerify
-        token.verifyWays = (user as any).verifyWays
       }
       return token
     },
     async session({ session, token }) {
       if (token) {
-        session.user= {
-          id: token.id as string,
-          username: token.username as string,
-          avatarUrl: token.avatarUrl as string,
-          bio: token.bio as string,
-          location: token.location as string,
-          website: token.website as string,
-          isVerified: token.isVerified as boolean,
-          createdAt: token.createdAt as Date,
-          needMoreVerify: token.needMoreVerify as boolean,
-          verifyWays: token.verifyWays as any
-        }
+        session.user.id = token.id as string
+        session.user.username = token.username as string
+        session.user.avatarUrl = token.avatarUrl as string
+        session.user.bio = token.bio as string
+        session.user.location = token.location as string
+        session.user.website = token.website as string
+        session.user.isVerified = token.isVerified as boolean
+        session.user.createdAt = token.createdAt as Date
       }
       return session
     },
