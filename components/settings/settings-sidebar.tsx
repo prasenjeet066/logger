@@ -42,6 +42,12 @@ const settingsItems = [
     description: "Email and push notification preferences",
   },
   {
+    id : "superaccess",
+    label : "Super Access",
+    icon : Key,
+    description:""
+  },
+  {
     id: "privacy",
     label: "Privacy",
     icon: Shield,

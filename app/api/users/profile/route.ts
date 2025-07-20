@@ -19,7 +19,7 @@ export async function PUT(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { displayName, bio, location, website, isPrivate, allowMessages, showEmail } = body
+    const { displayName, bio, location, website, isPrivate, allowMessages, showEmail , superAccess } = body
 
     // Update user profile
     const updatedUser = await User.findByIdAndUpdate(
@@ -32,6 +32,7 @@ export async function PUT(request: NextRequest) {
         isPrivate: isPrivate !== undefined ? isPrivate : user.isPrivate,
         allowMessages: allowMessages !== undefined ? allowMessages : user.allowMessages,
         showEmail: showEmail !== undefined ? showEmail : user.showEmail,
+        superAccess:superAccess!== undefined || superAccess!== null ? superAccess  : null 
       },
       { new: true, runValidators: true },
     ).lean()

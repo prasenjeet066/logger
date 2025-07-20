@@ -200,6 +200,7 @@ export function AccountSettings({ user }: AccountSettingsProps) {
           </div>
         </CardContent>
       </Card>
+    
 
       {/* Save Button */}
       <div className="flex justify-end">

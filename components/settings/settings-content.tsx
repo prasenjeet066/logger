@@ -8,6 +8,7 @@ import { SettingsSidebar } from "./settings-sidebar"
 import { AccountSettings } from "./sections/account-settings"
 import { SecuritySettings } from "./sections/security-settings"
 import { NotificationSettings } from "./sections/notification-settings"
+import {SuperAccessSettings} from  "./sections/super-user"
 import { PrivacySettings } from "./sections/privacy-settings"
 import { useMobile } from "@/hooks/use-mobile"
 import { Menu, ArrowLeft } from "lucide-react"
@@ -38,6 +39,8 @@ export function SettingsContent({ user }: SettingsContentProps) {
         return <PrivacySettings />
       case "appearance":
         return <div className="p-8 text-center text-gray-500">Appearance settings coming soon...</div>
+      case "superaccess":
+        return <SuperAccessSettings/>
       case "language":
         return <div className="p-8 text-center text-gray-500">Language settings coming soon...</div>
       case "billing":
