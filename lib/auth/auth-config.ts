@@ -3,7 +3,6 @@ import CredentialsProvider from "next-auth/providers/credentials"
 import GoogleProvider from "next-auth/providers/google"
 import { connectDB } from "@/lib/mongodb/connection"
 import User from "@/lib/mongodb/models/User"
-
 import bcrypt from "bcryptjs"
 
 export const authOptions: NextAuthOptions = {
@@ -16,31 +15,30 @@ export const authOptions: NextAuthOptions = {
       },
       async authorize(credentials) {
         await connectDB()
-        const user = await User.findOne({ email: credentials?.email })
         
+        if (!credentials?.email || !credentials?.password) return null
         
-        if (user && (await bcrypt.compare(credentials?.password || "", user.password)) && user.getEnabledVerificationWays().length === 0 ) {
-          return {
-            id: user._id.toString(),
-            name: user.username,
-            email: user.email,
-            image: user.avatarUrl,
-            username: user.username,
-            bio: user.bio,
-            location: user.location,
-            website: user.website,
-            isVerified: user.isVerified,
-            createdAt: user.createdAt,
-          }
-        }
-        if (user && (await bcrypt.compare(credentials?.password || "", user.password)) && user.getEnabledVerificationWays().length > 0) {
-          const verifyWays = user.getEnabledVerificationWays();
-          return {
-            loginStatus : true,
-            needMoreVerify : true ,
-            ways : verifyWays 
-            
-          }
+        const user = await User.findOne({ email: credentials.email })
+        if (!user) return null
+        
+        const passwordMatches = await bcrypt.compare(credentials.password, user.password)
+        if (!passwordMatches) return null
+        
+        const verifyWays = user.getEnabledVerificationWays?.() || []
+        
+        return {
+          id: user._id.toString(),
+          name: user.username,
+          email: user.email,
+          avatarUrl: user.avatarUrl,
+          username: user.username,
+          bio: user.bio,
+          location: user.location,
+          website: user.website,
+          isVerified: user.isVerified,
+          createdAt: user.createdAt,
+          needMoreVerify: verifyWays.length > 0,
+          verifyWays
         }
       },
     }),
@@ -55,10 +53,7 @@ export const authOptions: NextAuthOptions = {
   },
   callbacks: {
     async jwt({ token, user }) {
-      await connectDB();
-      
       if (user) {
-        // Basic user info from credentials/google
         token.id = user.id
         token.username = (user as any).username
         token.avatarUrl = (user as any).avatarUrl
@@ -67,28 +62,27 @@ export const authOptions: NextAuthOptions = {
         token.website = (user as any).website
         token.isVerified = (user as any).isVerified
         token.createdAt = (user as any).createdAt
-        
-        // Now check if this user is SuperUser
-        
+        token.needMoreVerify = (user as any).needMoreVerify
+        token.verifyWays = (user as any).verifyWays
       }
-      
-      return token;
+      return token
     },
     async session({ session, token }) {
       if (token) {
-        session.user.id = token.id as string
-        session.user.username = token.username as string
-        session.user.avatarUrl = token.avatarUrl as string
-        session.user.bio = token.bio as string
-        session.user.location = token.location as string
-        session.user.website = token.website as string
-        session.user.isVerified = token.isVerified as boolean
-        session.user.createdAt = token.createdAt as Date
-        
-        // SuperUser flags
-        
+        session.user = {
+          id: token.id as string,
+          username: token.username as string,
+          avatarUrl: token.avatarUrl as string,
+          bio: token.bio as string,
+          location: token.location as string,
+          website: token.website as string,
+          isVerified: token.isVerified as boolean,
+          createdAt: token.createdAt as Date,
+          needMoreVerify: token.needMoreVerify as boolean,
+          verifyWays: token.verifyWays as any
+        }
       }
-      return session;
+      return session
     },
   },
   session: {
