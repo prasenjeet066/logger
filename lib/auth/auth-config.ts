@@ -50,7 +50,7 @@ export const authOptions: NextAuthOptions = {
       if (user) {
         token.id = user.id
         token.username = (user as any).username
-        token.displayName =(user as any).name
+        token.name =(user as any).name
         token.avatarUrl = (user as any).avatarUrl
         token.bio = (user as any).bio
         token.location = (user as any).location
@@ -71,7 +71,7 @@ export const authOptions: NextAuthOptions = {
         session.user.website = token.website as string
         session.user.isVerified = token.isVerified as boolean
         session.user.superAccess = token.superAccess as object
-        session.user.displayName = token.displayName as string
+        session.user.displayName = token.name as string
         session.user.createdAt = token.createdAt as Date
       }
       return session
