@@ -19,8 +19,8 @@ export function Sidebar({ isExpand = true, profile, onSignOut }: SidebarProps) {
   const isSuperAccess = async () =>{
     const __data = await fetch('/api/users/current');
     if (__data.ok) {
-      const __dataJson = await __data.json().superAccess.role || null;
-      
+      const __dataJson = await __data.json().superAccess || null;
+      console.log(__data);
       setIsSA(__dataJson);
     }
   }
