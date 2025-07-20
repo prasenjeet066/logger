@@ -2,7 +2,7 @@ import { redirect } from "next/navigation"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth/auth-config"
 import { DashboardWrapper } from "./client-wrapper"
-
+import {Verification} from "@/components/auth/verification/verification"
 export default async function DashboardPage() {
   const session = await getServerSession(authOptions)
   
@@ -16,17 +16,9 @@ export default async function DashboardPage() {
     email: session.user.email,
     username: session.user.username,
     avatarUrl: session.user.avatarUrl,
-    needsSuperVerification : session.user.needsSuperVerification
+    
   }
-  if (!user.needsSuperVerification
-  ) {
     return <DashboardWrapper user={user} />
-  }else{
-     return (
-       <div>
-         Need Verification 
-       </div>
-     )
-  }
+  
   
 }
