@@ -3,7 +3,6 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/auth-config";
 import { connectDB } from "@/lib/mongodb/connection";
 import { User } from "@/lib/mongodb/models/User";
-import { SuperUser } from "@/lib/mongodb/models/SuperUsers"; // adjust import if needed
 
 export async function GET(request: NextRequest) {
   try {
@@ -21,8 +20,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Check if this user is also in SuperUser collection
-    const superUser = await SuperUser.findOne({ userId: user._id }).lean();
-    const isSuperUser = !!superUser;
+    
 
     // Remove sensitive info
     const {
@@ -34,8 +32,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       ...userResponse,
-      isSuperUser,
-      superUserInfo: superUser || null, // optionally include superuser fields
+      
     });
   } catch (error) {
     console.error("Get current user error:", error);
