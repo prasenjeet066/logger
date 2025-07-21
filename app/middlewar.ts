@@ -4,6 +4,7 @@ import type { NextRequest } from 'next/server'
 
 export async function middleware(request: NextRequest) {
   const token = await getToken({ req: request })
+  
   const isAuthPage = request.nextUrl.pathname.startsWith('/auth/')
 
   // Clone the request headers
@@ -14,6 +15,7 @@ export async function middleware(request: NextRequest) {
   if (isAuthPage && token) {
     return NextResponse.redirect(new URL('/', request.url))
   }
+  
 
   // Protected routes logic
   const isProtectedRoute = [
