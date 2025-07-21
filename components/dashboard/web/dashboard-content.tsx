@@ -177,15 +177,7 @@ export function WebDashboardContent({ user }: DashboardContentProps) {
               <Plus className="h-4 w-4"/>
               <small>Create New</small>
             </Button>
-            {user.superAccess!==null && user.superAccess.role === 'context' ? (<><small className='text-[8px] text-gray-500'>or</small>
-            
-             <Button className="bg-gray-700 text-white px-4 h-8 py-2 rounded-full" onClick={()=>{
-              
-            }}>
-              <Plus className="h-4 w-4"/>
-              <small>New Context</small>
-            </Button></>):<></>}
-            
+
             </div>
             {/* User Avatar */}
             <Link href={`/profile/${profile?.username}`}>

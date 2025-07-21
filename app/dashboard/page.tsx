@@ -6,9 +6,7 @@ import {Verification} from "@/components/auth/verification/verification"
 export default async function DashboardPage() {
   const session = await getServerSession(authOptions)
   
-  if (!session?.user) {
-    redirect("/auth/sign-in")
-  }
+  
   
   // Map session.user properties to what DashboardContent expects
   const user = {
