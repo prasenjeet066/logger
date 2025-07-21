@@ -30,12 +30,23 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(signInUrl)
   }
 
-  // Continue with modified request
-  return NextResponse.next({
+  // Set CORS headers
+  const response = NextResponse.next({
     request: {
       headers: requestHeaders,
     },
   })
+
+  response.headers.set('Access-Control-Allow-Origin', '*') // Change '*' to specific domains if needed
+  response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
+  response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization')
+  
+  // Handle OPTIONS requests for preflight checks
+  if (request.method === 'OPTIONS') {
+    return response // Return early for preflight requests
+  }
+
+  return response
 }
 
 export const config = {
