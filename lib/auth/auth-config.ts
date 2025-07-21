@@ -14,71 +14,105 @@ export const authOptions: NextAuthOptions = {
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
-        await connectDB()
-        const user = await User.findOne({ email: credentials?.email })
-
-        if (user && (await bcrypt.compare(credentials?.password || "", user.password))) {
+        if (!credentials?.email || !credentials?.password) {
+          throw new Error("Invalid credentials")
+        }
+        
+        try {
+          await connectDB()
+          const user = await User.findOne({ email: credentials.email.toLowerCase() })
+          
+          if (!user) {
+            throw new Error("No user found with this email")
+          }
+          
+          const isPasswordValid = await bcrypt.compare(credentials.password, user.password)
+          
+          if (!isPasswordValid) {
+            throw new Error("Invalid password")
+          }
+          
           return {
             id: user._id.toString(),
             name: user.displayName,
             email: user.email,
             image: user.avatarUrl,
             username: user.username,
-            
-            bio: user.bio,
-            location: user.location,
-            superAccess : user.superAccess || null,
-            website: user.website,
-            isVerified: user.isVerified,
+            bio: user.bio || null,
+            location: user.location || null,
+            superAccess: user.superAccess || null,
+            website: user.website || null,
+            isVerified: user.isVerified || false,
             createdAt: user.createdAt,
           }
+        } catch (error) {
+          console.error("Authentication error:", error)
+          throw error
         }
-        return null
       },
     }),
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID as string,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
+      authorization: {
+        params: {
+          prompt: "select_account",
+          access_type: "offline",
+          response_type: "code"
+        }
+      }
     }),
   ],
   pages: {
     signIn: "/auth/sign-in",
-    error: "/auth/sign-in", // Error page for authentication errors
+    error: "/auth/sign-in",
+    newUser: "/auth/new-user", // Add this if you have a new user onboarding page
   },
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, account }) {
       if (user) {
-        token.id = user.id
-        token.username = (user as any).username
-        token.name =(user as any).name
-        token.avatarUrl = (user as any).avatarUrl
-        token.bio = (user as any).bio
-        token.location = (user as any).location
-        token.website = (user as any).website
-        token.superAccess = (user as any).superAccess
-        token.isVerified = (user as any).isVerified
-        token.createdAt = (user as any).createdAt
+        // Type assertion for user properties
+        const typedUser = user as any
+        
+        token.id = typedUser.id
+        token.username = typedUser.username
+        token.name = typedUser.name
+        token.avatarUrl = typedUser.image || typedUser.avatarUrl
+        token.bio = typedUser.bio
+        token.location = typedUser.location
+        token.website = typedUser.website
+        token.superAccess = typedUser.superAccess
+        token.isVerified = typedUser.isVerified
+        token.createdAt = typedUser.createdAt
+        
+        // Add provider information
+        if (account) {
+          token.provider = account.provider
+        }
       }
       return token
     },
     async session({ session, token }) {
-      if (token) {
+      if (token && session.user) {
         session.user.id = token.id as string
         session.user.username = token.username as string
         session.user.avatarUrl = token.avatarUrl as string
-        session.user.bio = token.bio as string
-        session.user.location = token.location as string
-        session.user.website = token.website as string
+        session.user.bio = token.bio as string || null
+        session.user.location = token.location as string || null
+        session.user.website = token.website as string || null
         session.user.isVerified = token.isVerified as boolean
-        session.user.superAccess = token.superAccess as object
+        session.user.superAccess = token.superAccess as object || null
         session.user.displayName = token.name as string
         session.user.createdAt = token.createdAt as Date
+        session.user.provider = token.provider as string
       }
       return session
     },
   },
   session: {
     strategy: "jwt",
+    maxAge: 30 * 24 * 60 * 60, // 30 days
   },
   secret: process.env.NEXTAUTH_SECRET,
+  debug: process.env.NODE_ENV === "development",
 }
