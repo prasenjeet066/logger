@@ -9,6 +9,10 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
+  // Add middleware configuration
+  experimental: {
+    middleware: true
+  }
 }
 
 export default nextConfig
