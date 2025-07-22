@@ -79,10 +79,7 @@ export function DashboardContent({ user }: DashboardContentProps) {
       
       <div className="lg:hidden sticky top-0 border-b bg-white bg-white/50 z-30 backdrop-blur-md px-4 py-2">
         <div className="flex items-center justify-between">
-          <h1 className="text-xl font-bold logo-font">Cōdes</h1>
-          <div className="flex flex-row w-full items-center justify-end">
-            
-            <Sheet>
+          <Sheet>
               <SheetTrigger asChild>
                 <Button variant="ghost" size="icon">
                   <Menu className="h-5 w-5" />
@@ -92,6 +89,15 @@ export function DashboardContent({ user }: DashboardContentProps) {
                 <Sidebar profile={profile} onSignOut={handleSignOut} />
               </SheetContent>
             </Sheet>
+          <h1 className="text-xl font-bold logo-font">Cōdes</h1>
+          <div className="flex flex-row w-full items-center justify-end">
+            
+            
+          <Link href="/create">
+          <Button size="icon" className="h-14 w-14 bg-none text-gray-800">
+            <Plus className="h-8 w-8" />
+          </Button>
+        </Link>
 
 
             <Link href={`/profile/${profile?.username}`}>
@@ -128,13 +134,7 @@ export function DashboardContent({ user }: DashboardContentProps) {
 
       {/* Mobile Create Post FAB */}
       
-      <div className="lg:hidden fixed bottom-20 right-4 z-40">
-        <Link href="/create">
-          <Button size="icon" className="h-14 w-14 rounded-full shadow-lg">
-            <Plus className="h-6 w-6" />
-          </Button>
-        </Link>
-      </div>
+     
 
       <SearchDialog />
       <NotificationDialog />
