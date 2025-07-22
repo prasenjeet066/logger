@@ -10,7 +10,7 @@ import { LanguageProvider } from "@/lib/contexts/language-context"
 export const metadata: Metadata = {
   title: "Microblog - Share Your Thoughts",
   description: "A modern microblogging platform built with Next.js",
-    generator: 'v0.dev'
+  generator: 'v0.dev'
 }
 
 export default function RootLayout({
@@ -28,6 +28,8 @@ export default function RootLayout({
           href="https://fonts.googleapis.com/css2?family=Ubuntu:ital,wght@0,300;0,400;0,500;0,700;1,300;1,400;1,500;1,700&display=swap"
           rel="stylesheet"
         />
+        <link href = '/fonts/Nippo_Complete/Fonts/WEB/css/nippo.css' rel = 'stylesheet'/>
+        <link href='/fonts/WEB/css/pally.css' rel='stylesheet'/>
       </head>
       <body>
         <AuthProvider>
