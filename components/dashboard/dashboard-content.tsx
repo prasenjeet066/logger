@@ -94,8 +94,8 @@ export function DashboardContent({ user }: DashboardContentProps) {
             
             
           <Link href="/create">
-          <Button size="icon" className="h-14 w-14 bg-none text-gray-800">
-            <Plus className="h-8 w-8" />
+          <Button size="icon" className="rounded-full h-8 w-8 bg-[transparent] text-gray-800">
+            <Plus className="h-6 w-6" />
           </Button>
         </Link>
 
