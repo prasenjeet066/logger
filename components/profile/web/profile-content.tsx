@@ -17,7 +17,7 @@ import { ImageViewer } from "@/components/media/image-viewer"
 import { VerificationBadge } from "@/components/badge/verification-badge"
 import { signOut } from "next-auth/react"
 import type { Post } from "@/types/post" // Import the updated Post type
-
+import { Header } from "@/components/dashboard/web/utils/header"
 interface ProfileContentProps {
   username: string
 }
@@ -221,47 +221,14 @@ export function WebProfileContent({ username }: ProfileContentProps) {
   return (
     <div className="min-h-screen bg-gray-50 font-english">
       {/* Desktop Header */}
-      <div className="sticky top-0 border-b bg-white bg-white/50 z-30 backdrop-blur-md px-4 py-2">
-        <div className="flex items-center justify-between">
-          <div className='flex flex-row items-center gap-2'>
-          <Menu className=' ml-2 h-4 w-4' onClick={()=>{
-            setIsExpand(!isExpand)
-          }}/>
-          <h1 className="text-xl font-bold logo-font">Cōdes</h1>
-          </div>
-          <div className="flex flex-row items-center gap-4">
-            {/* Desktop Search Bar */}
-            <div className='flex flex-row items-center gap-2 bg-none border-2 border-gray-300 rounded-full h-8 px-4 py-2'>
-              <input type='text' className='outline-none bg-none border-0' placeholder='Search with us...'/>
-              <Search className='h-3 w-3'/>
-            </div>
-            
-            {/* Create New Button */}
-            <Button className="bg-gray-800 text-white px-4 py-2 h-8 rounded-full">
-              <Plus className="h-4 w-4"/>
-              <small>Create New</small>
-            </Button>
-
-            {/* User Avatar */}
-            {session?.user && currentUser && (
-              <Link href={`/profile/${currentUser?.username}`}>
-                <Avatar className="h-8 w-8">
-                  <AvatarImage src={currentUser?.avatarUrl || undefined} />
-                  <AvatarFallback className="text-xs">
-                    {currentUser?.displayName?.charAt(0)?.toUpperCase() || "U"}
-                  </AvatarFallback>
-                </Avatar>
-              </Link>
-            )}
-            
-            {!session?.user && (
-              <Link href="/auth/sign-in">
-                <Button size="sm">Sign In</Button>
-              </Link>
-            )}
-          </div>
-        </div>
-      </div>
+     <Header
+        profile={profileData}
+        sidebarExpand={isExpand}
+        setSidebarExpand={setIsExpand}
+        onCreatePost={()=>{
+        // null
+        }}
+      />
       
       <div className="flex h-full">
         {/* Sidebar - only show if logged in */}
