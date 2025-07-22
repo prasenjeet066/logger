@@ -81,13 +81,13 @@
   }
   body {
     @apply bg-background text-foreground;
-    font-family: "Ubuntu", var(--font-raleway), sans-serif; /* Use Ubuntu as default font for English text */
+    font-family: var("--pally-font"), sans-serif; /* Use Ubuntu as default font for English text */
   }
 }
 
 /* Language-specific fonts */
 .font-english {
-  font-family: "Ubuntu", sans-serif; /* Use Ubuntu for English text */
+  font-family: var("--pally-font"), sans-serif; /* Use Ubuntu for English text */
 }
 
 .font-bengali {
@@ -103,7 +103,7 @@
 }
 
 .logo-font {
-  font-family: var(--font-bytesized), sans-serif; /* Keep Bytesized for the logo only */
+  font-family: var("--logo-font"), sans-serif; /* Keep Bytesized for the logo only */
   font-weight: 600;
   color: #121212;
 }
