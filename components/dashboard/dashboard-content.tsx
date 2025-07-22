@@ -90,11 +90,11 @@ export function DashboardContent({ user }: DashboardContentProps) {
               </SheetContent>
             </Sheet>
           <h1 className="text-xl font-bold logo-font">Cōdes</h1>
-          <div className="flex flex-row w-full items-center justify-end">
+          <div className="flex flex-row w-full items-center gap-4 justify-end">
             
             
           <Link href="/create">
-          <Button size="icon" className="rounded-full h-8 w-8 bg-[transparent] text-gray-800">
+          <Button size="icon" className="rounded-full h-8 w-8 border-2 bg-[transparent] border-gray-100 text-gray-800">
             <Plus className="h-6 w-6" />
           </Button>
         </Link>
