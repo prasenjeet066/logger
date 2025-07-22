@@ -10,13 +10,13 @@ import { MobileBottomNav } from "./mobile-bottom-nav"
 import { SearchDialog } from "./search-dialog"
 import { NotificationDialog } from "./notification-dialog"
 import { Button } from "@/components/ui/button"
-import { Menu, UserIcon, Plus , Search} from "lucide-react"
+import { Menu, UserIcon, Plus, Search } from "lucide-react"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 
 import Link from "next/link"
 import type { IUser } from "@/lib/mongodb/models/User" // Import IUser type
-
+import { Header } from "@/components/dashboard/utils/header"
 interface DashboardContentProps {
   // The user prop now represents the session user from NextAuth, which should align with IUser
   user: {
@@ -24,19 +24,19 @@ interface DashboardContentProps {
     email: string
     username: string
     displayName: string
-    avatarUrl?: string
+    avatarUrl ? : string
   }
 }
 
 export function DashboardContent({ user }: DashboardContentProps) {
-  const [profile, setProfile] = useState<IUser | null>(null)
+  const [profile, setProfile] = useState < IUser | null > (null)
   const [isLoading, setIsLoading] = useState(true)
   //const isMobile = useMobile();
-
+  
   useEffect(() => {
     fetchProfile()
   }, [user.id]) // Depend on user.id to refetch if user changes
-
+  
   const fetchProfile = async () => {
     try {
       // Fetch profile from your new MongoDB-backed API route
@@ -53,11 +53,11 @@ export function DashboardContent({ user }: DashboardContentProps) {
       setIsLoading(false)
     }
   }
-
+  
   const handleSignOut = async () => {
     await signOut({ callbackUrl: "/auth/sign-in" }) // Redirect to sign-in page after sign out
   }
-
+  
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -65,7 +65,7 @@ export function DashboardContent({ user }: DashboardContentProps) {
       </div>
     )
   }
-
+  
   if (!profile) {
     return (
       <div className="flex items-center justify-center min-h-screen text-red-500">
@@ -73,44 +73,10 @@ export function DashboardContent({ user }: DashboardContentProps) {
       </div>
     )
   }
-
+  
   return (
     <div className="min-h-screen bg-white">
-      
-      <div className="lg:hidden sticky top-0 border-b bg-white bg-white/50 z-30 backdrop-blur-md px-4 py-2">
-        <div className="flex items-center justify-between">
-          <Sheet>
-              <SheetTrigger asChild>
-                <Button variant="ghost" size="icon">
-                  <Menu className="h-5 w-5" />
-                </Button>
-              </SheetTrigger>
-              <SheetContent side="left" className="p-0 w-80">
-                <Sidebar profile={profile} onSignOut={handleSignOut} />
-              </SheetContent>
-            </Sheet>
-          <h1 className="text-xl font-bold logo-font">Cōdes</h1>
-          <div className="flex flex-row w-full items-center gap-4 justify-end">
-            
-            
-          <Link href="/create">
-          <Button size="icon" className="rounded-full h-8 w-8 border-2 bg-[transparent] border-gray-100 text-gray-800">
-            <Plus className="h-6 w-6" />
-          </Button>
-        </Link>
-
-
-            <Link href={`/profile/${profile?.username}`}>
-              <Avatar className="h-8 w-8">
-                <AvatarImage src={profile?.avatarUrl || "/placeholder.svg"} />
-                <AvatarFallback>
-                  <UserIcon className="h-4 w-4" />
-                </AvatarFallback>
-              </Avatar>
-            </Link>
-          </div>
-        </div>
-      </div>
+      <Header profile={profile} handleSignOut = {handleSignOut}/>
       
       <div className="flex h-full">
       

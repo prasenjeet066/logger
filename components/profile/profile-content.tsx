@@ -6,6 +6,7 @@ import { useSession } from "next-auth/react"
 import { useMobile } from "@/hooks/use-mobile"
 import { Button } from "@/components/ui/button"
 import { Spinner } from "@/components/loader/spinner" // Corrected import path
+import {Header} from "@/components/dashboard/utils/header"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Sidebar } from "@/components/dashboard/sidebar"
@@ -229,47 +230,12 @@ export function ProfileContent({ username }: ProfileContentProps) {
       {/* Changed to font-english */}
       
       
-      <div className="lg:hidden bg-white border-b px-4 py-3 flex items-center justify-between">
-        <h1 className="text-xl font-bold logo-font">Cōdes</h1>
-        
-        <div className="flex items-center gap-2">
-          {session?.user && (
-            <>
-              <Button variant="ghost" size="icon" onClick={() => setSidebarOpen(!sidebarOpen)}>
-                {sidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-              </Button>
-              <Button variant="ghost" size="icon" asChild>
-                <Link href={`/profile/${currentUser?.username}`}>
-                  <Avatar className="h-8 w-8" onClick={() => setImageViewerOpen(currentUser?.avatarUrl || null)}>
-                    <AvatarImage src={currentUser?.avatarUrl || undefined} />
-                    <AvatarFallback className="text-xs">
-                      {currentUser?.displayName?.charAt(0)?.toUpperCase() || "U"}
-                    </AvatarFallback>
-                  </Avatar>
-                </Link>
-              </Button>
-            </>
-          )}
-          {!session?.user && (
-            <Link href="/auth/sign-in">
-              <Button size="sm">Sign In</Button>
-            </Link>
-          )}
-        </div>
-        
-        
-      </div>
+      <Header profile = {profileData} handleSignOut = {handleSignOut}/>
       
       
       <div className="flex">
         {/* Sidebar - only show if logged in */}
-        {session?.user && currentUser  &&(
-          <div
-            className={`${sidebarOpen ? "block" : "hidden"} lg:block fixed lg:relative inset-y-0 left-0 z-50 w-64 bg-white border-r lg:border-r-0`}
-          >
-            <Sidebar profile={currentUser} onSignOut={handleSignOut} />
-          </div>
-        )}
+        
 
         {/* Main content */}
         <div className="flex-1 max-w-2xl mx-auto">
