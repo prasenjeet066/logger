@@ -62,7 +62,7 @@ export function ImageViewer({ src, alt, isOpen, onClose }: ImageViewerProps) {
 
   return (
     <div className="image-viewer-overlay animate-fade-in">
-      {!isEditForm ?  (<>
+      {isEditForm===false ?  (<>
       <div className="absolute top-4 right-4 z-10 flex gap-2">
         <Button
           variant="secondary"
@@ -129,9 +129,9 @@ export function ImageViewer({ src, alt, isOpen, onClose }: ImageViewerProps) {
       />
       </>
       ) : (
-        <div>
+        
           <imgCropper imageUrl = {src}/>
-        </div>
+        
       )}
     </div>
   )

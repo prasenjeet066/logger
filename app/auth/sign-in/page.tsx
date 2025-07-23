@@ -93,6 +93,7 @@ export default function SignInPage() {
           <CardTitle className="text-2xl font-bold">Welcome Back</CardTitle>
         </CardHeader>
         <CardContent>
+          
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
@@ -105,7 +106,9 @@ export default function SignInPage() {
                 placeholder="Enter your email"
                 disabled={isLoading}
               />
-              {errors.email && <p className="text-sm text-red-600">{errors.email}</p>}
+              {errors.email &&   <Alert>
+                <AlertDescription>{errors.email}</AlertDescription>
+              </Alert>}
             </div>
             {state == 1 ? (
             <div className="space-y-2">
@@ -119,7 +122,9 @@ export default function SignInPage() {
                 placeholder="Enter your password"
                 disabled={isLoading}
               />
-              {errors.password && <p className="text-sm text-red-600">{errors.password}</p>}
+              {errors.password &&  <Alert>
+                <AlertDescription>{errors.password}</AlertDescription>
+              </Alert>}
               <Link href="/auth/forgot-password" className="text-sm text-right text-blue-600 hover:underline pt-4">
                 Forgot password?
               </Link>

@@ -519,7 +519,7 @@ export default function SignUpPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
-      <Card className="w-full max-w-md">
+      <Card className="w-full max-w-md shadow-none border-none bg-gray-50">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl font-bold logo-font">Cōdes</CardTitle>
           <CardDescription>Join the conversation today</CardDescription>
@@ -532,7 +532,7 @@ export default function SignUpPage() {
               </span>
               <span>{Math.round(progress)}% Complete</span>
             </div>
-            <Progress value={progress} className="h-2" />
+
           </div>
 
           {/* Step Indicators */}
@@ -544,17 +544,6 @@ export default function SignUpPage() {
 
               return (
                 <div key={step.number} className="flex flex-col items-center">
-                  <div
-                    className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-medium ${
-                      isCompleted
-                        ? "bg-green-500 text-white"
-                        : isActive
-                          ? "bg-blue-500 text-white"
-                          : "bg-gray-200 text-gray-500"
-                    }`}
-                  >
-                    {isCompleted ? <CheckCircle className="h-4 w-4" /> : <Icon className="h-4 w-4" />}
-                  </div>
                   <span className="text-xs mt-1 text-center">{step.title}</span>
                 </div>
               )
@@ -588,12 +577,12 @@ export default function SignUpPage() {
               </Button>
 
               {currentStep < 4 ? (
-                <Button type="button" onClick={nextStep} disabled={isLoading} className="flex items-center">
-                  Next
+                <Button type="button" onClick={nextStep} disabled={isLoading} className="flex items-center rounded-full">
+                  Continue
                   <ArrowRight className="h-4 w-4 ml-1" />
                 </Button>
               ) : (
-                <Button type="submit" disabled={isLoading || !formData.acceptTerms} className="flex items-center">
+                <Button type="submit" disabled={isLoading || !formData.acceptTerms} className="flex items-center rounded-full">
                   {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                   Create Account
                 </Button>
