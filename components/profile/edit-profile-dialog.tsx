@@ -27,6 +27,7 @@ export function EditProfileDialog({ open, onOpenChange, profile, onProfileUpdate
     bio: profile?.bio || "",
     website: profile?.website || "",
     location: profile?.location || "",
+    
   })
   const [errors, setErrors] = useState < Partial < UpdateProfileData >> ({})
   const [isLoading, setIsLoading] = useState(false)
@@ -36,17 +37,23 @@ export function EditProfileDialog({ open, onOpenChange, profile, onProfileUpdate
   const [uploadingCover, setUploadingCover] = useState(false)
   
   const uploadImage = async (file: File, type: "avatar" | "cover") => {
+    const formData = new FormData()
+    
+      formData.append("files", file)
+  
     try {
-      const data = await fetch('/api/upload',{
+      const uploadFile = await fetch('/api/upload',{
         method:'POST',
-        body: file
+        body:formData
       })
-      if (data.ok) {
-        console.log(data.json());
+      if (uploadFile.ok) {
+        const retData = await uploadFile.json().files[0].url
+        //handleChange('avatarUrl',retData)
+        //setAvatarUrl(retData)
+        return retData
+        
       }
-    } catch (e) {
-      
-    }
+    } catch (e) {}
   }
   
   const handleImageUpload = async (e: React.ChangeEvent < HTMLInputElement > , type: "avatar" | "cover") => {
@@ -98,21 +105,13 @@ export function EditProfileDialog({ open, onOpenChange, profile, onProfileUpdate
     try {
       const validatedData = updateProfileSchema.parse(formData)
       
-      const { error } = await supabase
-        .from("profiles")
-        .update({
-          display_name: validatedData.displayName,
-          bio: validatedData.bio || null,
-          website: validatedData.website || null,
-          location: validatedData.location || null,
-          avatar_url: avatarUrl || null,
-          cover_url: coverUrl || null,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", profile.id)
+      const dataUpdate = await fetch('/api/users/profile',{
+        method:'POST',
+        body: JSON.stringify(validatedData)
+      })
       
-      if (error) {
-        console.error("Error updating profile:", error)
+      if (!dataUpdate.ok) {
+        console.error("Error updating profile:")
       } else {
         onProfileUpdate({
           displayName: validatedData.displayName,
