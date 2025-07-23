@@ -262,7 +262,6 @@ export default function SignUpPage() {
         return (
           <div className="space-y-4">
             <div className="text-center mb-6">
-              <Mail className="h-12 w-12 mx-auto text-blue-500 mb-2" />
               <h3 className="text-lg font-semibold">Your Email Address</h3>
               <p className="text-sm text-gray-600">We'll send a confirmation link to your email</p>
             </div>
@@ -286,7 +285,7 @@ export default function SignUpPage() {
                 type="button"
                 onClick={handleGoogleSignUp}
                 variant="outline"
-                className="w-full bg-transparent"
+                className="rounded-full w-full bg-transparent"
                 disabled={isLoading}
               >
                 <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
@@ -326,7 +325,7 @@ export default function SignUpPage() {
         return (
           <div className="space-y-4">
             <div className="text-center mb-6">
-              <User className="h-12 w-12 mx-auto text-blue-500 mb-2" />
+
               <h3 className="text-lg font-semibold">Profile Information</h3>
               <p className="text-sm text-gray-600">Your username and display name</p>
             </div>
@@ -341,7 +340,7 @@ export default function SignUpPage() {
                   onChange={handleChange("username")}
                   placeholder="Choose a username"
                   disabled={isLoading}
-                  className={`pr-10 ${
+                  className={` rounded-full pr-10 ${
                     errors.username
                       ? "border-red-500"
                       : usernameAvailable === true
@@ -465,7 +464,7 @@ export default function SignUpPage() {
         return (
           <div className="space-y-4">
             <div className="text-center mb-6">
-              <FileText className="h-12 w-12 mx-auto text-blue-500 mb-2" />
+
               <h3 className="text-lg font-semibold">Terms and Privacy</h3>
               <p className="text-sm text-gray-600">Read the terms before finalizing</p>
             </div>
@@ -536,19 +535,7 @@ export default function SignUpPage() {
           </div>
 
           {/* Step Indicators */}
-          <div className="flex justify-between mt-4">
-            {steps.map((step) => {
-              const Icon = step.icon
-              const isActive = currentStep === step.number
-              const isCompleted = currentStep > step.number
-
-              return (
-                <div key={step.number} className="flex flex-col items-center">
-                  <span className="text-xs mt-1 text-center">{step.title}</span>
-                </div>
-              )
-            })}
-          </div>
+        
         </CardHeader>
 
         <CardContent>
