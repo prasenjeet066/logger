@@ -9,8 +9,6 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { useFileUpload } from "@/hooks/use-file-upload"
-//import { supabase } from "@/lib/supabase/client"
 import { updateProfileSchema, type UpdateProfileData } from "@/lib/validations/post"
 import { Loader2, Camera } from "lucide-react"
 
@@ -22,41 +20,42 @@ interface EditProfileDialogProps {
 }
 
 export function EditProfileDialog({ open, onOpenChange, profile, onProfileUpdate }: EditProfileDialogProps) {
-  const [formData, setFormData] = useState < UpdateProfileData > ({
+  const [formData, setFormData] = useState<UpdateProfileData>({
     displayName: profile?.displayName || "",
     bio: profile?.bio || "",
     website: profile?.website || "",
     location: profile?.location || "",
-    
   })
-  const [errors, setErrors] = useState < Partial < UpdateProfileData >> ({})
+  const [errors, setErrors] = useState<Partial<UpdateProfileData>>({})
   const [isLoading, setIsLoading] = useState(false)
-  const [avatarUrl, setAvatarUrl] = useState(profile?.avatar_url || "")
-  const [coverUrl, setCoverUrl] = useState(profile?.cover_url || "")
+  const [avatarUrl, setAvatarUrl] = useState(profile?.avatarUrl || "")
+  const [coverUrl, setCoverUrl] = useState(profile?.coverUrl || "")
   const [uploadingAvatar, setUploadingAvatar] = useState(false)
   const [uploadingCover, setUploadingCover] = useState(false)
   
-  const uploadImage = async (file: File, type: "avatar" | "cover") => {
+  const uploadImage = async (file: File, type: "avatar" | "cover"): Promise<string> => {
     const formData = new FormData()
-    
-      formData.append("files", file)
+    formData.append("files", file)
   
     try {
-      const uploadFile = await fetch('/api/upload',{
-        method:'POST',
-        body:formData
+      const uploadResponse = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData
       })
-      if (uploadFile.ok) {
-        const retData = await uploadFile.json().files[0].url
-        //handleChange('avatarUrl',retData)
-        //setAvatarUrl(retData)
-        return retData
-        
+      
+      if (uploadResponse.ok) {
+        const responseData = await uploadResponse.json()
+        return responseData.files[0].url
+      } else {
+        throw new Error('Upload failed')
       }
-    } catch (e) {}
+    } catch (error) {
+      console.error('Upload error:', error)
+      throw error
+    }
   }
   
-  const handleImageUpload = async (e: React.ChangeEvent < HTMLInputElement > , type: "avatar" | "cover") => {
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: "avatar" | "cover") => {
     const file = e.target.files?.[0]
     if (!file) return
     
@@ -103,47 +102,77 @@ export function EditProfileDialog({ open, onOpenChange, profile, onProfileUpdate
     setErrors({})
     
     try {
+      // Validate form data
       const validatedData = updateProfileSchema.parse(formData)
       
-      const dataUpdate = await fetch('/api/users/profile',{
-        method:'POST',
-        body: JSON.stringify(validatedData)
+      // Prepare the complete update data including images
+      const updateData = {
+        ...validatedData,
+        avatarUrl: avatarUrl,
+        // Add coverUrl if your backend supports it
+        // coverUrl: coverUrl,
+      }
+      
+      const response = await fetch('/api/users/profile', {
+        method: 'PUT', // Changed from POST to PUT as per your API route
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(updateData)
       })
       
-      if (!dataUpdate.ok) {
-        console.error("Error updating profile:")
-      } else {
-        onProfileUpdate({
-          displayName: validatedData.displayName,
-          bio: validatedData.bio,
-          website: validatedData.website,
-          location: validatedData.location,
-          avatarUrl: avatarUrl,
-          coverUrl: coverUrl,
-        })
-        onOpenChange(false)
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to update profile')
       }
+      
+      const updatedProfile = await response.json()
+      
+      // Update the parent component with the new profile data
+      onProfileUpdate({
+        ...updatedProfile,
+        avatarUrl: avatarUrl,
+        coverUrl: coverUrl,
+      })
+      
+      // Close the dialog
+      onOpenChange(false)
+      
     } catch (error) {
+      console.error("Profile update error:", error)
+      
       if (error instanceof Error) {
-        const zodError = JSON.parse(error.message)
-        const fieldErrors: Partial < UpdateProfileData > = {}
-        zodError.forEach((err: any) => {
-          fieldErrors[err.path[0] as keyof UpdateProfileData] = err.message
-        })
-        setErrors(fieldErrors)
+        // Handle Zod validation errors
+        try {
+          const zodError = JSON.parse(error.message)
+          if (Array.isArray(zodError)) {
+            const fieldErrors: Partial<UpdateProfileData> = {}
+            zodError.forEach((err: any) => {
+              fieldErrors[err.path[0] as keyof UpdateProfileData] = err.message
+            })
+            setErrors(fieldErrors)
+          } else {
+            // Handle other errors
+            alert(error.message || 'প্রোফাইল আপডেট করতে সমস্যা হয়েছে')
+          }
+        } catch {
+          // Not a JSON error, show the error message
+          alert(error.message || 'প্রোফাইল আপডেট করতে সমস্যা হয়েছে')
+        }
+      } else {
+        alert('প্রোফাইল আপডেট করতে সমস্যা হয়েছে')
       }
     } finally {
       setIsLoading(false)
     }
   }
   
-  const handleChange =
-    (field: keyof UpdateProfileData) => (e: React.ChangeEvent < HTMLInputElement | HTMLTextAreaElement > ) => {
-      setFormData((prev) => ({ ...prev, [field]: e.target.value }))
-      if (errors[field]) {
-        setErrors((prev) => ({ ...prev, [field]: undefined }))
-      }
+  const handleChange = (field: keyof UpdateProfileData) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    setFormData((prev) => ({ ...prev, [field]: e.target.value }))
+    if (errors[field]) {
+      setErrors((prev) => ({ ...prev, [field]: undefined }))
     }
+  }
   
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
