@@ -75,9 +75,13 @@ export default function SignUpPage() {
   // Removed Supabase specific checkUsernameAvailability
   // If you need username availability check, you'll need to implement a new API route for it.
   const checkUsernameAvailability = async (username: string) => {
+    const usernameSearch = await fetch('/api/users/'+ username)
+    if (!usernameSearch.ok) {
+      setUsernameAvailable(false)
+    }
     // Placeholder for future API call
     // For now, assume it's always available on client side until server validates
-    setUsernameAvailable(null)
+    setUsernameAvailable(true)
   }
 
   // Sign up with Google using NextAuth.js
@@ -248,7 +252,7 @@ export default function SignUpPage() {
     // Placeholder for username availability check (if re-implemented via new API)
     if (field === "username" && value.length >= 3) {
       const timeoutId = setTimeout(() => {
-        // checkUsernameAvailability(value); // Call this if you implement a new API for it
+         checkUsernameAvailability(value); // Call this if you implement a new API for it
       }, 500)
       return () => clearTimeout(timeoutId)
     } else if (field === "username") {
@@ -387,7 +391,6 @@ export default function SignUpPage() {
         return (
           <div className="space-y-4">
             <div className="text-center mb-6">
-              <Lock className="h-12 w-12 mx-auto text-blue-500 mb-2" />
               <h3 className="text-lg font-semibold">Password Setup</h3>
               <p className="text-sm text-gray-600">Create a strong password</p>
             </div>
@@ -520,8 +523,7 @@ export default function SignUpPage() {
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
       <Card className="w-full max-w-md shadow-none border-none bg-gray-50">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-bold logo-font">Cōdes</CardTitle>
-          <CardDescription>Join the conversation today</CardDescription>
+          <CardTitle className="text-sm font-bold logo-font">Cōdes</CardTitle>
 
           {/* Progress Bar */}
           <div className="mt-4">
@@ -529,7 +531,7 @@ export default function SignUpPage() {
               <span>
                 Step {currentStep} / {steps.length}
               </span>
-              <span>{Math.round(progress)}% Complete</span>
+
             </div>
 
           </div>
@@ -552,6 +554,7 @@ export default function SignUpPage() {
 
             {/* Navigation Buttons */}
             <div className="flex justify-between mt-6">
+              {currentStep > 1 &&(
               <Button
                 type="button"
                 variant="outline"
@@ -562,9 +565,9 @@ export default function SignUpPage() {
                 <ArrowLeft className="h-4 w-4 mr-1" />
                 Previous
               </Button>
-
+)}
               {currentStep < 4 ? (
-                <Button type="button" onClick={nextStep} disabled={isLoading} className="flex items-center rounded-full">
+                <Button type="button" onClick={nextStep} disabled={isLoading} className="flex items-center rounded-full w-full">
                   Continue
                   <ArrowRight className="h-4 w-4 ml-1" />
                 </Button>
