@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { X, ZoomIn, ZoomOut, RotateCw, Download,Pen } from "lucide-react"
-import {Cropper} from '@/components/media/image/cropper'
+import {imgCropper} from '@/components/media/image/cropper'
 interface ImageViewerProps {
   src: string
   alt: string
@@ -130,7 +130,7 @@ export function ImageViewer({ src, alt, isOpen, onClose }: ImageViewerProps) {
       </>
       ) : (
         <div>
-          <Cropper imageUrl = {src}/>
+          <imgCropper imageUrl = {src}/>
         </div>
       )}
     </div>

@@ -1,7 +1,7 @@
 import React from 'react';
 import { Cropper, CropperRef } from 'react-advanced-cropper';
 
-export const Cropper = ({imageUrl}) => {
+export const imgCropper = ({imageUrl}) => {
     const cropperRef = useRef<CropperRef>(null);
     const zoom = () => {
         if (cropperRef.current) {
