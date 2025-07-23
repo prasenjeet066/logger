@@ -9,7 +9,8 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { supabase } from "@/lib/supabase/client"
+import { useFileUpload } from "@/hooks/use-file-upload"
+//import { supabase } from "@/lib/supabase/client"
 import { updateProfileSchema, type UpdateProfileData } from "@/lib/validations/post"
 import { Loader2, Camera } from "lucide-react"
 
@@ -21,67 +22,57 @@ interface EditProfileDialogProps {
 }
 
 export function EditProfileDialog({ open, onOpenChange, profile, onProfileUpdate }: EditProfileDialogProps) {
-  const [formData, setFormData] = useState<UpdateProfileData>({
+  const [formData, setFormData] = useState < UpdateProfileData > ({
     displayName: profile?.display_name || "",
     bio: profile?.bio || "",
     website: profile?.website || "",
     location: profile?.location || "",
   })
-  const [errors, setErrors] = useState<Partial<UpdateProfileData>>({})
+  const [errors, setErrors] = useState < Partial < UpdateProfileData >> ({})
   const [isLoading, setIsLoading] = useState(false)
   const [avatarUrl, setAvatarUrl] = useState(profile?.avatar_url || "")
   const [coverUrl, setCoverUrl] = useState(profile?.cover_url || "")
   const [uploadingAvatar, setUploadingAvatar] = useState(false)
   const [uploadingCover, setUploadingCover] = useState(false)
-
+  
   const uploadImage = async (file: File, type: "avatar" | "cover") => {
-    const fileExt = file.name.split(".").pop()
-    const fileName = `${profile.id}/${type}-${Date.now()}.${fileExt}`
-    const bucket = type === "avatar" ? "avatars" : "covers"
-
-    // Delete old image if exists
-    const oldUrl = type === "avatar" ? avatarUrl : coverUrl
-    if (oldUrl) {
-      const oldPath = oldUrl.split("/").pop()
-      if (oldPath) {
-        await supabase.storage.from(bucket).remove([`${profile.id}/${oldPath}`])
+    try {
+      const data = await fetch('/api/upload',{
+        method:'POST',
+        body: file
+      })
+      if (data.ok) {
+        console.log(data.json());
       }
+    } catch (e) {
+      
     }
-
-    const { error: uploadError } = await supabase.storage.from(bucket).upload(fileName, file)
-
-    if (uploadError) {
-      throw uploadError
-    }
-
-    const { data } = supabase.storage.from(bucket).getPublicUrl(fileName)
-    return data.publicUrl
   }
-
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: "avatar" | "cover") => {
+  
+  const handleImageUpload = async (e: React.ChangeEvent < HTMLInputElement > , type: "avatar" | "cover") => {
     const file = e.target.files?.[0]
     if (!file) return
-
+    
     // Validate file
     if (!file.type.startsWith("image/")) {
       alert("অনুগ্রহ করে একটি ছবি নির্বাচন করুন")
       return
     }
-
+    
     if (file.size > 5 * 1024 * 1024) {
       alert("ছবির সাইজ ৫ MB এর কম হতে হবে")
       return
     }
-
+    
     try {
       if (type === "avatar") {
         setUploadingAvatar(true)
       } else {
         setUploadingCover(true)
       }
-
+      
       const imageUrl = await uploadImage(file, type)
-
+      
       if (type === "avatar") {
         setAvatarUrl(imageUrl)
       } else {
@@ -98,15 +89,15 @@ export function EditProfileDialog({ open, onOpenChange, profile, onProfileUpdate
       }
     }
   }
-
+  
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
     setErrors({})
-
+    
     try {
       const validatedData = updateProfileSchema.parse(formData)
-
+      
       const { error } = await supabase
         .from("profiles")
         .update({
@@ -119,24 +110,24 @@ export function EditProfileDialog({ open, onOpenChange, profile, onProfileUpdate
           updated_at: new Date().toISOString(),
         })
         .eq("id", profile.id)
-
+      
       if (error) {
         console.error("Error updating profile:", error)
       } else {
         onProfileUpdate({
-          display_name: validatedData.displayName,
+          displayName: validatedData.displayName,
           bio: validatedData.bio,
           website: validatedData.website,
           location: validatedData.location,
-          avatar_url: avatarUrl,
-          cover_url: coverUrl,
+          avatarUrl: avatarUrl,
+          coverUrl: coverUrl,
         })
         onOpenChange(false)
       }
     } catch (error) {
       if (error instanceof Error) {
         const zodError = JSON.parse(error.message)
-        const fieldErrors: Partial<UpdateProfileData> = {}
+        const fieldErrors: Partial < UpdateProfileData > = {}
         zodError.forEach((err: any) => {
           fieldErrors[err.path[0] as keyof UpdateProfileData] = err.message
         })
@@ -146,15 +137,15 @@ export function EditProfileDialog({ open, onOpenChange, profile, onProfileUpdate
       setIsLoading(false)
     }
   }
-
+  
   const handleChange =
-    (field: keyof UpdateProfileData) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    (field: keyof UpdateProfileData) => (e: React.ChangeEvent < HTMLInputElement | HTMLTextAreaElement > ) => {
       setFormData((prev) => ({ ...prev, [field]: e.target.value }))
       if (errors[field]) {
         setErrors((prev) => ({ ...prev, [field]: undefined }))
       }
     }
-
+  
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="bengali-font max-w-lg max-h-[90vh] overflow-y-auto">
