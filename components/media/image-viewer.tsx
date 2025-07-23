@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
-import { X, ZoomIn, ZoomOut, RotateCw, Download } from "lucide-react"
+import { X, ZoomIn, ZoomOut, RotateCw, Download,Pen } from "lucide-react"
 
 interface ImageViewerProps {
   src: string
@@ -14,7 +14,7 @@ interface ImageViewerProps {
 export function ImageViewer({ src, alt, isOpen, onClose }: ImageViewerProps) {
   const [scale, setScale] = useState(1)
   const [rotation, setRotation] = useState(0)
-
+  const [isEditForm , setIsEditForm] = useState(false)
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = "hidden"
@@ -54,7 +54,9 @@ export function ImageViewer({ src, alt, isOpen, onClose }: ImageViewerProps) {
   const handleRotate = () => {
     setRotation((prev) => (prev + 90) % 360)
   }
-
+  const handleEditPhoto = () => {
+    setIsEditForm(true)
+  }
   const handleDownload = () => {
     const link = document.createElement("a")
     link.href = src
@@ -73,6 +75,7 @@ export function ImageViewer({ src, alt, isOpen, onClose }: ImageViewerProps) {
 
   return (
     <div className="image-viewer-overlay animate-fade-in" onClick={onClose}>
+      {isEditForm ?  (<>
       <div className="absolute top-4 right-4 z-10 flex gap-2">
         <Button
           variant="secondary"
@@ -106,6 +109,15 @@ export function ImageViewer({ src, alt, isOpen, onClose }: ImageViewerProps) {
         >
           <Download className="h-4 w-4" />
         </Button>
+        <Button
+        className='bg-[transparent] text-white'
+        onClick = {()=>{
+          handleEditPhoto()
+        }}
+        >
+          <Pen className='h-4 w-4'/>
+          <small>Edit</small>
+        </Button>
         <Button variant="secondary" size="icon" onClick={onClose} className="bg-black/50 text-white hover:bg-black/70">
           <X className="h-4 w-4" />
         </Button>
@@ -128,6 +140,12 @@ export function ImageViewer({ src, alt, isOpen, onClose }: ImageViewerProps) {
         onClick={(e) => e.stopPropagation()}
         onDoubleClick={handleZoomIn}
       />
+      </>
+      ) : (
+        <div>
+          
+        </div>
+      )}
     </div>
   )
 }

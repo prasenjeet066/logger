@@ -54,7 +54,7 @@ export function ProfileContent({ username }: ProfileContentProps) {
   const isMobile = useMobile()
   const [editDialogOpen, setEditDialogOpen] = useState(false)
   const [activeTab, setActiveTab] = useState("posts")
-  const [imageViewerOpen, setImageViewerOpen] = useState < string | null > (null)
+  const [imageViewerOpen, setImageViewerOpen] = useState < string | null > (false)
   const router = useRouter()
   
   const fetchProfileData = useCallback(async () => {
@@ -261,7 +261,9 @@ export function ProfileContent({ username }: ProfileContentProps) {
             <div className="p-4 border-b relative">
               <div className="flex items-start justify-between mb-4">
                 <div className="flex flex-col items-center justify-center">
-                  <Avatar className="w-20 h-20 -mt-10 border-4 border-white">
+                  <Avatar className="w-20 h-20 -mt-10 border-4 border-white" onClick = {()=>{
+                    setImageViewerOpen(true)
+                  }}>
                     <AvatarImage src={profileData.avatarUrl || undefined} />
                     <AvatarFallback className="text-2xl">
                       {profileData.displayName?.charAt(0)?.toUpperCase() || "U"}
@@ -426,8 +428,8 @@ export function ProfileContent({ username }: ProfileContentProps) {
       {imageViewerOpen && (
         <ImageViewer
           src={imageViewerOpen || "/placeholder.svg"}
-          isOpen={imageViewerOpen !== null}
-          onClose={() => setImageViewerOpen(null)}
+          isOpen={imageViewerOpen}
+          onClose={() => setImageViewerOpen(false)}
         />
       )}
     </div>
