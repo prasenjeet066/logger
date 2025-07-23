@@ -22,7 +22,7 @@ export default function SignInPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [message, setMessage] = useState("")
   const router = useRouter()
-
+  const [state , setState] = useState(0);
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
@@ -87,10 +87,10 @@ export default function SignInPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
-      <Card className="w-full max-w-md">
+      <h1 className='logo-font text-sm'>Cōdes</h1>
+      <Card className="w-full max-w-md shadow-none bg-gray-50">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-bold logo-font">Cōdes</CardTitle>
-          <CardDescription>Welcome back</CardDescription>
+          <CardTitle className="text-2xl font-bold">Welcome Back</CardTitle>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -98,6 +98,7 @@ export default function SignInPage() {
               <Label htmlFor="email">Email</Label>
               <Input
                 id="email"
+                className='rounded-full'
                 type="email"
                 value={formData.email}
                 onChange={handleChange("email")}
@@ -106,12 +107,13 @@ export default function SignInPage() {
               />
               {errors.email && <p className="text-sm text-red-600">{errors.email}</p>}
             </div>
-
+            {state == 1 ? (
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
               <Input
                 id="password"
                 type="password"
+                className='rounded-full'
                 value={formData.password}
                 onChange={handleChange("password")}
                 placeholder="Enter your password"
@@ -122,17 +124,27 @@ export default function SignInPage() {
                 Forgot password?
               </Link>
             </div>
-
+):<></>}
             {message && (
               <Alert>
                 <AlertDescription>{message}</AlertDescription>
               </Alert>
             )}
-
-            <Button type="submit" className="w-full" disabled={isLoading}>
+{state === 1 ? (
+            <Button type="submit" className="w-full rounded-full" disabled={isLoading}>
               {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Sign In
             </Button>
+            ):(
+              <Button type="button"
+              onClick = {()=>{
+                setState(1)
+              }}
+              className="w-full rounded-full" disabled={isLoading}>
+              {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Continue
+            </Button>
+            )}
           </form>
           <div className="relative mt-3">
             <div className="absolute inset-0 flex items-center">
@@ -147,7 +159,7 @@ export default function SignInPage() {
               type="button"
               onClick={handleGoogleSignIn}
               variant="outline"
-              className="w-full bg-transparent"
+              className="w-full bg-transparent rounded-full"
               disabled={isLoading}
             >
               <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
