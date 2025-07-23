@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { X, ZoomIn, ZoomOut, RotateCw, Download,Pen } from "lucide-react"
-
+import {Cropper} from '@/components/media/image/cropper'
 interface ImageViewerProps {
   src: string
   alt: string
@@ -27,21 +27,7 @@ export function ImageViewer({ src, alt, isOpen, onClose }: ImageViewerProps) {
     }
   }, [isOpen])
 
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        onClose()
-      }
-    }
-
-    if (isOpen) {
-      document.addEventListener("keydown", handleKeyDown)
-    }
-
-    return () => {
-      document.removeEventListener("keydown", handleKeyDown)
-    }
-  }, [isOpen, onClose])
+ 
 
   const handleZoomIn = () => {
     setScale((prev) => Math.min(prev + 0.25, 3))
@@ -57,6 +43,7 @@ export function ImageViewer({ src, alt, isOpen, onClose }: ImageViewerProps) {
   const handleEditPhoto = () => {
     setIsEditForm(true)
   }
+  
   const handleDownload = () => {
     const link = document.createElement("a")
     link.href = src
@@ -143,7 +130,7 @@ export function ImageViewer({ src, alt, isOpen, onClose }: ImageViewerProps) {
       </>
       ) : (
         <div>
-          
+          <Cropper imageUrl = {src}/>
         </div>
       )}
     </div>

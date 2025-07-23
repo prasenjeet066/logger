@@ -427,7 +427,7 @@ export function ProfileContent({ username }: ProfileContentProps) {
       {/* Image Viewer */}
       {imageViewerOpen && (
         <ImageViewer
-          src={imageViewerOpen || "/placeholder.svg"}
+          src={profileData.avatarUrl || "/placeholder.svg"}
           isOpen={imageViewerOpen}
           onClose={() => setImageViewerOpen(false)}
         />
