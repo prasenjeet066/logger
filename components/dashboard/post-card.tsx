@@ -397,7 +397,7 @@ export function PostCard({ post, onLike, onRepost, onReply }: PostCardProps) {
             {/* Post content */}
            </div>
            {post.content && (
-              <div className="mt-2 mb-3">
+              <div className="mt-2">
                 <div
                   className="text-gray-900 whitespace-pre-wrap text-sm lg:text-base leading-relaxed"
                   dangerouslySetInnerHTML={{ __html: formatContent(contentToDisplay) }}
