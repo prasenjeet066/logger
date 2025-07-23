@@ -61,7 +61,7 @@ export function ImageViewer({ src, alt, isOpen, onClose }: ImageViewerProps) {
   if (!isOpen) return null
 
   return (
-    <div className="image-viewer-overlay animate-fade-in" onClick={onClose}>
+    <div className="image-viewer-overlay animate-fade-in">
       {!isEditForm ?  (<>
       <div className="absolute top-4 right-4 z-10 flex gap-2">
         <Button
