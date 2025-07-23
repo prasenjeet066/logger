@@ -23,7 +23,7 @@ interface EditProfileDialogProps {
 
 export function EditProfileDialog({ open, onOpenChange, profile, onProfileUpdate }: EditProfileDialogProps) {
   const [formData, setFormData] = useState < UpdateProfileData > ({
-    displayName: profile?.display_name || "",
+    displayName: profile?.displayName || "",
     bio: profile?.bio || "",
     website: profile?.website || "",
     location: profile?.location || "",
@@ -149,13 +149,13 @@ export function EditProfileDialog({ open, onOpenChange, profile, onProfileUpdate
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="bengali-font max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>প্রোফাইল সম্পাদনা করুন</DialogTitle>
+          <DialogTitle>Edit Your Profile</DialogTitle>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Cover Image Upload */}
           <div className="space-y-2">
-            <Label>কভার ছবি</Label>
+            <Label>Cover</Label>
             <div className="relative">
               <div
                 className="w-full h-32 bg-gradient-to-r from-blue-400 to-purple-500 rounded-lg flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity"
@@ -185,7 +185,7 @@ export function EditProfileDialog({ open, onOpenChange, profile, onProfileUpdate
 
           {/* Avatar Upload */}
           <div className="space-y-2">
-            <Label>প্রোফাইল ছবি</Label>
+            <Label>Profile Picture</Label>
             <div className="flex items-center gap-4">
               <div className="relative">
                 <Avatar
