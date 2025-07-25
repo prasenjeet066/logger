@@ -291,12 +291,12 @@ export function PostCard({ post, onLike, onRepost, onReply }: PostCardProps) {
       <div className={`mt-3 grid gap-2 ${mediaUrls.length === 1 ? "grid-cols-1" : "grid-cols-2"}`}>
         {mediaUrls.slice(0, 4).map((url, index) => (
           <div key={index} className="relative group">
-            <AspectRatio ratio={3/2}>
             <img
               src={url || "/placeholder.svg"}
               alt={`Post media ${index + 1}`}
               className="object-cover cursor-pointer hover:opacity-90
-              h-auto w-full
+              aspect-3/2
+              
               rounded transition-opacity"
               onClick={(e) => handleMediaClick(url, e)}
               loading="lazy"
@@ -305,7 +305,7 @@ export function PostCard({ post, onLike, onRepost, onReply }: PostCardProps) {
                 target.src = "/placeholder.svg"
               }}
             />
-            </AspectRatio>
+            
             <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors rounded" />
             {mediaUrls.length > 4 && index === 3 && (
               <div className="absolute inset-0 bg-black/50 flex items-center justify-center rounded">
