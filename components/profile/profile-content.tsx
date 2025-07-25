@@ -311,7 +311,7 @@ export function ProfileContent({ username }: ProfileContentProps) {
                 </div>
               </div>
 
-              <div className="space-y-1">
+              <div className="space-y-1 mb-2">
                 <h1 className="text-xl font-bold flex items-center gap-2">
                   {profileData.displayName}
                   <p className="text-gray-500 text-sm">@{profileData.username}</p>
