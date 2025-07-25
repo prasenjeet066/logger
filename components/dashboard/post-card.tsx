@@ -420,7 +420,12 @@ const addUniqueMention = (newMention: string) =>
                  <Link href ={"profile/"+mentionsPeoples[0]}>
                       <small>@{mentionsPeoples[0]}</small>
                       </Link>
-              {mentionsPeoples.length > 1 && (<small> and more {mentionsPeoples.length - 1 }</small>)}
+              {mentionsPeoples.length > 1 && (<small> and more {mentionsPeoples.length - 1 }</small>
+                
+              )}
+              
+              </div>
+              )}
               </div>
               <div className="flex flex-row items-center gap-1 -mt-2">
                 <span className="text-gray-500 text-[10px]">@{post.author.username}</span>
