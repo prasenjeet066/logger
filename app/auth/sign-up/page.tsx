@@ -5,6 +5,8 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { signIn } from "next-auth/react" // Import signIn from next-auth/react
+import connectDB from "@/lib/mongodb/connection"
+import { User } from "@/lib/mongodb/models/User"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -31,59 +33,73 @@ import {
 type Step = 1 | 2 | 3 | 4
 
 export default function SignUpPage() {
-  const [currentStep, setCurrentStep] = useState<Step>(1)
-  const [formData, setFormData] = useState<
+  const [currentStep, setCurrentStep] = useState < Step > (1)
+  const [formData, setFormData] = useState <
     SignUpData & {
       confirmPassword: string
       acceptTerms: boolean
-    }
-  >({
-    email: "",
-    password: "",
-    confirmPassword: "",
-    username: "",
-    displayName: "",
-    acceptTerms: false,
-  })
-  const [errors, setErrors] = useState<
-    Partial<
-      SignUpData & {
-        confirmPassword: string
-        acceptTerms: string
-      }
+    } >
+    ({
+      email: "",
+      password: "",
+      confirmPassword: "",
+      username: "",
+      displayName: "",
+      acceptTerms: false,
+    })
+  const [errors, setErrors] = useState <
+    Partial <
+    SignUpData & {
+      confirmPassword: string
+      acceptTerms: string
+    } >
     >
-  >({})
+    ({})
   const [isLoading, setIsLoading] = useState(false)
   const [message, setMessage] = useState("")
-  const [messageType, setMessageType] = useState<"success" | "error">("error")
+  const [messageType, setMessageType] = useState < "success" | "error" > ("error")
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
-  const [usernameAvailable, setUsernameAvailable] = useState<boolean | null>(null) // Keep for potential future API check
+  const [usernameAvailable, setUsernameAvailable] = useState < boolean | null > (null) // Keep for potential future API check
   const [checkingUsername, setCheckingUsername] = useState(false) // Keep for potential future API check
   const [showTerms, setShowTerms] = useState(false)
   const router = useRouter()
-
+  
   const steps = [
     { number: 1, title: "Email", icon: Mail, description: "Your email address" },
     { number: 2, title: "Profile", icon: User, description: "User information" },
     { number: 3, title: "Password", icon: Lock, description: "Security setup" },
     { number: 4, title: "Terms", icon: FileText, description: "Finalize" },
   ]
-
+  
   const progress = (currentStep / steps.length) * 100
-
+  
   // Removed Supabase specific checkUsernameAvailability
   // If you need username availability check, you'll need to implement a new API route for it.
-  const checkUsernameAvailability = async (username: string) => {
-    const usernameSearch = await fetch('/api/users/'+ username)
-    if (!usernameSearch.ok) {
+  const checkUsernameAvailability = async (usernameVal: string) => {
+    await connectDB();
+    try {
+      const user = await User.findOne({ username: usernameVal }).lean()
+      if (!user) {
+        setCheckingUsername(false)
+        
+        setUsernameAvailable(false)
+      } else {
+        setCheckingUsername(false)
+        
+        setUsernameAvailable(true)
+      }
+    } catch (e) {
+      setCheckingUsername(false)
+      
       setUsernameAvailable(false)
+    } finally {
+      setCheckingUsername(false)
+      
+      setUsernameAvailable(true)
     }
-    // Placeholder for future API call
-    // For now, assume it's always available on client side until server validates
-    setUsernameAvailable(true)
   }
-
+  
   // Sign up with Google using NextAuth.js
   const handleGoogleSignUp = async () => {
     setIsLoading(true)
@@ -99,10 +115,10 @@ export default function SignUpPage() {
       setIsLoading(false)
     }
   }
-
+  
   const validateStep = (step: Step): boolean => {
-    const stepErrors: Partial<typeof errors> = {}
-
+    const stepErrors: Partial < typeof errors > = {}
+    
     switch (step) {
       case 1:
         if (!formData.email) {
@@ -111,7 +127,7 @@ export default function SignUpPage() {
           stepErrors.email = "Please enter a valid email address"
         }
         break
-
+        
       case 2:
         if (!formData.username) {
           stepErrors.username = "Username is required"
@@ -122,39 +138,39 @@ export default function SignUpPage() {
         }
         // Removed client-side usernameAvailable check here, as it relies on Supabase RPC
         // Server-side validation will catch duplicates.
-
+        
         if (!formData.displayName) {
           stepErrors.displayName = "Display name is required"
         } else if (formData.displayName.length > 50) {
           stepErrors.displayName = "Display name must be less than 50 characters"
         }
         break
-
+        
       case 3:
         if (!formData.password) {
           stepErrors.password = "Password is required"
         } else if (formData.password.length < 8) {
           stepErrors.password = "Password must be at least 8 characters long"
         }
-
+        
         if (!formData.confirmPassword) {
           stepErrors.confirmPassword = "Confirm password is required"
         } else if (formData.password !== formData.confirmPassword) {
           stepErrors.confirmPassword = "Passwords do not match"
         }
         break
-
+        
       case 4:
         if (!formData.acceptTerms) {
           stepErrors.acceptTerms = "You must accept the terms and conditions"
         }
         break
     }
-
+    
     setErrors(stepErrors)
     return Object.keys(stepErrors).length === 0
   }
-
+  
   const nextStep = () => {
     if (validateStep(currentStep)) {
       if (currentStep < 4) {
@@ -162,22 +178,22 @@ export default function SignUpPage() {
       }
     }
   }
-
+  
   const prevStep = () => {
     if (currentStep > 1) {
       setCurrentStep((prev) => (prev - 1) as Step)
     }
   }
-
+  
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-
+    
     if (!validateStep(4)) return
-
+    
     setIsLoading(true)
     setMessage("")
     setMessageType("error") // Default to error type
-
+    
     try {
       const validatedData = signUpSchema.parse({
         email: formData.email,
@@ -185,7 +201,7 @@ export default function SignUpPage() {
         username: formData.username,
         displayName: formData.displayName,
       })
-
+      
       const response = await fetch("/api/auth/signup", {
         method: "POST",
         headers: {
@@ -193,19 +209,19 @@ export default function SignUpPage() {
         },
         body: JSON.stringify(validatedData),
       })
-
+      
       const data = await response.json()
-
+      
       if (!response.ok) {
         setMessage(data.error || "Failed to create account")
         setMessageType("error")
       } else {
         setMessage("Account created successfully! Check your email for a confirmation link.")
         setMessageType("success")
-
+        
         // Optionally redirect to sign-in or dashboard after successful signup
         // router.push("/auth/sign-in");
-
+        
         // Reset form
         setFormData({
           email: "",
@@ -222,7 +238,7 @@ export default function SignUpPage() {
       if (error instanceof Error) {
         try {
           const zodError = JSON.parse(error.message)
-          const fieldErrors: Partial<SignUpData> = {}
+          const fieldErrors: Partial < SignUpData > = {}
           zodError.forEach((err: any) => {
             fieldErrors[err.path[0] as keyof SignUpData] = err.message
           })
@@ -239,27 +255,25 @@ export default function SignUpPage() {
       setIsLoading(false)
     }
   }
-
-  const handleChange = (field: keyof typeof formData) => (e: React.ChangeEvent<HTMLInputElement>) => {
+  
+  const handleChange = (field: keyof typeof formData) => (e: React.ChangeEvent < HTMLInputElement > ) => {
     const value = e.target.value
     setFormData((prev) => ({ ...prev, [field]: value }))
-
+    
     // Clear field error
     if (errors[field]) {
       setErrors((prev) => ({ ...prev, [field]: undefined }))
     }
-
+    
     // Placeholder for username availability check (if re-implemented via new API)
     if (field === "username" && value.length >= 3) {
       const timeoutId = setTimeout(() => {
-         checkUsernameAvailability(value); // Call this if you implement a new API for it
+        checkUsernameAvailability(value); // Call this if you implement a new API for it
       }, 500)
       return () => clearTimeout(timeoutId)
-    } else if (field === "username") {
-      setUsernameAvailable(null)
-    }
+    } 
   }
-
+  
   const renderStepContent = () => {
     switch (currentStep) {
       case 1:
@@ -324,7 +338,7 @@ export default function SignUpPage() {
             </div>
           </div>
         )
-
+        
       case 2:
         return (
           <div className="space-y-4">
@@ -386,7 +400,7 @@ export default function SignUpPage() {
             </div>
           </div>
         )
-
+        
       case 3:
         return (
           <div className="space-y-4">
@@ -462,7 +476,7 @@ export default function SignUpPage() {
             </div>
           </div>
         )
-
+        
       case 4:
         return (
           <div className="space-y-4">
@@ -513,12 +527,12 @@ export default function SignUpPage() {
             </div>
           </div>
         )
-
+        
       default:
         return null
     }
   }
-
+  
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
       <Card className="w-full max-w-md shadow-none border-none bg-gray-50">
