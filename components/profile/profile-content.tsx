@@ -339,6 +339,7 @@ export function ProfileContent({ username }: ProfileContentProps) {
                       </a>
                     </div>
                   )}
+                  <MutualFollowers targetUsername={profileData.username}/>
                   <div className="flex items-center gap-1">
                     <Calendar className="h-4 w-4" />
                     {formatDistanceToNow(new Date(profileData.createdAt), { addSuffix: true })} joined
@@ -354,7 +355,7 @@ export function ProfileContent({ username }: ProfileContentProps) {
                   </span>
                 </div>
               </div>
-              <MutualFollowers targetUsername={profileData.username}/>
+             
             </div>
 
             {/* Tabs */}
