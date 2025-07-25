@@ -5,8 +5,7 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { signIn } from "next-auth/react" // Import signIn from next-auth/react
-import connectDB from "@/lib/mongodb/connection"
-import { User } from "@/lib/mongodb/models/User"
+
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -77,26 +76,15 @@ export default function SignUpPage() {
   // Removed Supabase specific checkUsernameAvailability
   // If you need username availability check, you'll need to implement a new API route for it.
   const checkUsernameAvailability = async (usernameVal: string) => {
-    await connectDB();
-    try {
-      const user = await User.findOne({ username: usernameVal }).lean()
-      if (!user) {
-        setCheckingUsername(false)
-        
-        setUsernameAvailable(false)
-      } else {
-        setCheckingUsername(false)
-        
-        setUsernameAvailable(true)
-      }
-    } catch (e) {
+    const res = await fetch(`/api/auth/check-username?username=${encodeURIComponent(username)}`);
+    const data = await res.json();
+    if (data.available) {
       setCheckingUsername(false)
-      
-      setUsernameAvailable(false)
-    } finally {
-      setCheckingUsername(false)
-      
       setUsernameAvailable(true)
+    } else {
+      setCheckingUsername(false)
+      setUsernameAvailable(false)
+      // username is taken
     }
   }
   
@@ -271,7 +259,7 @@ export default function SignUpPage() {
         checkUsernameAvailability(value); // Call this if you implement a new API for it
       }, 500)
       return () => clearTimeout(timeoutId)
-    } 
+    }
   }
   
   const renderStepContent = () => {
