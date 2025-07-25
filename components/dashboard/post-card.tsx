@@ -81,7 +81,14 @@ export function PostCard({ post, onLike, onRepost, onReply }: PostCardProps) {
   const isMobile = useMobile()
   const router = useRouter()
   const pathname = usePathname()
-  
+  const [mentionsPeoples, setMentions] = useState < string[] | null > (null);
+
+const addUniqueMention = (newMention: string) =>
+  setMentions(prev =>
+    prev?.includes(newMention) ?
+    prev :
+    [...(prev ?? []), newMention]
+  );
   // Memoized values
   const postUrl = useMemo(() => extractFirstUrl(post.content), [post.content])
   const hasMedia = useMemo(() => post.mediaUrls && post.mediaUrls.length > 0, [post.mediaUrls])
@@ -121,7 +128,17 @@ export function PostCard({ post, onLike, onRepost, onReply }: PostCardProps) {
       throw new Error("Translation service unavailable")
     }
   }, [])
-  
+  const checkTrueMentions = async (username) =>{
+    try {
+      const isUserHave = await fetch('/api/users/'+ encodeURIComponent(username))
+      if (isUserHave.user) {
+        addUniqueMention(username)
+        return true
+      }
+    } catch (e) {
+      return false;
+    }
+  }
   // Enhanced content formatting with better security
   const formatContent = useCallback((content: string) => {
     const urlRegex = /(https?:\/\/[^\s]+)/g
@@ -144,8 +161,11 @@ export function PostCard({ post, onLike, onRepost, onReply }: PostCardProps) {
         }
       )
       .replace(
-        /@([a-zA-Z0-9_]+)/g,
-        '<span class="text-blue-600 hover:underline cursor-pointer font-medium transition-colors">@$1</span>',
+        /@([a-zA-Z0-9_]+)/g,(match,m1) =>{
+        if(checkTrueMentions(m1)){
+        return `<span class="text-blue-600 hover:underline cursor-pointer font-medium transition-colors">@${m1}</span>`;
+        }
+        }
       )
   }, [])
   
@@ -356,7 +376,7 @@ export function PostCard({ post, onLike, onRepost, onReply }: PostCardProps) {
 
         {/* Pin indicator */}
         {post.isPinned && (
-          <div className="flex items-center gap-2 mb-3 text-blue-600 text-sm">
+          <div className="flex items-center gap-2 mb-3  text-xs">
             <Pin className="h-4 w-4" />
             <span>Pinned Post</span>
           </div>
@@ -380,6 +400,7 @@ export function PostCard({ post, onLike, onRepost, onReply }: PostCardProps) {
           <div className="flex-1 min-w-0">
             
             <div className="flex flex-col items-left gap-1">
+              <div className='flex flex-row items-center justify-between'>
               <Link
                 href={`/profile/${post.author.username}`}
                 className="hover:underline transition-colors"
@@ -390,6 +411,19 @@ export function PostCard({ post, onLike, onRepost, onReply }: PostCardProps) {
                   {post.author.isVerified && <VerificationBadge className="h-4 w-4" size={15} />}
                 </span>
               </Link>
+              {mentionsPeoples!==null && (
+                <div className='flex flex-row items-center'>
+                  <small className='text-xs text-gray-500'>{"with"}</small>
+                  {mentionsPeoples.map((mention)=>
+                  (
+                    <Link href ={"profile/"+mention}>
+                      <small>@{mention}</small>
+                      </Link>
+                  )
+                  )}
+                </div>
+              )}
+              </div>
               <div className="flex flex-row items-center gap-1 -mt-2">
                 <span className="text-gray-500 text-[10px]">@{post.author.username}</span>
                 <span className="text-gray-500 text-[10px]">·</span>

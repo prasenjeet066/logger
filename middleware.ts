@@ -31,7 +31,7 @@ export async function middleware(request: NextRequest) {
     // Check if user doesn't have superAccess role
     if (!token.superAccess || !token.superAccess.role) {
       // Redirect to unauthorized page or home page
-      return NextResponse.redirect(new URL('/unauthorized', request.url))
+      return NextResponse.redirect(new URL('/', request.url))
       // Or redirect to home: return NextResponse.redirect(new URL('/', request.url))
     }
   }
