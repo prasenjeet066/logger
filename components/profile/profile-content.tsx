@@ -354,7 +354,7 @@ export function ProfileContent({ username }: ProfileContentProps) {
                   </span>
                 </div>
               </div>
-              <MutualFollowers/>
+              <MutualFollowers targetUsername={profileData.username}/>
             </div>
 
             {/* Tabs */}
