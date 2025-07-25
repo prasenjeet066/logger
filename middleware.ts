@@ -17,13 +17,23 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL('/', request.url))
   }
   
-  const SPA = [
-    '/super-access'
-  ].some(path => request.nextUrl.pathname.startsWith(path))
-  if (SPA && !token || token?.superAccess ===null) {
-    const siUrl = new URL('/auth/sign-in', request.url)
-    siUrl.searchParams.set('callbackUrl', request.nextUrl.pathname)
-    return NextResponse.redirect(siUrl)
+  // Super access route protection
+  const isSuperAccessRoute = request.nextUrl.pathname.startsWith('/super-access')
+  
+  if (isSuperAccessRoute) {
+    // Check if user is not logged in
+    if (!token) {
+      const signInUrl = new URL('/auth/sign-in', request.url)
+      signInUrl.searchParams.set('callbackUrl', request.nextUrl.pathname)
+      return NextResponse.redirect(signInUrl)
+    }
+    
+    // Check if user doesn't have superAccess role
+    if (!token.superAccess || !token.superAccess.role) {
+      // Redirect to unauthorized page or home page
+      return NextResponse.redirect(new URL('/unauthorized', request.url))
+      // Or redirect to home: return NextResponse.redirect(new URL('/', request.url))
+    }
   }
   
   // Protected routes logic
@@ -65,6 +75,7 @@ export const config = {
     '/profile/:path*',
     '/settings/:path*',
     '/auth/:path*',
+    '/super-access/:path*', // Added super-access to matcher
     // Add more paths that need middleware protection
   ]
 }
