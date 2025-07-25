@@ -249,7 +249,7 @@ export function PostSection({ post, onLike, onRepost, onReply }: PostCardProps) 
           <div className="mt-3 rounded-lg overflow-hidden border">
             <video
               src={mediaUrls[0]}
-              className="w-full max-h-96 object-cover"
+              className="w-full aspect-video object-cover"
               controls
               preload="metadata"
               onError={(e) => {
@@ -268,7 +268,7 @@ export function PostSection({ post, onLike, onRepost, onReply }: PostCardProps) 
                 <img
                   src={url || "/placeholder.svg"}
                   alt={`GIF media ${index + 1}`}
-                  className="w-full h-32 lg:h-48 object-cover cursor-pointer hover:opacity-90 rounded transition-opacity"
+                  className="w-full max-h-48 aspect-3/3 object-cover cursor-pointer hover:opacity-90 rounded transition-opacity"
                   onClick={(e) => handleMediaClick(url, e)}
                   loading="lazy"
                   onError={(e) => {

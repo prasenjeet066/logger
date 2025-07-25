@@ -249,7 +249,7 @@ export function PostCard({ post, onLike, onRepost, onReply }: PostCardProps) {
         <div className="mt-3 rounded-lg overflow-hidden border">
           <video
             src={mediaUrls[0]}
-            className="w-full max-h-96 object-cover"
+            className=" aspect-video object-cover "
             controls
             preload="metadata"
             onError={(e) => {
