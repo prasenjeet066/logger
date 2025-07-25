@@ -15,8 +15,13 @@ interface SidebarProps {
 export function Sidebar({ isExpand = true, profile, onSignOut }: SidebarProps) {
   const isMobile = useMobile()
   const [isSA,setIsSA] = useState(null)
-  
-  
+  useEffect(()=>{
+    if (profile.superAccess && profile.superAccess.role) {
+      setIsSA(profile.superAccess?.role)
+    }else{
+      setIsSA(null)
+    }
+  },[profile])
   const menuItems = [
     { icon: Home, label: "Home", href: "/dashboard" },
     { icon: Search, label: "Explore", href: "/explore" },
