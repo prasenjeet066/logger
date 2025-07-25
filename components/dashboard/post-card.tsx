@@ -6,6 +6,7 @@ import { useState, useCallback, useMemo } from "react"
 import { formatDistanceToNow } from "date-fns"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { useMobile } from "@/hooks/use-mobile"
+import { AspectRatio } from "@/components/ui/aspect-ratio"
 import { Button } from "@/components/ui/button"
 import { Loader2, Languages, Repeat2, Share, Pin, AlertCircle, Heart, MessageCircle } from "lucide-react"
 import Link from "next/link"
@@ -290,10 +291,11 @@ export function PostCard({ post, onLike, onRepost, onReply }: PostCardProps) {
       <div className={`mt-3 grid gap-2 ${mediaUrls.length === 1 ? "grid-cols-1" : "grid-cols-2"}`}>
         {mediaUrls.slice(0, 4).map((url, index) => (
           <div key={index} className="relative group">
+            <AspectRatio ratio={3/2}>
             <img
               src={url || "/placeholder.svg"}
               alt={`Post media ${index + 1}`}
-              className="w-full h-32 lg:h-48 object-cover cursor-pointer hover:opacity-90 rounded transition-opacity"
+              className="w-full lg:h-48 object-cover cursor-pointer hover:opacity-90 rounded transition-opacity"
               onClick={(e) => handleMediaClick(url, e)}
               loading="lazy"
               onError={(e) => {
@@ -301,6 +303,7 @@ export function PostCard({ post, onLike, onRepost, onReply }: PostCardProps) {
                 target.src = "/placeholder.svg"
               }}
             />
+            </AspectRatio>
             <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors rounded" />
             {mediaUrls.length > 4 && index === 3 && (
               <div className="absolute inset-0 bg-black/50 flex items-center justify-center rounded">
