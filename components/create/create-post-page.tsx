@@ -481,7 +481,7 @@ export default function CreatePostPage({ user }: CreatePostPageProps) {
             <AvatarImage src={session?.user?.avatarUrl || "https://placehold.co/48x48/aabbcc/ffffff?text=U"} />
             <AvatarFallback>{"U"}</AvatarFallback>
           </Avatar>
-          <div>
+          <div className='flex flex-col items-start justify-center'>
             <span className="font-semibold text-lg">{session?.user?. displayName|| "User"}</span>
             <span className="text-xs text-gray-600">@{session?.user?.username || "username"}</span>
           </div>
@@ -676,7 +676,7 @@ export default function CreatePostPage({ user }: CreatePostPageProps) {
               return (
                 <Card
                   key={index}
-                  className="flex items-center justify-between p-4 cursor-pointer hover:bg-gray-50 transition-colors shadow-none"
+                  className="flex items-center justify-between p-4 rounded-lg bg-blue-50 cursor-pointer hover:bg-gray-50 transition-colors shadow-none"
                   onClick={option.onClick}
                   tabIndex={option.disabled ? -1 : 0}
                   aria-disabled={option.disabled}
@@ -745,29 +745,6 @@ export default function CreatePostPage({ user }: CreatePostPageProps) {
                 ))}
               </div>
               <p className="text-sm text-gray-500 mt-4">Powered by Giphy API</p>
-            </CardContent>
-          </Card>
-        </div>
-      )}
-
-      {/* Enhance Text Modal */}
-      {showEnhanceModal && enhancedTextSuggestion && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-2 sm:p-4">
-          <Card className="w-full max-w-lg shadow-none border">
-            <CardHeader className="flex flex-row items-center justify-between pb-2 p-4">
-              <h2 className="text-lg font-semibold">✨ Text Enhancement Suggestion</h2>
-              <Button variant="ghost" size="icon" onClick={() => setShowEnhanceModal(false)}>
-                <X className="h-5 w-5" />
-              </Button>
-            </CardHeader>
-            <CardContent className="pt-2 p-4">
-              <p className="text-gray-700 mb-4">{enhancedTextSuggestion}</p>
-              <div className="flex justify-end gap-2">
-                <Button variant="outline" onClick={() => setShowEnhanceModal(false)}>
-                  Cancel
-                </Button>
-                <Button onClick={useEnhancedSuggestion}>Use Suggestion</Button>
-              </div>
             </CardContent>
           </Card>
         </div>
