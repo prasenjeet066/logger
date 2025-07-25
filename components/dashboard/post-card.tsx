@@ -165,7 +165,7 @@ const addUniqueMention = (newMention: string) =>
       )
       .replace(
         /@([a-zA-Z0-9_]+)/g,(match,m1) =>{
-        if(checkTrueMentions(m1)){
+        if(checkTrueMentions(m1) === true){
         return `<span class="text-blue-600 hover:underline cursor-pointer font-medium transition-colors">@${m1}</span>`;
         }
         }
@@ -403,7 +403,7 @@ const addUniqueMention = (newMention: string) =>
           <div className="flex-1 min-w-0">
             
             <div className="flex flex-col items-left gap-1">
-              <div className='flex flex-row items-center justify-between'>
+              <div className='flex flex-row items-center justify-start gap-4'>
               <Link
                 href={`/profile/${post.author.username}`}
                 className="hover:underline transition-colors"
@@ -415,17 +415,12 @@ const addUniqueMention = (newMention: string) =>
                 </span>
               </Link>
               {mentionsPeoples!==null && (
-                <div className='flex flex-row items-center'>
+                <div className='flex flex-row items-center gap-4'>
                   <small className='text-xs text-gray-500'>{"with"}</small>
-                  {mentionsPeoples.map((mention)=>
-                  (
-                    <Link href ={"profile/"+mention}>
-                      <small>@{mention}</small>
+                 <Link href ={"profile/"+mentionsPeoples[0]}>
+                      <small>@{mentionsPeoples[0]}</small>
                       </Link>
-                  )
-                  )}
-                </div>
-              )}
+              {mentionsPeoples.length > 1 && (<small> and more {mentionsPeoples.length - 1 }</small>)}
               </div>
               <div className="flex flex-row items-center gap-1 -mt-2">
                 <span className="text-gray-500 text-[10px]">@{post.author.username}</span>
