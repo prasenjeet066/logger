@@ -295,7 +295,7 @@ export function PostCard({ post, onLike, onRepost, onReply }: PostCardProps) {
             <img
               src={url || "/placeholder.svg"}
               alt={`Post media ${index + 1}`}
-              className="w-full max-h-32 lg:h-48 object-cover cursor-pointer hover:opacity-90 rounded transition-opacity"
+              className="object-cover cursor-pointer hover:opacity-90 rounded transition-opacity"
               onClick={(e) => handleMediaClick(url, e)}
               loading="lazy"
               onError={(e) => {
