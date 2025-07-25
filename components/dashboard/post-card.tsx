@@ -128,17 +128,20 @@ const addUniqueMention = (newMention: string) =>
       throw new Error("Translation service unavailable")
     }
   }, [])
-  const checkTrueMentions = async (username) =>{
-    try {
-      const isUserHave = await fetch('/api/users/'+ encodeURIComponent(username))
-      if (isUserHave.user) {
-        addUniqueMention(username)
-        return true
-      }
-    } catch (e) {
-      return false;
+  const checkTrueMentions = async (username) => {
+  try {
+    const res = await fetch('/api/users/' + encodeURIComponent(username));
+    if (!res.ok) return false; // return false if request failed
+    const data = await res.json();
+    if (data.user) {
+      addUniqueMention(username);
+      return true;
     }
+    return false;
+  } catch (e) {
+    return false;
   }
+};
   // Enhanced content formatting with better security
   const formatContent = useCallback((content: string) => {
     const urlRegex = /(https?:\/\/[^\s]+)/g
