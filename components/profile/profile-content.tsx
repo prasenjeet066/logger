@@ -318,7 +318,7 @@ export function ProfileContent({ username }: ProfileContentProps) {
                 </h1>
 
                 {profileData.bio && <p className="text-gray-900">{profileData.bio}</p>}
-
+<MutualFollowers targetUsername={profileData.username}/>
                 <div className="flex flex-wrap gap-4 text-sm text-gray-500">
                   {profileData.location && (
                     <div className="flex items-center gap-1">
@@ -337,9 +337,10 @@ export function ProfileContent({ username }: ProfileContentProps) {
                       >
                         {profileData.website}
                       </a>
+                      
                     </div>
                   )}
-                  <MutualFollowers targetUsername={profileData.username}/>
+                  
                   <div className="flex items-center gap-1">
                     <Calendar className="h-4 w-4" />
                     {formatDistanceToNow(new Date(profileData.createdAt), { addSuffix: true })} joined
