@@ -404,7 +404,7 @@ const addUniqueMention = (newMention: string) =>
           <div className="flex-1 min-w-0">
             
             <div className="flex flex-col items-left gap-1">
-              <div className='flex flex-row items-center justify-start gap-4'>
+              <div className='flex flex-row items-center justify-start gap-2'>
               <Link
                 href={`/profile/${post.author.username}`}
                 className="hover:underline transition-colors"
@@ -416,7 +416,7 @@ const addUniqueMention = (newMention: string) =>
                 </span>
               </Link>
               {mentionsPeoples!==null && (
-                <div className='flex flex-row items-center gap-4'>
+                <div className='flex flex-row items-center gap-2'>
                   <small className='text-xs text-gray-500'>{"with"}</small>
                  <Link href ={"profile/"+mentionsPeoples[0]}>
                       <small>@{mentionsPeoples[0]}</small>

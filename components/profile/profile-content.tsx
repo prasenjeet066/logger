@@ -10,6 +10,7 @@ import {Header} from "@/components/dashboard/utils/header"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Sidebar } from "@/components/dashboard/sidebar"
+import {MutualFollowers} from "@/components/profile/mutual-follow"
 import { PostCard } from "@/components/dashboard/post-card"
 import { EditProfileDialog } from "./edit-profile-dialog"
 import { Menu, X, UserPlus, UserCheck, Calendar, MapPin, LinkIcon , Plus , Search} from "lucide-react"
@@ -353,6 +354,7 @@ export function ProfileContent({ username }: ProfileContentProps) {
                   </span>
                 </div>
               </div>
+              <MutualFollowers/>
             </div>
 
             {/* Tabs */}
