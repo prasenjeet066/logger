@@ -30,7 +30,7 @@ import {
   Trash2,
 } from "lucide-react"
 
-const MAX_CHARACTERS = 280
+const MAX_CHARACTERS = 380
 const MAX_MEDIA_FILES = 4
 const MIN_POLL_OPTIONS = 2
 const MAX_POLL_OPTIONS = 4
@@ -676,7 +676,7 @@ export default function CreatePostPage({ user }: CreatePostPageProps) {
               return (
                 <Card
                   key={index}
-                  className="flex items-center justify-between p-4 rounded-lg bg-blue-50 cursor-pointer hover:bg-gray-50 transition-colors shadow-none"
+                  className="flex items-center justify-between p-4 bg-blue-50 border-none cursor-pointer hover:bg-gray-50 transition-colors shadow-none"
                   onClick={option.onClick}
                   tabIndex={option.disabled ? -1 : 0}
                   aria-disabled={option.disabled}
