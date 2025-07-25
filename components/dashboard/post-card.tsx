@@ -143,40 +143,35 @@ const addUniqueMention = (newMention: string) =>
   }
 };
   // Enhanced content formatting with better security
-  const formatContent = useCallback(async (content: string) => {
-  const urlRegex = /(https?:\/\/[^\s]+)/g;
-
-  // Sanitize first
-  const sanitizedContent = DOMPurify.sanitize(content, {
-    ALLOWED_TAGS: [],
-    ALLOWED_ATTR: [],
-  });
-
-  // Sync replace for URL & hashtag
-  let replaced = sanitizedContent
-    .replace(
-      urlRegex,
-      '<a href="$1" target="_blank" rel="noopener noreferrer" class="text-blue-600 underline break-all hover:text-blue-800 transition-colors">$1</a>',
-    )
-    .replace(
-      /#([a-zA-Z0-9_\u0980-\u09FF]+)/g,
-      (match, p1) =>
-        `<a href="/explore?q=${encodeURIComponent('#' + p1)}" class="text-blue-600 hover:underline cursor-pointer font-medium transition-colors">#${p1}</a>`
-    );
-
-  // Async replace for mentions
-  const matches = [...replaced.matchAll(/@([a-zA-Z0-9_]+)/g)];
-  for (const [full, username] of matches) {
-    if (await checkTrueMentions(username)) {
-      replaced = replaced.replace(
-        full,
-        `<span class="text-blue-600 hover:underline cursor-pointer font-medium transition-colors">@${username}</span>`
-      );
-    }
-  }
-
-  return replaced;
-}, []);
+  const formatContent = useCallback((content: string) => {
+    const urlRegex = /(https?:\/\/[^\s]+)/g
+    
+    // Sanitize content first
+    const sanitizedContent = DOMPurify.sanitize(content, {
+      ALLOWED_TAGS: [],
+      ALLOWED_ATTR: [],
+    })
+    
+    return sanitizedContent
+      .replace(
+        urlRegex,
+        '<a href="$1" target="_blank" rel="noopener noreferrer" class="text-blue-600 underline break-all hover:text-blue-800 transition-colors">$1</a>',
+      )
+      .replace(
+        /#([a-zA-Z0-9_\u0980-\u09FF]+)/g,
+        (match, p1) => {
+          return `<a href="/explore?q=${encodeURIComponent('#' + p1)}" class="text-blue-600 hover:underline cursor-pointer font-medium transition-colors">#${p1}</a>`;
+        }
+      )
+      .replace(
+        /@([a-zA-Z0-9_]+)/g,(match,m1) =>{
+        checkTrueMentions(m1)
+        return `<span class="text-blue-600 hover:underline cursor-pointer font-medium transition-colors">@${m1}</span>`;
+        
+        }
+      )
+  }, [])
+  
   
   // Enhanced translation handler
   const handlePostTranslate = useCallback(async () => {
@@ -448,7 +443,7 @@ const addUniqueMention = (newMention: string) =>
               <div className="mt-2">
                 <div
                   className="text-gray-900 whitespace-pre-wrap text-sm lg:text-base leading-relaxed"
-                  dangerouslySetInnerHTML={{ __html: await formatContent(contentToDisplay) }}
+                  dangerouslySetInnerHTML={{ __html: formatContent(contentToDisplay) }}
                 />
 
                 {/* Show more button */}
