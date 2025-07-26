@@ -304,7 +304,7 @@ export default function SuperAccess() {
         )}
 
         {/* Main Content */}
-        <div className="flex-1 p-6">
+        <div className="w-full p-6">
           {/* Overview Tab */}
           {activeTab === 'overview' && (
             <div>

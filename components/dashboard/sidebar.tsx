@@ -63,7 +63,7 @@ if (newSidebar !== undefined && Array.isArray(newSidebar) && newSidebar.length >
       </div>
       )}
 
-      <nav className="flex-1 space-y-1">
+      <nav className="flex-1 space-y-1 bg-white">
         {finalMenuItems.map((item) => (
         <>
         {item.tabData && (!item.href || item.href ===null) ? (<>
