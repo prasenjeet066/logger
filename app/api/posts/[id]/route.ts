@@ -5,6 +5,7 @@ import { connectDB } from "@/lib/mongodb/connection"
 import { Post } from "@/lib/mongodb/models/Post"
 import { User } from "@/lib/mongodb/models/User"
 import { Like } from "@/lib/mongodb/models/Like"
+import Bot from "@/lib/mongodb/models/Bot";
 
 export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
   try {
@@ -27,8 +28,9 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
     }
 
     // Get author information
-    const author = await User.findById(post.authorId).lean()
+    const author = await User.findById(post.authorId).lean() || await Bot.findById(post.authorId).lean();
     if (!author) {
+      //const botAuthor = await Bot.findById(post.authorId).lean();
       return NextResponse.json({ error: "Author not found" }, { status: 404 })
     }
 

@@ -15,6 +15,7 @@ export interface IPost extends Document {
   hashtags: string[]
   mentions: string[]
   isPinned: boolean
+  processed: boolean
   createdAt: Date
   updatedAt: Date
 }
@@ -77,6 +78,10 @@ const postSchema = new Schema<IPost>(
         type: String,
       },
     ],
+    processed : {
+      type : boolean,
+      default : false
+    },
     isPinned: {
       type: Boolean,
       default: false,

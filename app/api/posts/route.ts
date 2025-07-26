@@ -162,30 +162,7 @@ export async function POST(request: NextRequest) {
     
     await post.save()
     // mention w
-    import { Bot } from './models/Bot'; // নিশ্চিত করুন যে সঠিক পাথ ব্যবহার করা হয়েছে
     
-    async function executeShellCommands(mentions: string[], data): Promise < any[] > {
-      const results = await Promise.all(
-        mentions.map(async (mention) => {
-          const botQuery = await Bot.findOne({ username: mention }).lean();
-          if (botQuery && typeof botQuery.shell === 'function') {
-            return botQuery.shell(data); // shell() ফাংশনটি আমাদের প্রয়োজনীয় মান ফেরত দেবে
-          }
-          throw new Error(`Bot with username ${mention} not found or does not have a shell method.`);
-        })
-      );
-      return results;
-    }
-    
-    // ব্যবহার করার জন্য উদাহরণ
-    (async () => {
-      try {
-        const shellResults = await executeShellCommands(mentions, session.user);
-        console.log(shellResults);
-      } catch (error) {
-        console.error(error);
-      }
-    })();
     // If it's a reply, increment repliesCount on the parent post
     if (post.parentPostId) {
       await Post.findByIdAndUpdate(post.parentPostId, { $inc: { repliesCount: 1 } })
