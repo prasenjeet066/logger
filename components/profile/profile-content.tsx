@@ -125,11 +125,9 @@ export function ProfileContent({ username }: ProfileContentProps) {
         }
       } else {
         // Try to fetch as a bot
-        const botsResponse = await fetch('/api/bot')
+        const botsResponse = await fetch('/api/bot? username='+encodeURIComponent(username))
         if (botsResponse.ok) {
-          const bots = await botsResponse.json()
-          const bot = bots.find((b: BotData) => b.username === username)
-          
+          const bot = await botsResponse.json()
           if (bot) {
             // It's a bot
             setBotData(bot)

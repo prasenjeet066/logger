@@ -4,7 +4,7 @@ import { useMobile } from "@/hooks/use-mobile"
 import { signOut } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
-import { Header } from "@/components/dashboard/utils/header"
+import { Header } from "@/components/dashboard/web/utils/header"
 
 interface Bot {
   _id: string
