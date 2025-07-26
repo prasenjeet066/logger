@@ -1,3 +1,5 @@
+// Fixed profile-content.tsx
+
 "use client"
 
 import { useEffect, useState, useCallback } from "react"
@@ -128,6 +130,9 @@ export function ProfileContent({ username }: ProfileContentProps) {
         const botsResponse = await fetch('/api/bot')
         if (botsResponse.ok) {
           const bots = await botsResponse.json()
+          // Find the bot with matching username
+          const bot = bots.find((bot: BotData) => bot.username === username)
+          
           if (bot) {
             // It's a bot
             setBotData(bot)
@@ -142,17 +147,20 @@ export function ProfileContent({ username }: ProfileContentProps) {
             setMedia([])
           } else {
             // Neither user nor bot found
-            //router.push("/")
-          //  return
+            console.error("Profile not found")
+            // Optionally redirect or show error
+            // router.push("/")
+            // return
           }
         } else {
-          //router.push("/")
-        //  return
+          console.error("Failed to fetch bots")
+          // router.push("/")
+          // return
         }
       }
     } catch (error) {
       console.error("Error fetching profile data:", error)
-      router.push("/")
+      // router.push("/")
     } finally {
       setIsLoading(false)
     }
