@@ -230,7 +230,7 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
   ]
 
   return (
-    <Card className="border-0 border-b border-gray-200 rounded-none bg-white">
+    <Card className="border-2  border-gray-200 rounded-md bg-white">
       <CardContent className="p-4">
         <div className="flex space-x-3">
           <Avatar className="h-10 w-10">
@@ -241,11 +241,11 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
           </Avatar>
 
           <div className="flex-1">
-            <div className="flex items-center space-x-2 mb-2">
+            <div className="flex items-center mb-2">
               <span className="font-semibold text-gray-900">{session.user.displayName}</span>
             </div>
             
-            <div className="flex items-center space-x-2 mb-2">
+            <div className="flex items-center mb-2 text-xs">
               <span className="font-semibold text-gray-900">{session?.user?.username || "User"}</span>
             </div>
             
