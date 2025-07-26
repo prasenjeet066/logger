@@ -2,7 +2,7 @@
 import { useSession } from "next-auth/react"
 import { useMobile } from "@/hooks/use-mobile"
 import { signOut } from "next-auth/react"
-import { Home } from "lucide-react"
+import { Home, Users, Bot } from "lucide-react"
 import { Sidebar } from "@/components/dashboard/sidebar"
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
@@ -25,31 +25,31 @@ interface Bot {
   postsCount: number
   ownerId: {
     _id: string
-    name ? : string
-    email ? : string
+    name?: string
+    email?: string
   }
   createdAt: string
 }
 
 interface User {
   _id: string
-  name ? : string
-  email ? : string
-  image ? : string
+  name?: string
+  email?: string
+  image?: string
 }
 
 export default function SuperAccess() {
   const { data: session, status } = useSession()
   const isMobile = useMobile()
   const router = useRouter()
-  const [bots, setBots] = useState < Bot[] > ([])
+  const [bots, setBots] = useState<Bot[]>([])
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState < string | null > (null)
-  const [selectedBot, setSelectedBot] = useState < Bot | null > (null)
+  const [error, setError] = useState<string | null>(null)
+  const [selectedBot, setSelectedBot] = useState<Bot | null>(null)
   const [showModal, setShowModal] = useState(false)
   const [showCreateModal, setShowCreateModal] = useState(false)
-  const [activeTab, setActiveTab] = useState < 'overview' | 'bots' | 'users' > ('overview')
-  const [isExpand, setIsExpand] = useState < boolean > (false)
+  const [activeTab, setActiveTab] = useState<'overview' | 'bots' | 'users'>('overview')
+  const [isExpand, setIsExpand] = useState<boolean>(false)
   const [createLoading, setCreateLoading] = useState(false)
   const [formData, setFormData] = useState({
     displayName: '',
@@ -69,7 +69,9 @@ export default function SuperAccess() {
   const profileData = {
     name: session?.user?.name || 'Super Admin',
     email: session?.user?.email || 'admin@example.com',
-    image: session?.user?.image || null
+    image: session?.user?.image || null,
+    username: session?.user?.username || 'admin', // Add username
+    avatarUrl: session?.user?.image || null // Add avatarUrl for compatibility
   }
   
   useEffect(() => {
@@ -200,7 +202,7 @@ export default function SuperAccess() {
     })
   }
   
-  const handleInputChange = (e: React.ChangeEvent < HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement > ) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target
     setFormData(prev => ({
       ...prev,
@@ -217,13 +219,29 @@ export default function SuperAccess() {
       minute: '2-digit'
     })
   }
+
+  // Fixed sidebar menu items with proper structure
   const sideMenus = [
-    { icon: Home, label: "Overview", tab: "overview" },
-    { icon: Home, label: "Bots", tab: "bots" },
-    { icon: Home, label: "User Management", tab: "users" },
-    
-    
+    { 
+      icon: Home, 
+      label: "Overview", 
+      href: null, 
+      tabData: "overview" 
+    },
+    { 
+      icon: Bot, 
+      label: "Bots", 
+      href: null, 
+      tabData: "bots" 
+    },
+    { 
+      icon: Users, 
+      label: "User Management", 
+      href: null, 
+      tabData: "users" 
+    },
   ]
+
   if (status === 'loading') {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -235,31 +253,34 @@ export default function SuperAccess() {
   return (
     <div className="min-h-screen bg-gray-50 font-english">
       {!isMobile ? (
-<Header 
-  profile={profileData} 
-  handleSignOut={handleSignOut}
-  sidebarExpand={isExpand}
-  setSidebarExpand={setIsExpand}
-  onCreatePost={() => {
-    // null
-  }}
-/>):(<AppHeader profile={profileData} handleSignOut={handleSignOut} />)}
+        <Header 
+          profile={profileData} 
+          handleSignOut={handleSignOut}
+          sidebarExpand={isExpand}
+          setSidebarExpand={setIsExpand}
+          onCreatePost={() => {
+            // null
+          }}
+        />
+      ) : (
+        <AppHeader 
+          profile={profileData} 
+          handleSignOut={handleSignOut}
+          appendSidebar={sideMenus}
+          contextChangeTabs={[activeTab, setActiveTab]}
+        />
+      )}
       
       <div className="flex">
-        {session?.user && (
-
-// 4. Fix the Sidebar component props (around line 167)
-// Change from:
-// <Sidebar profile={currentUser} onSignOut={handleSignOut} isExpand = {isExpand} />
-
-// To:
-<Sidebar 
-  profile={profileData} 
-  onSignOut={handleSignOut} 
-  isExpand={isExpand}
-  newSidebar={sideMenus}
-  contextChangeTabs={[activeTab, setActiveTab]}
-/>)}
+        {session?.user && !isMobile && (
+          <Sidebar 
+            profile={profileData} 
+            onSignOut={handleSignOut} 
+            isExpand={isExpand}
+            newSidebar={sideMenus}
+            contextChangeTabs={[activeTab, setActiveTab]}
+          />
+        )}
       
         {/* Mobile Navigation */}
         {isMobile && (
@@ -330,12 +351,12 @@ export default function SuperAccess() {
           {/* Bots Tab */}
           {activeTab === 'bots' && (
             <div className='w-full'>
-              <div className="flex justify-between items-center mb-6 w-full" >
+              <div className="flex justify-between items-center mb-6 w-full">
                 <h1 className="text-2xl font-bold text-gray-900">Bot Management</h1>
                 <div className="flex space-x-3">
                   <button
                     onClick={() => setShowCreateModal(true)}
-                    className="px-4 py-2 bg-gray-800  text-white rounded-full transition-colors"
+                    className="px-4 py-2 bg-gray-800 text-white rounded-full transition-colors"
                   >
                     Create New Bot
                   </button>
@@ -371,7 +392,6 @@ export default function SuperAccess() {
                           <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                             Type
                           </th>
-                         
                           <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                             Created
                           </th>
@@ -413,7 +433,6 @@ export default function SuperAccess() {
                                 {bot.type}
                               </span>
                             </td>
-
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                               {formatDate(bot.createdAt)}
                             </td>
@@ -741,6 +760,8 @@ export default function SuperAccess() {
                     </div>
                   </div>
                 </div>
+
+                {/* Script Section */}
 
                 {/* Script Section */}
                 <div className="space-y-4">
