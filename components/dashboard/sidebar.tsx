@@ -10,8 +10,8 @@ interface SidebarProps {
   profile: any
   isExpand: boolean
   onSignOut: () => void
-  newSidebar ? : object | undefined
-  contextChangeTabs ? : [] | undefined
+  newSidebar ?: any[]  
+  contextChangeTabs?: [string, (tab: string) => void]
 }
 
 export function Sidebar({ isExpand = true, profile, onSignOut, newSidebar ,  contextChangeTabs}: SidebarProps) {
@@ -41,10 +41,10 @@ export function Sidebar({ isExpand = true, profile, onSignOut, newSidebar ,  con
       href: "/super-access"
     })
   }
-  if (newSidebar !== undefined && newSidebar.length > 0) {
-    // Remove contextChangeTabs from each item if it exists
-    menuItems = newSidebar;
-  }
+  let finalMenuItems = menuItems;
+if (newSidebar !== undefined && Array.isArray(newSidebar) && newSidebar.length > 0) {
+  finalMenuItems = newSidebar;
+}
   return (
     <div className="h-full flex flex-col p-3 z-50">
       {/* Close button for mobile */}
@@ -64,11 +64,11 @@ export function Sidebar({ isExpand = true, profile, onSignOut, newSidebar ,  con
       )}
 
       <nav className="flex-1 space-y-1">
-        {menuItems.map((item) => (
+        {finalMenuItems.map((item) => (
         <>
         {item.tabData && (!item.href || item.href ===null) ? (<>
           <Button variant="ghost" className="w-full justify-start text-base lg:text-lg py-3 lg:py-6 px-3" onClick = {()=>{
-            contextChangeTabs[1](item.tab)
+            contextChangeTabs[1](item.tabData)
           }}>
             
               <item.icon className="mr-3 h-5 w-5 lg:h-6 lg:w-6" />

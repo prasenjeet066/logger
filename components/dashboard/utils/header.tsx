@@ -9,7 +9,15 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Sidebar } from "@/components/dashboard/sidebar"
 import Link from "next/link"
 import type { IUser } from "@/lib/mongodb/models/User" // Import IUser type
-
+interface HeaderProps {
+  profile: IUser
+  sidebarExpand: boolean
+  setSidebarExpand: (expand: boolean) => void
+  onCreatePost?: () => void
+  handleSignOut?: () => void  // Add this
+  contextChangeTabs?: [string, (tab: string) => void]  // Add this
+  appendSidebar?: any[]  // Add this
+}
 export const Header = ({profile,handleSignOut, appendSidebar = undefined ,contextChangeTabs = undefined}) => {
   return (
     <div className="lg:hidden sticky top-0 border-none bg-white bg-white/50 z-30 backdrop-blur-md px-4 py-2">

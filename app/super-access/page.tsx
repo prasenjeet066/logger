@@ -2,6 +2,8 @@
 import { useSession } from "next-auth/react"
 import { useMobile } from "@/hooks/use-mobile"
 import { signOut } from "next-auth/react"
+import { Home } from "lucide-react"
+import { Sidebar } from "@/components/dashboard/sidebar"
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 import { Header } from "@/components/dashboard/web/utils/header"
@@ -217,8 +219,8 @@ export default function SuperAccess() {
   }
   const sideMenus = [
     { icon: Home, label: "Overview", tab: "overview" },
-     { icon: Home, label: "Bots", tab: "bots" },
-      { icon: Home, label: "User Management", tab: "users" },
+    { icon: Home, label: "Bots", tab: "bots" },
+    { icon: Home, label: "User Management", tab: "users" },
     
     
   ]
@@ -233,22 +235,34 @@ export default function SuperAccess() {
   return (
     <div className="min-h-screen bg-gray-50 font-english">
       {!isMobile ? (
-      <Header profile={profileData} handleSignOut={handleSignOut}
-        sidebarExpand={isExpand}
-        setSidebarExpand={setIsExpand}
-        contextChangeTabs = {[activeTab,setActiveTab]}
-        appendSidebar= {sideMenus}
-        onCreatePost={()=>{
-        // null
-        }}/>):(<AppHeader profile={profileData} handleSignOut={handleSignOut} />)}
+<Header 
+  profile={profileData} 
+  handleSignOut={handleSignOut}
+  sidebarExpand={isExpand}
+  setSidebarExpand={setIsExpand}
+  contextChangeTabs={[activeTab, setActiveTab]}
+  appendSidebar={sideMenus}
+  onCreatePost={() => {
+    // null
+  }}
+/>):(<AppHeader profile={profileData} handleSignOut={handleSignOut} />)}
       
       <div className="flex">
-        {session?.user && currentUser && (
-          <div className={`h-screen bg-white border-r sticky max-w-64 top-0 max-h-screen ${isExpand == false && "w-16"}`}>
-            <Sidebar profile={currentUser} onSignOut={handleSignOut} isExpand = {isExpand} />
-          </div>
-        )}
-        {/* Sidebar */}
+        {session?.user && (
+
+// 4. Fix the Sidebar component props (around line 167)
+// Change from:
+// <Sidebar profile={currentUser} onSignOut={handleSignOut} isExpand = {isExpand} />
+
+// To:
+<Sidebar 
+  profile={profileData} 
+  onSignOut={handleSignOut} 
+  isExpand={isExpand}
+  newSidebar={sideMenus}
+  contextChangeTabs={[activeTab, setActiveTab]}
+/>)}
+      
         {/* Mobile Navigation */}
         {isMobile && (
           <div className="w-full bg-white shadow-sm border-b">
