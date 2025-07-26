@@ -240,8 +240,6 @@ export default function SuperAccess() {
   handleSignOut={handleSignOut}
   sidebarExpand={isExpand}
   setSidebarExpand={setIsExpand}
-  contextChangeTabs={[activeTab, setActiveTab]}
-  appendSidebar={sideMenus}
   onCreatePost={() => {
     // null
   }}
