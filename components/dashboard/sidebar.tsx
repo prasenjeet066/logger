@@ -1,27 +1,29 @@
 "use client"
 
 import Link from "next/link"
-import {useState,useEffect} from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Home, Search, Bell, Mail, Bookmark, User, LogOut, X, Settings,Key, Plus } from "lucide-react"
+import { Home, Search, Bell, Mail, Bookmark, User, LogOut, X, Settings, Key, Plus } from "lucide-react"
 import { useMobile } from "@/hooks/use-mobile"
 interface SidebarProps {
   profile: any
   isExpand: boolean
   onSignOut: () => void
+  newSidebar ? : object | undefined
+  contextChangeTabs ? : [] | undefined
 }
 
-export function Sidebar({ isExpand = true, profile, onSignOut }: SidebarProps) {
+export function Sidebar({ isExpand = true, profile, onSignOut, newSidebar ,  contextChangeTabs}: SidebarProps) {
   const isMobile = useMobile()
-  const [isSA,setIsSA] = useState(null)
-  useEffect(()=>{
+  const [isSA, setIsSA] = useState(null)
+  useEffect(() => {
     if (profile.superAccess && profile.superAccess.role) {
       setIsSA(profile.superAccess?.role)
-    }else{
+    } else {
       setIsSA(null)
     }
-  },[profile])
+  }, [profile])
   const menuItems = [
     { icon: Home, label: "Home", href: "/dashboard" },
     { icon: Search, label: "Explore", href: "/explore" },
@@ -32,14 +34,17 @@ export function Sidebar({ isExpand = true, profile, onSignOut }: SidebarProps) {
     { icon: User, label: "Profile", href: `/profile/${profile?.username}` },
     { icon: Settings, label: "Settings", href: "/settings" },
   ]
-  if (isSA!== null) {
+  if (isSA !== null) {
     menuItems.push({
       icon: Key,
-      label:"Super Access",
+      label: "Super Access",
       href: "/super-access"
     })
   }
-  
+  if (newSidebar !== undefined && newSidebar.length > 0) {
+    // Remove contextChangeTabs from each item if it exists
+    menuItems = newSidebar;
+  }
   return (
     <div className="h-full flex flex-col p-3 z-50">
       {/* Close button for mobile */}
@@ -60,6 +65,18 @@ export function Sidebar({ isExpand = true, profile, onSignOut }: SidebarProps) {
 
       <nav className="flex-1 space-y-1">
         {menuItems.map((item) => (
+        <>
+        {item.tabData && (!item.href || item.href ===null) ? (<>
+          <Button variant="ghost" className="w-full justify-start text-base lg:text-lg py-3 lg:py-6 px-3" onClick = {()=>{
+            contextChangeTabs[1](item.tab)
+          }}>
+            
+              <item.icon className="mr-3 h-5 w-5 lg:h-6 lg:w-6" />
+              {isExpand==true || isMobile ?  (
+              <span className="truncate">{item.label}</span>
+              ):<></>}
+            </Button>
+        </>):(
           <Link key={item.href} href={item.href}>
             <Button variant="ghost" className="w-full justify-start text-base lg:text-lg py-3 lg:py-6 px-3">
               <item.icon className="mr-3 h-5 w-5 lg:h-6 lg:w-6" />
@@ -67,7 +84,7 @@ export function Sidebar({ isExpand = true, profile, onSignOut }: SidebarProps) {
               <span className="truncate">{item.label}</span>
               ):<></>}
             </Button>
-          </Link>
+          </Link>)}</>
         ))}
 
         {/* Create Post Button */}

@@ -10,8 +10,7 @@ import { Sidebar } from "@/components/dashboard/sidebar"
 import Link from "next/link"
 import type { IUser } from "@/lib/mongodb/models/User" // Import IUser type
 
-
-export const Header = ({profile,handleSignOut}) => {
+export const Header = ({profile,handleSignOut, appendSidebar = undefined ,contextChangeTabs = undefined}) => {
   return (
     <div className="lg:hidden sticky top-0 border-none bg-white bg-white/50 z-30 backdrop-blur-md px-4 py-2">
         <div className="flex items-center justify-between">
@@ -22,7 +21,10 @@ export const Header = ({profile,handleSignOut}) => {
                 </Button>
               </SheetTrigger>
               <SheetContent side="left" className="p-0 w-80">
-                <Sidebar profile={profile} onSignOut={handleSignOut} />
+                <Sidebar profile={profile} onSignOut={handleSignOut}
+                newSidebar = {appendSidebar}
+                contextChangeTabs={contextChangeTabs}
+                />
               </SheetContent>
             </Sheet>
           <h1 className="text-xl font-bold logo-font">Cōdes</h1>

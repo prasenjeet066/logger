@@ -5,6 +5,7 @@ import { signOut } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 import { Header } from "@/components/dashboard/web/utils/header"
+import { Header as AppHeader } from "@/components/dashboard/utils/header"
 
 interface Bot {
   _id: string
@@ -22,30 +23,31 @@ interface Bot {
   postsCount: number
   ownerId: {
     _id: string
-    name?: string
-    email?: string
+    name ? : string
+    email ? : string
   }
   createdAt: string
 }
 
 interface User {
   _id: string
-  name?: string
-  email?: string
-  image?: string
+  name ? : string
+  email ? : string
+  image ? : string
 }
 
 export default function SuperAccess() {
   const { data: session, status } = useSession()
   const isMobile = useMobile()
   const router = useRouter()
-  const [bots, setBots] = useState<Bot[]>([])
+  const [bots, setBots] = useState < Bot[] > ([])
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [selectedBot, setSelectedBot] = useState<Bot | null>(null)
+  const [error, setError] = useState < string | null > (null)
+  const [selectedBot, setSelectedBot] = useState < Bot | null > (null)
   const [showModal, setShowModal] = useState(false)
   const [showCreateModal, setShowCreateModal] = useState(false)
-  const [activeTab, setActiveTab] = useState<'overview' | 'bots' | 'users'>('overview')
+  const [activeTab, setActiveTab] = useState < 'overview' | 'bots' | 'users' > ('overview')
+  const [isExpand, setIsExpand] = useState < boolean > (false)
   const [createLoading, setCreateLoading] = useState(false)
   const [formData, setFormData] = useState({
     displayName: '',
@@ -60,14 +62,14 @@ export default function SuperAccess() {
     coverUrl: '',
     ownerId: ''
   })
-
+  
   // Mock profile data - replace with actual user data from session
   const profileData = {
     name: session?.user?.name || 'Super Admin',
     email: session?.user?.email || 'admin@example.com',
     image: session?.user?.image || null
   }
-
+  
   useEffect(() => {
     // Check if user has super access permissions
     if (status === 'loading') return
@@ -76,13 +78,13 @@ export default function SuperAccess() {
       router.push('/auth/signin')
       return
     }
-
+    
     // Add your super admin check logic here
     // For example: if (!session.user.isSuperAdmin) router.push('/')
-
+    
     fetchBots()
   }, [session, status, router])
-
+  
   const fetchBots = async () => {
     try {
       setLoading(true)
@@ -96,15 +98,15 @@ export default function SuperAccess() {
       setLoading(false)
     }
   }
-
+  
   const handleSignOut = async () => {
     await signOut()
     router.push("/")
   }
-
+  
   const handleDeleteBot = async (botId: string) => {
     if (!confirm('Are you sure you want to delete this bot?')) return
-
+    
     try {
       const response = await fetch(`/api/bot/${botId}`, {
         method: 'DELETE'
@@ -117,12 +119,12 @@ export default function SuperAccess() {
       setError(err instanceof Error ? err.message : 'Failed to delete bot')
     }
   }
-
+  
   const handleViewBot = (bot: Bot) => {
     setSelectedBot(bot)
     setShowModal(true)
   }
-
+  
   const handleCreateBot = async (e: React.FormEvent) => {
     e.preventDefault()
     
@@ -131,25 +133,25 @@ export default function SuperAccess() {
       setError('Please fill in all required fields')
       return
     }
-
+    
     // Email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     if (!emailRegex.test(formData.email)) {
       setError('Please enter a valid email address')
       return
     }
-
+    
     // Username validation
     const usernameRegex = /^[a-zA-Z0-9_]+$/
     if (!usernameRegex.test(formData.username)) {
       setError('Username can only contain letters, numbers, and underscores')
       return
     }
-
+    
     try {
       setCreateLoading(true)
       setError(null)
-
+      
       const response = await fetch('/api/bot', {
         method: 'POST',
         headers: {
@@ -160,12 +162,12 @@ export default function SuperAccess() {
           ownerId: session?.user?.id || formData.ownerId
         }),
       })
-
+      
       if (!response.ok) {
         const errorData = await response.json()
         throw new Error(errorData.error || 'Failed to create bot')
       }
-
+      
       const newBot = await response.json()
       setBots([...bots, newBot])
       setShowCreateModal(false)
@@ -179,7 +181,7 @@ export default function SuperAccess() {
       setCreateLoading(false)
     }
   }
-
+  
   const resetForm = () => {
     setFormData({
       displayName: '',
@@ -195,15 +197,15 @@ export default function SuperAccess() {
       ownerId: ''
     })
   }
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+  
+  const handleInputChange = (e: React.ChangeEvent < HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement > ) => {
     const { name, value } = e.target
     setFormData(prev => ({
       ...prev,
       [name]: value
     }))
   }
-
+  
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
@@ -213,7 +215,13 @@ export default function SuperAccess() {
       minute: '2-digit'
     })
   }
-
+  const sideMenus = [
+    { icon: Home, label: "Overview", tab: "overview" },
+     { icon: Home, label: "Bots", tab: "bots" },
+      { icon: Home, label: "User Management", tab: "users" },
+    
+    
+  ]
   if (status === 'loading') {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -221,53 +229,26 @@ export default function SuperAccess() {
       </div>
     )
   }
-
+  
   return (
     <div className="min-h-screen bg-gray-50 font-english">
-      <Header profile={profileData} handleSignOut={handleSignOut} />
+      {!isMobile ? (
+      <Header profile={profileData} handleSignOut={handleSignOut}
+        sidebarExpand={isExpand}
+        setSidebarExpand={setIsExpand}
+        contextChangeTabs = {[activeTab,setActiveTab]}
+        appendSidebar= {sideMenus}
+        onCreatePost={()=>{
+        // null
+        }}/>):(<AppHeader profile={profileData} handleSignOut={handleSignOut} />)}
       
       <div className="flex">
-        {/* Sidebar */}
-        {!isMobile && (
-          <div className="w-64 bg-white shadow-sm border-r min-h-screen">
-            <div className="p-6">
-              <h2 className="text-xl font-semibold text-gray-800 mb-6">Super Admin</h2>
-              <nav className="space-y-2">
-                <button
-                  onClick={() => setActiveTab('overview')}
-                  className={`w-full text-left px-4 py-2 rounded-lg transition-colors ${
-                    activeTab === 'overview' 
-                      ? 'bg-blue-50 text-blue-600 border-l-4 border-blue-600' 
-                      : 'text-gray-600 hover:bg-gray-50'
-                  }`}
-                >
-                  Overview
-                </button>
-                <button
-                  onClick={() => setActiveTab('bots')}
-                  className={`w-full text-left px-4 py-2 rounded-lg transition-colors ${
-                    activeTab === 'bots' 
-                      ? 'bg-blue-50 text-blue-600 border-l-4 border-blue-600' 
-                      : 'text-gray-600 hover:bg-gray-50'
-                  }`}
-                >
-                  Bot Management
-                </button>
-                <button
-                  onClick={() => setActiveTab('users')}
-                  className={`w-full text-left px-4 py-2 rounded-lg transition-colors ${
-                    activeTab === 'users' 
-                      ? 'bg-blue-50 text-blue-600 border-l-4 border-blue-600' 
-                      : 'text-gray-600 hover:bg-gray-50'
-                  }`}
-                >
-                  User Management
-                </button>
-              </nav>
-            </div>
+        {session?.user && currentUser && (
+          <div className={`h-screen bg-white border-r sticky max-w-64 top-0 max-h-screen ${isExpand == false && "w-16"}`}>
+            <Sidebar profile={currentUser} onSignOut={handleSignOut} isExpand = {isExpand} />
           </div>
         )}
-
+        {/* Sidebar */}
         {/* Mobile Navigation */}
         {isMobile && (
           <div className="w-full bg-white shadow-sm border-b">
@@ -342,7 +323,7 @@ export default function SuperAccess() {
                 <div className="flex space-x-3">
                   <button
                     onClick={() => setShowCreateModal(true)}
-                    className="px-4 py-2 bg-gray-80  text-white rounded-full transition-colors"
+                    className="px-4 py-2 bg-gray-800  text-white rounded-full transition-colors"
                   >
                     Create New Bot
                   </button>
