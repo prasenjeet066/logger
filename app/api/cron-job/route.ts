@@ -19,8 +19,8 @@ export async function GET(request: NextRequest) {
             
             // Safe alternative to eval: new Function
             try {
-              const fn = new Function("data", bot.shell);
-              commentContent = fn({ post }); // pass data if your script needs it
+              //const fn = new Function("data", bot.shell);
+              commentContent = "reply...."//fn({ post }); // pass data if your script needs it
             } catch (e) {
               console.error("Bot script error:", e);
               continue;
