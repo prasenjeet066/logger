@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation"
 import { useSession } from "next-auth/react"
 import { useMobile } from "@/hooks/use-mobile"
 import { Button } from "@/components/ui/button"
-import { Spinner } from "@/components/loader/spinner" // Corrected import path
+import { Spinner } from "@/components/loader/spinner"
 import {Header} from "@/components/dashboard/utils/header"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -13,13 +13,13 @@ import { Sidebar } from "@/components/dashboard/sidebar"
 import {MutualFollowers} from "@/components/profile/mutual-follow"
 import { PostCard } from "@/components/dashboard/post-card"
 import { EditProfileDialog } from "./edit-profile-dialog"
-import { Menu, X, UserPlus, UserCheck, Calendar, MapPin, LinkIcon , Plus , Search} from "lucide-react"
+import { Menu, X, UserPlus, UserCheck, Calendar, MapPin, LinkIcon, Plus, Search, Bot, Code, Terminal, User } from "lucide-react"
 import { formatDistanceToNow } from "date-fns"
 import Link from "next/link"
 import { ImageViewer } from "@/components/media/image-viewer"
 import { VerificationBadge } from "@/components/badge/verification-badge"
 import { signOut } from "next-auth/react"
-import type { Post } from "@/types/post" // Import the updated Post type
+import type { Post } from "@/types/post"
 
 interface ProfileContentProps {
   username: string
@@ -39,28 +39,56 @@ interface ProfileData {
   isVerified: boolean
   followersCount: number
   followingCount: number
-  isFollowing: boolean // Added for current user's follow status
+  isFollowing: boolean
 }
+
+interface BotData {
+  _id: string
+  displayName: string
+  dio: string
+  username: string
+  email: string
+  script: string
+  shell: string
+  type: string
+  avatarUrl: string | null
+  coverUrl: string | null
+  followersCount: number
+  followingCount: number
+  postsCount: number
+  ownerId: {
+    _id: string
+    name?: string
+    email?: string
+    username?: string
+  }
+  createdAt: string
+}
+
+type ProfileType = 'user' | 'bot'
 
 export function ProfileContent({ username }: ProfileContentProps) {
   const { data: session, status } = useSession()
-  const [currentUser, setCurrentUser] = useState < any > (null)
-  const [profileData, setProfileData] = useState < ProfileData | null > (null)
-  const [posts, setPosts] = useState < Post[] > ([])
-  const [replies, setReplies] = useState < Post[] > ([])
-  const [reposts, setReposts] = useState < Post[] > ([])
-  const [media, setMedia] = useState < Post[] > ([])
+  const [currentUser, setCurrentUser] = useState<any>(null)
+  const [profileData, setProfileData] = useState<ProfileData | null>(null)
+  const [botData, setBotData] = useState<BotData | null>(null)
+  const [profileType, setProfileType] = useState<ProfileType>('user')
+  const [posts, setPosts] = useState<Post[]>([])
+  const [replies, setReplies] = useState<Post[]>([])
+  const [reposts, setReposts] = useState<Post[]>([])
+  const [media, setMedia] = useState<Post[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const isMobile = useMobile()
   const [editDialogOpen, setEditDialogOpen] = useState(false)
   const [activeTab, setActiveTab] = useState("posts")
-  const [imageViewerOpen, setImageViewerOpen] = useState < string | null > (false)
+  const [imageViewerOpen, setImageViewerOpen] = useState<string | null>(null)
   const router = useRouter()
   
   const fetchProfileData = useCallback(async () => {
     try {
       setIsLoading(true)
+      
       // Get current user profile if logged in
       if (session?.user) {
         const currentUserResponse = await fetch("/api/users/current")
@@ -70,33 +98,63 @@ export function ProfileContent({ username }: ProfileContentProps) {
         }
       }
       
-      // Get profile data and posts
-      const profileResponse = await fetch(`/api/users/${username}`)
-      if (!profileResponse.ok) {
-        router.push("/")
-        return
-      }
+      // First try to fetch as a regular user
+      const userResponse = await fetch(`/api/users/${username}`)
       
-      const { user: profile, posts: userPosts } = await profileResponse.json()
-      setProfileData(profile)
-      
-      // Separate posts by type
-      const regularPosts = userPosts.filter((post: Post) => !post.parentPostId && !post.isRepost)
-      const replyPosts = userPosts.filter((post: Post) => post.parentPostId)
-      const mediaPosts = userPosts.filter((post: Post) => post.mediaUrls && post.mediaUrls.length > 0)
-      
-      setPosts(regularPosts)
-      setReplies(replyPosts)
-      setMedia(mediaPosts)
-      
-      // Get reposts separately (already handled by the API route now)
-      const repostsResponse = await fetch(`/api/users/${username}/reposts`)
-      if (repostsResponse.ok) {
-        const repostsData = await repostsResponse.json()
-        setReposts(repostsData)
+      if (userResponse.ok) {
+        // It's a regular user
+        const { user: profile, posts: userPosts } = await userResponse.json()
+        setProfileData(profile)
+        setBotData(null)
+        setProfileType('user')
+        
+        // Separate posts by type
+        const regularPosts = userPosts.filter((post: Post) => !post.parentPostId && !post.isRepost)
+        const replyPosts = userPosts.filter((post: Post) => post.parentPostId)
+        const mediaPosts = userPosts.filter((post: Post) => post.mediaUrls && post.mediaUrls.length > 0)
+        
+        setPosts(regularPosts)
+        setReplies(replyPosts)
+        setMedia(mediaPosts)
+        
+        // Get reposts separately
+        const repostsResponse = await fetch(`/api/users/${username}/reposts`)
+        if (repostsResponse.ok) {
+          const repostsData = await repostsResponse.json()
+          setReposts(repostsData)
+        }
+      } else {
+        // Try to fetch as a bot
+        const botsResponse = await fetch('/api/bot')
+        if (botsResponse.ok) {
+          const bots = await botsResponse.json()
+          const bot = bots.find((b: BotData) => b.username === username)
+          
+          if (bot) {
+            // It's a bot
+            setBotData(bot)
+            setProfileData(null)
+            setProfileType('bot')
+            
+            // For bots, we'll show empty posts for now
+            // You can implement bot-specific post fetching here
+            setPosts([])
+            setReplies([])
+            setReposts([])
+            setMedia([])
+          } else {
+            // Neither user nor bot found
+            router.push("/")
+            return
+          }
+        } else {
+          router.push("/")
+          return
+        }
       }
     } catch (error) {
       console.error("Error fetching profile data:", error)
+      router.push("/")
     } finally {
       setIsLoading(false)
     }
@@ -107,7 +165,9 @@ export function ProfileContent({ username }: ProfileContentProps) {
   }, [fetchProfileData])
   
   const handleFollow = async () => {
-    if (!profileData || !session?.user) return
+    if (profileType === 'bot' || !session?.user) return
+    
+    if (!profileData) return
     
     try {
       const response = await fetch(`/api/users/${profileData.username}/follow`, {
@@ -166,8 +226,6 @@ export function ProfileContent({ username }: ProfileContentProps) {
       
       if (response.ok) {
         const result = await response.json()
-        // If a repost was created/deleted, we need to refetch reposts or update state carefully.
-        // For simplicity, let's refetch all profile data to ensure counts are accurate.
         fetchProfileData()
       }
     } catch (error) {
@@ -188,11 +246,9 @@ export function ProfileContent({ username }: ProfileContentProps) {
     )
   }
   
-  if (!profileData) {
+  if (!profileData && !botData) {
     return (
       <div className="min-h-screen flex items-center justify-center font-english">
-        {" "}
-        {/* Changed to font-english */}
         <div className="text-center">
           <p className="text-xl mb-4">Profile not found</p>
           <Link href="/">
@@ -202,8 +258,10 @@ export function ProfileContent({ username }: ProfileContentProps) {
       </div>
     )
   }
-  
-  const isOwnProfile = profileData._id === currentUser?._id
+
+  // Get current profile data based on type
+  const currentProfile = profileType === 'user' ? profileData : botData
+  const isOwnProfile = profileType === 'user' && profileData?._id === currentUser?._id
   
   const renderTabContent = (tabPosts: Post[], emptyMessage: string) => (
     <div>
@@ -218,40 +276,101 @@ export function ProfileContent({ username }: ProfileContentProps) {
             post={post}
             onLike={handleLike}
             onRepost={handleRepost}
-            onReply={fetchProfileData} // Trigger a refetch on reply/post update
+            onReply={fetchProfileData}
           />
         ))
       )}
     </div>
   )
+
+  // Bot-specific render method
+  const renderBotInfo = () => {
+    if (!botData) return null
+
+    return (
+      <div className="space-y-4 bg-blue-50 p-4 rounded-lg border border-blue-200">
+        <div className="flex items-center gap-2 text-blue-700">
+          <Bot className="h-5 w-5" />
+          <span className="font-semibold">Bot Account</span>
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+          <div>
+            <span className="font-medium text-gray-700">Type:</span>
+            <span className={`ml-2 px-2 py-1 rounded-full text-xs ${
+              botData.type === 'active' 
+                ? 'bg-green-100 text-green-700' 
+                : 'bg-gray-100 text-gray-700'
+            }`}>
+              {botData.type}
+            </span>
+          </div>
+          
+          <div className="flex items-center gap-2">
+            <Terminal className="h-4 w-4 text-gray-500" />
+            <span className="text-gray-700">{botData.shell}</span>
+          </div>
+          
+          <div>
+            <span className="font-medium text-gray-700">Owner:</span>
+            <span className="ml-2 text-gray-600">
+              {botData.ownerId?.username || botData.ownerId?.name || 'Unknown'}
+            </span>
+          </div>
+          
+          <div>
+            <span className="font-medium text-gray-700">Email:</span>
+            <span className="ml-2 text-gray-600">{botData.email}</span>
+          </div>
+        </div>
+
+        {botData.script && (
+          <div>
+            <div className="flex items-center gap-2 mb-2">
+              <Code className="h-4 w-4 text-gray-500" />
+              <span className="font-medium text-gray-700">Script:</span>
+            </div>
+            <div className="bg-gray-900 text-green-400 p-3 rounded-lg font-mono text-sm max-h-32 overflow-y-auto">
+              <pre className="whitespace-pre-wrap">{botData.script}</pre>
+            </div>
+          </div>
+        )}
+      </div>
+    )
+  }
   
   return (
     <div className="min-h-screen bg-gray-50 font-english">
-      {" "}
-      {/* Changed to font-english */}
-      
-      
-      <Header profile = {profileData} handleSignOut = {handleSignOut}/>
-      
+      <Header profile={currentProfile} handleSignOut={handleSignOut}/>
       
       <div className="flex">
-        {/* Sidebar - only show if logged in */}
-        
-
         {/* Main content */}
         <div className="flex-1 max-w-2xl mx-auto">
           <div className="border-x bg-white min-h-screen">
             <div className="sticky top-0 bg-white/50 z-30 backdrop-blur-md border-b px-4 py-3">
-              <h2 className="text-xl font-bold">{profileData.displayName}</h2>
-              <p className="text-sm text-gray-500">{profileData.postsCount} posts</p>
+              <div className="flex items-center gap-2">
+                {profileType === 'bot' && <Bot className="h-5 w-5 text-blue-600" />}
+                <h2 className="text-xl font-bold">
+                  {profileType === 'user' ? profileData?.displayName : botData?.displayName}
+                </h2>
+              </div>
+              <p className="text-sm text-gray-500">
+                {profileType === 'user' ? profileData?.postsCount : botData?.postsCount} posts
+              </p>
             </div>
 
             {/* Cover Image */}
             <div className="relative">
               <div
-                className="w-full h-48 bg-gradient-to-r from-blue-400 to-purple-500"
+                className={`w-full h-48 ${
+                  profileType === 'bot' 
+                    ? 'bg-gradient-to-r from-blue-500 to-purple-600' 
+                    : 'bg-gradient-to-r from-blue-400 to-purple-500'
+                }`}
                 style={{
-                  backgroundImage: profileData.bannerUrl ? `url(${profileData.bannerUrl})` : undefined,
+                  backgroundImage: profileType === 'user' 
+                    ? (profileData?.bannerUrl ? `url(${profileData.bannerUrl})` : undefined)
+                    : (botData?.coverUrl ? `url(${botData.coverUrl})` : undefined),
                   backgroundSize: "cover",
                   backgroundPosition: "center",
                 }}
@@ -262,16 +381,29 @@ export function ProfileContent({ username }: ProfileContentProps) {
             <div className="p-4 border-b relative">
               <div className="flex items-start justify-between mb-4">
                 <div className="flex flex-col items-center justify-center">
-                  <Avatar className="w-20 h-20 -mt-10 border-4 border-white" onClick = {()=>{
-                    setImageViewerOpen(true)
+                  <Avatar className="w-20 h-20 -mt-10 border-4 border-white" onClick={() => {
+                    const avatarUrl = profileType === 'user' ? profileData?.avatarUrl : botData?.avatarUrl
+                    if (avatarUrl) setImageViewerOpen(avatarUrl)
                   }}>
-                    <AvatarImage src={profileData.avatarUrl || undefined} />
+                    <AvatarImage src={
+                      profileType === 'user' 
+                        ? (profileData?.avatarUrl || undefined) 
+                        : (botData?.avatarUrl || undefined)
+                    } />
                     <AvatarFallback className="text-2xl">
-                      {profileData.displayName?.charAt(0)?.toUpperCase() || "U"}
+                      {profileType === 'user' 
+                        ? (profileData?.displayName?.charAt(0)?.toUpperCase() || "U")
+                        : (botData?.displayName?.charAt(0)?.toUpperCase() || "B")
+                      }
                     </AvatarFallback>
                   </Avatar>
-                  {profileData.isVerified && (
+                  {profileType === 'user' && profileData?.isVerified && (
                     <VerificationBadge verified={true} size={20} className="h-8 w-8 z-10 -mt-4 bg-white rounded-full" />
+                  )}
+                  {profileType === 'bot' && (
+                    <div className="h-8 w-8 z-10 -mt-4 bg-blue-600 rounded-full flex items-center justify-center">
+                      <Bot className="h-4 w-4 text-white" />
+                    </div>
                   )}
                 </div>
                 <div className="flex gap-2">
@@ -281,13 +413,13 @@ export function ProfileContent({ username }: ProfileContentProps) {
                     onClick={() => setEditDialogOpen(true)}>
                       Edit Profile
                     </Button>
-                  ) : session?.user ? (
+                  ) : profileType === 'user' && session?.user ? (
                     <>
                       <Button className='rounded-full' variant="outline">Message</Button>
                       <Button
                       className='rounded-full'
-                      variant={profileData.isFollowing ? "outline" : "default"} onClick={handleFollow}>
-                        {profileData.isFollowing ? (
+                      variant={profileData?.isFollowing ? "outline" : "default"} onClick={handleFollow}>
+                        {profileData?.isFollowing ? (
                           <>
                             <UserCheck className="h-4 w-4 mr-1" />
                             Following
@@ -300,6 +432,11 @@ export function ProfileContent({ username }: ProfileContentProps) {
                         )}
                       </Button>
                     </>
+                  ) : profileType === 'bot' ? (
+                    <Button className='rounded-full' variant="outline" disabled>
+                      <Bot className="h-4 w-4 mr-1" />
+                      Bot Account
+                    </Button>
                   ) : (
                     <Link href="/auth/sign-in">
                       <Button className='rounded-full'>
@@ -311,22 +448,32 @@ export function ProfileContent({ username }: ProfileContentProps) {
                 </div>
               </div>
 
-              <div className="space-y-1 mb-2">
+              <div className="space-y-3 mb-2">
                 <h1 className="text-xl font-bold flex items-center gap-2">
-                  {profileData.displayName}
-                  <p className="text-gray-500 text-sm">@{profileData.username}</p>
+                  {profileType === 'user' ? profileData?.displayName : botData?.displayName}
+                  <p className="text-gray-500 text-sm">
+                    @{profileType === 'user' ? profileData?.username : botData?.username}
+                  </p>
                 </h1>
 
-                {profileData.bio && <p className="text-gray-900">{profileData.bio}</p>}
+                {/* Bio/Description */}
+                {((profileType === 'user' && profileData?.bio) || (profileType === 'bot' && botData?.dio)) && (
+                  <p className="text-gray-900">
+                    {profileType === 'user' ? profileData?.bio : botData?.dio}
+                  </p>
+                )}
+
+                {/* Bot-specific information */}
+                {profileType === 'bot' && renderBotInfo()}
 
                 <div className="flex flex-wrap gap-4 text-sm text-gray-500">
-                  {profileData.location && (
+                  {profileType === 'user' && profileData?.location && (
                     <div className="flex items-center gap-1">
                       <MapPin className="h-4 w-4" />
                       {profileData.location}
                     </div>
                   )}
-                  {profileData.website && (
+                  {profileType === 'user' && profileData?.website && (
                     <div className="flex items-center gap-1">
                       <LinkIcon className="h-4 w-4" />
                       <a
@@ -337,26 +484,31 @@ export function ProfileContent({ username }: ProfileContentProps) {
                       >
                         {profileData.website}
                       </a>
-                      
                     </div>
                   )}
                   
                   <div className="flex items-center gap-1">
                     <Calendar className="h-4 w-4" />
-                    {formatDistanceToNow(new Date(profileData.createdAt), { addSuffix: true })} joined
+                    {formatDistanceToNow(new Date(currentProfile!.createdAt), { addSuffix: true })} joined
                   </div>
                 </div>
 
                 <div className="flex gap-4 text-sm">
                   <span>
-                    <strong>{profileData.followingCount}</strong> following
+                    <strong>
+                      {profileType === 'user' ? profileData?.followingCount : botData?.followingCount}
+                    </strong> following
                   </span>
                   <span>
-                    <strong>{profileData.followersCount}</strong> followers
+                    <strong>
+                      {profileType === 'user' ? profileData?.followersCount : botData?.followersCount}
+                    </strong> followers
                   </span>
                 </div>
               </div>
-             <MutualFollowers targetUsername={profileData.username}/>
+              {profileType === 'user' && (
+                <MutualFollowers targetUsername={profileData!.username}/>
+              )}
             </div>
 
             {/* Tabs */}
@@ -389,34 +541,44 @@ export function ProfileContent({ username }: ProfileContentProps) {
               </TabsList>
 
               <TabsContent value="posts" className="mt-0">
-                {renderTabContent(posts, "No posts yet")}
+                {renderTabContent(posts, 
+                  profileType === 'bot' ? "This bot hasn't posted anything yet" : "No posts yet"
+                )}
               </TabsContent>
 
               <TabsContent value="replies" className="mt-0">
-                {renderTabContent(replies, "No replies yet")}
+                {renderTabContent(replies, 
+                  profileType === 'bot' ? "This bot hasn't replied to anything yet" : "No replies yet"
+                )}
               </TabsContent>
 
               <TabsContent value="reposts" className="mt-0">
-                {renderTabContent(reposts, "No reposts yet")}
+                {renderTabContent(reposts, 
+                  profileType === 'bot' ? "This bot hasn't reposted anything yet" : "No reposts yet"
+                )}
               </TabsContent>
 
               <TabsContent value="media" className="mt-0">
-                {renderTabContent(media, "No media yet")}
+                {renderTabContent(media, 
+                  profileType === 'bot' ? "This bot hasn't shared any media yet" : "No media yet"
+                )}
               </TabsContent>
             </Tabs>
           </div>
         </div>
       </div>
+      
       {/* Mobile overlay */}
       {sidebarOpen && (
         <div className="lg:hidden fixed inset-0 bg-black bg-opacity-50 z-40" onClick={() => setSidebarOpen(false)} />
       )}
-      {/* Edit Profile Dialog */}
-      {isOwnProfile && (
+      
+      {/* Edit Profile Dialog - only for users */}
+      {isOwnProfile && profileType === 'user' && (
         <EditProfileDialog
           open={editDialogOpen}
           onOpenChange={setEditDialogOpen}
-          profile={profileData}
+          profile={profileData!}
           onProfileUpdate={(updatedProfile) => {
             setProfileData((prevProfile) => {
               if (!prevProfile) return null
@@ -428,12 +590,13 @@ export function ProfileContent({ username }: ProfileContentProps) {
           }}
         />
       )}
+      
       {/* Image Viewer */}
       {imageViewerOpen && (
         <ImageViewer
-          src={profileData.avatarUrl || "/placeholder.svg"}
-          isOpen={imageViewerOpen}
-          onClose={() => setImageViewerOpen(false)}
+          src={imageViewerOpen}
+          isOpen={true}
+          onClose={() => setImageViewerOpen(null)}
         />
       )}
     </div>
