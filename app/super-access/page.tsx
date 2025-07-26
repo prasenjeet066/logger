@@ -336,8 +336,8 @@ export default function SuperAccess() {
 
           {/* Bots Tab */}
           {activeTab === 'bots' && (
-            <div>
-              <div className="flex justify-between items-center mb-6">
+            <div className='w-full'>
+              <div className="flex justify-between items-center mb-6 w-full" >
                 <h1 className="text-2xl font-bold text-gray-900">Bot Management</h1>
                 <div className="flex space-x-3">
                   <button
