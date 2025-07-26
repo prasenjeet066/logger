@@ -9,13 +9,9 @@ export async function GET(request: NextRequest) {
   const query = searchParams.get("username")
   try {
     await connectDB()
-    if (query) {
-      const bots = await Bot.findOne({ username: query }).lean() // optional: populate owner
-      return NextResponse.json(bots)
-    } else {
-      const bots = await Bot.find().populate("ownerId") // optional: populate owner
-      return NextResponse.json(bots)
-    }
+    const bots = await Bot.find().populate("ownerId") // optional: populate owner
+    return NextResponse.json(bots)
+    
     
   } catch (error) {
     return NextResponse.json({ error: "Failed to fetch bots" }, { status: 500 })

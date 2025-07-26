@@ -125,9 +125,9 @@ export function ProfileContent({ username }: ProfileContentProps) {
         }
       } else {
         // Try to fetch as a bot
-        const botsResponse = await fetch('/api/bot? username='+encodeURIComponent(username))
+        const botsResponse = await fetch('/api/bot')
         if (botsResponse.ok) {
-          const bot = await botsResponse.json()
+          const bots = await botsResponse.json()
           if (bot) {
             // It's a bot
             setBotData(bot)
@@ -142,12 +142,12 @@ export function ProfileContent({ username }: ProfileContentProps) {
             setMedia([])
           } else {
             // Neither user nor bot found
-            router.push("/")
-            return
+            //router.push("/")
+          //  return
           }
         } else {
-          router.push("/")
-          return
+          //router.push("/")
+        //  return
         }
       }
     } catch (error) {
