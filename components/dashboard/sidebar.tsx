@@ -41,7 +41,7 @@ export function Sidebar({ isExpand = true, profile, onSignOut, newSidebar ,  con
       href: "/super-access"
     })
   }
-  let finalMenuItems = menuItems;
+let finalMenuItems = menuItems;
 if (newSidebar !== undefined && Array.isArray(newSidebar) && newSidebar.length > 0) {
   finalMenuItems = newSidebar;
 }
