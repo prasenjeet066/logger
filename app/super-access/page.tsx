@@ -41,6 +41,7 @@ interface User {
 export default function SuperAccess() {
   const { data: session, status } = useSession()
   const isMobile = useMobile()
+  
   const router = useRouter()
   const [bots, setBots] = useState<Bot[]>([])
   const [loading, setLoading] = useState(true)
@@ -762,6 +763,7 @@ export default function SuperAccess() {
                 </div>
 
                 {/* Script Section */}
+                
 
                 {/* Script Section */}
                 <div className="space-y-4">
