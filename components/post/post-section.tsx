@@ -21,7 +21,7 @@ interface PostCardProps {
   post: Post
   onLike: (postId: string, isLiked: boolean) => void
   onRepost: (postId: string, isReposted: boolean) => void
-  onReply?: () => void
+  onReply ? : () => void
 }
 
 interface TranslationState {
@@ -41,7 +41,7 @@ const extractFirstUrl = (text: string): string | null => {
 
 const smartTruncate = (text: string, maxLength: number): string => {
   if (text.length <= maxLength) return text
-
+  
   // Try to break at sentence boundary
   const sentences = text.match(/[^.!?]+[.!?]+/g)
   if (sentences) {
@@ -52,7 +52,7 @@ const smartTruncate = (text: string, maxLength: number): string => {
     }
     if (truncated.length > 0) return truncated.trim() + "..."
   }
-
+  
   // Fallback to word boundary
   const words = text.split(" ")
   let truncated = ""
@@ -60,40 +60,40 @@ const smartTruncate = (text: string, maxLength: number): string => {
     if ((truncated + word + " ").length > maxLength) break
     truncated += word + " "
   }
-
+  
   return truncated.trim() + "..."
 }
 
 export function PostSection({ post, onLike, onRepost, onReply }: PostCardProps) {
   const { data: session } = useSession()
   const currentUserId = session?.user?.id
-
+  
   const [showReplyDialog, setShowReplyDialog] = useState(false) // This state is not used in the current render, but kept for potential future use.
   const [showTrim, SetShowTrim] = useState("trim")
   const [repostLoading, setRepostLoading] = useState(false)
-  const [translation, setTranslation] = useState<TranslationState>({
+  const [translation, setTranslation] = useState < TranslationState > ({
     isTranslating: false,
     translatedText: null,
     originalText: post.content,
     targetLang: "bn",
     error: null,
   })
-
+  
   const router = useRouter()
   const pathname = usePathname()
-
+  
   // Memoized values
   const postUrl = useMemo(() => extractFirstUrl(post.content), [post.content])
   const hasMedia = useMemo(() => post.mediaUrls && post.mediaUrls.length > 0, [post.mediaUrls])
   const isPostPage = useMemo(() => pathname.startsWith("/post"), [pathname])
-  const imageRef = useRef<HTMLImageElement>(null)
+  const imageRef = useRef < HTMLImageElement > (null)
   const [imageH, setH] = useState(0)
   const MAX_LENGTH = 100
   const shouldTrim = post.content.length > MAX_LENGTH
   const displayContent = shouldTrim && showTrim === "trim" ? smartTruncate(post.content, MAX_LENGTH) : post.content
-
+  
   // Translation function with better error handling
-  const translateText = useCallback(async (text: string, targetLang = "bn"): Promise<string> => {
+  const translateText = useCallback(async (text: string, targetLang = "bn"): Promise < string > => {
     try {
       const res = await fetch("https://libretranslate.com/translate", {
         method: "POST",
@@ -105,34 +105,34 @@ export function PostSection({ post, onLike, onRepost, onReply }: PostCardProps) 
           format: "text",
         }),
       })
-
+      
       if (!res.ok) {
         throw new Error(`Translation failed: ${res.status}`)
       }
-
+      
       const data = await res.json()
-
+      
       if (data.error) {
         throw new Error(data.error)
       }
-
+      
       return data.translatedText || text
     } catch (error) {
       console.error("Translation error:", error)
       throw new Error("Translation service unavailable")
     }
   }, [])
-
+  
   // Enhanced content formatting with better security
   const formatContent = useCallback((content: string) => {
     const urlRegex = /(https?:\/\/[^\s]+)/g
-
+    
     // Sanitize content first
     const sanitizedContent = DOMPurify.sanitize(content, {
       ALLOWED_TAGS: [],
       ALLOWED_ATTR: [],
     })
-
+    
     return sanitizedContent
       .replace(
         urlRegex,
@@ -147,17 +147,17 @@ export function PostSection({ post, onLike, onRepost, onReply }: PostCardProps) 
         '<span class="text-blue-600 hover:underline cursor-pointer font-medium transition-colors">@$1</span>',
       )
   }, [])
-
+  
   // Enhanced translation handler
   const handlePostTranslate = useCallback(async () => {
     if (translation.isTranslating) return
-
+    
     setTranslation((prev) => ({
       ...prev,
       isTranslating: true,
       error: null,
     }))
-
+    
     try {
       const translatedText = await translateText(post.content, translation.targetLang)
       setTranslation((prev) => ({
@@ -174,7 +174,7 @@ export function PostSection({ post, onLike, onRepost, onReply }: PostCardProps) 
       }))
     }
   }, [post.content, translation.targetLang, translation.isTranslating, translateText])
-
+  
   // Toggle between original and translated text
   const handleToggleTranslation = useCallback(() => {
     if (translation.translatedText) {
@@ -187,22 +187,22 @@ export function PostSection({ post, onLike, onRepost, onReply }: PostCardProps) 
       handlePostTranslate()
     }
   }, [translation.translatedText, handlePostTranslate])
-
+  
   // Reply handler
   const handleReplyClick = useCallback(() => {
     router.push(`/post/${post._id}`)
   }, [router, post._id])
-
+  
   // Enhanced repost handler with better error handling
   const handleRepostClick = useCallback(async () => {
     if (repostLoading || !currentUserId) return
-
+    
     setRepostLoading(true)
     try {
       const response = await fetch(`/api/posts/${post._id}/repost`, {
         method: "POST",
       })
-
+      
       if (!response.ok) {
         throw new Error("Failed to toggle repost")
       }
@@ -214,16 +214,16 @@ export function PostSection({ post, onLike, onRepost, onReply }: PostCardProps) 
       setRepostLoading(false)
     }
   }, [repostLoading, post._id, currentUserId, onRepost])
-
+  
   // Enhanced pin handler
   const handlePinPost = useCallback(async () => {
     if (!currentUserId) return
-
+    
     try {
       const response = await fetch(`/api/posts/${post._id}/pin`, {
         method: "POST",
       })
-
+      
       if (!response.ok) {
         throw new Error("Failed to toggle pin status")
       }
@@ -233,17 +233,17 @@ export function PostSection({ post, onLike, onRepost, onReply }: PostCardProps) 
       console.error("Error pinning post:", error)
     }
   }, [post._id, currentUserId, onReply])
-
+  
   // Enhanced media rendering with loading states
   const renderMedia = useCallback(
     (mediaUrls: string[] | null, mediaType: string | null) => {
       if (!mediaUrls || mediaUrls.length === 0) return null
-
+      
       const handleMediaClick = (url: string, e: React.MouseEvent) => {
         e.stopPropagation()
         window.open(url, "_blank", "noopener,noreferrer")
       }
-
+      
       if (mediaType === "video") {
         return (
           <div className="mt-3 rounded-lg overflow-hidden border">
@@ -259,7 +259,7 @@ export function PostSection({ post, onLike, onRepost, onReply }: PostCardProps) 
           </div>
         )
       }
-
+      
       if (mediaType === "gif") {
         return (
           <div className={`mt-3 grid gap-2 ${mediaUrls.length === 1 ? "grid-cols-1" : "grid-cols-2"}`}>
@@ -285,14 +285,14 @@ export function PostSection({ post, onLike, onRepost, onReply }: PostCardProps) 
           </div>
         )
       }
-
+      
       if (imageRef.current && mediaUrls[0]) {
         getImageRatioFromSrc(mediaUrls[0]).then((ratio) => {
           const height = getHeightFromWidth(imageRef.current?.style.width || "100%", ratio)
           setH(height)
         })
       }
-
+      
       // Default: images
       return (
         <div className={`mt-3 grid gap-2 ${mediaUrls.length === 1 ? "grid-cols-1" : "grid-cols-2"}`}>
@@ -323,7 +323,7 @@ export function PostSection({ post, onLike, onRepost, onReply }: PostCardProps) 
     },
     [imageH],
   )
-
+  
   // Enhanced post click handler
   const handlePostClick = useCallback(() => {
     const pathParts = pathname.split("/")
@@ -332,10 +332,10 @@ export function PostSection({ post, onLike, onRepost, onReply }: PostCardProps) 
       router.push(`/post/${post._id}`)
     }
   }, [pathname, post._id, router])
-
+  
   // Determine what content to display
   const contentToDisplay = translation.translatedText || displayContent
-
+  
   return (
     <article
       className="border-b hover:bg-gray-50 transition-colors cursor-pointer"

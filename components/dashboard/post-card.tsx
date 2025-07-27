@@ -82,13 +82,12 @@ export function PostCard({ post, onLike, onRepost, onReply }: PostCardProps) {
   const router = useRouter()
   const pathname = usePathname()
   const [mentionsPeoples, setMentions] = useState < string[] | null > (null);
-
-const addUniqueMention = (newMention: string) =>
-  setMentions(prev =>
-    prev?.includes(newMention) ?
-    prev :
-    [...(prev ?? []), newMention]
-  );
+  
+  const addUniqueMention = (newMention: string) =>
+    setMentions(prev =>
+      prev?.includes(newMention) ?
+      prev : [...(prev ?? []), newMention]
+    );
   // Memoized values
   const postUrl = useMemo(() => extractFirstUrl(post.content), [post.content])
   const hasMedia = useMemo(() => post.mediaUrls && post.mediaUrls.length > 0, [post.mediaUrls])
@@ -129,19 +128,19 @@ const addUniqueMention = (newMention: string) =>
     }
   }, [])
   const checkTrueMentions = async (username) => {
-  try {
-    const res = await fetch('/api/users/' + encodeURIComponent(username));
-    if (!res.ok) return false; // return false if request failed
-    const data = await res.json();
-    if (data.user) {
-      addUniqueMention(username);
-      return true;
+    try {
+      const res = await fetch('/api/users/' + encodeURIComponent(username));
+      if (!res.ok) return false; // return false if request failed
+      const data = await res.json();
+      if (data.user) {
+        addUniqueMention(username);
+        return true;
+      }
+      return false;
+    } catch (e) {
+      return false;
     }
-    return false;
-  } catch (e) {
-    return false;
-  }
-};
+  };
   // Enhanced content formatting with better security
   const formatContent = useCallback((content: string) => {
     const urlRegex = /(https?:\/\/[^\s]+)/g
@@ -164,10 +163,10 @@ const addUniqueMention = (newMention: string) =>
         }
       )
       .replace(
-        /@([a-zA-Z0-9_]+)/g,(match,m1) =>{
-        checkTrueMentions(m1)
-        return `<span class="text-blue-600 hover:underline cursor-pointer font-medium transition-colors">@${m1}</span>`;
-        
+        /@([a-zA-Z0-9_]+)/g, (match, m1) => {
+          checkTrueMentions(m1)
+          return `<span class="text-blue-600 hover:underline cursor-pointer font-medium transition-colors">@${m1}</span>`;
+          
         }
       )
   }, [])
@@ -387,6 +386,7 @@ const addUniqueMention = (newMention: string) =>
         )}
 
         <div className="flex flex-col gap-3">
+          
           <div className = 'flex flex gap-3'>
           <Link
             href={`/profile/${post.author.username}`}
@@ -404,7 +404,7 @@ const addUniqueMention = (newMention: string) =>
           <div className="flex-1 min-w-0">
             
             <div className="flex flex-col items-left gap-1">
-              <div className='flex flex-row items-center justify-start gap-2'>
+
               <Link
                 href={`/profile/${post.author.username}`}
                 className="hover:underline transition-colors"
@@ -437,9 +437,9 @@ const addUniqueMention = (newMention: string) =>
               </div>
             </div>
 </div>
+
             {/* Post content */}
-           </div>
-           {post.content && (
+                {post.content && (
               <div className="mt-2">
                 <div
                   className="text-gray-900 whitespace-pre-wrap text-sm lg:text-base leading-relaxed"
@@ -584,8 +584,10 @@ const addUniqueMention = (newMention: string) =>
               />
             </div>
           
+           </div>
+       
         </div>
-      </div>
+      
     </article>
   )
 }
