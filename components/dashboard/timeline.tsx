@@ -53,16 +53,22 @@ interface Post {
   repostedBy ? : string
 }
 
-export function Timeline(userId: string) {
+export function Timeline(userId: string , typesOfAlg:string) {
   const [posts, setPosts] = useState < Post[] > ([])
   const [loading, setLoading] = useState(true)
   const [loadingPost, setLoadingPost] = useState(true)
   const [error, setError] = useState < string | null > (null)
+  
   const [currentAlg, setCurrentAlg] = useState('algorithmic');
   const isMobile = useMobile()
   useEffect(() => {
+    ['chronological','algorithmic','trending'].some((al)=>{
+      if (al === typesOfAlg) {
+        setCurrentAlg(al)
+      }
+    })
     fetchPosts()
-  }, [currentAlg])
+  }, [currentAlg,typesOfAlg])
   
   const fetchPosts = async () => {
     try {

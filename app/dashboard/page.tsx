@@ -3,9 +3,9 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth/auth-config"
 import { DashboardWrapper } from "./client-wrapper"
 import {Verification} from "@/components/auth/verification/verification"
-export default async function DashboardPage() {
+export default async function DashboardPage({ searchParams }) {
   const session = await getServerSession(authOptions)
-  
+  const t = searchParams.t || null;
   
   
   // Map session.user properties to what DashboardContent expects
@@ -16,7 +16,7 @@ export default async function DashboardPage() {
     avatarUrl: session.user.avatarUrl,
     
   }
-    return <DashboardWrapper user={user} />
+    return <DashboardWrapper user={user} typesOfAlg={t}/>
   
   
 }

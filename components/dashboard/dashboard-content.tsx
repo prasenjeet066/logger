@@ -28,7 +28,7 @@ interface DashboardContentProps {
   }
 }
 
-export function DashboardContent({ user }: DashboardContentProps) {
+export function DashboardContent({ user, typesOfAlg }: DashboardContentProps) {
   const [profile, setProfile] = useState < IUser | null > (null)
   const [isLoading, setIsLoading] = useState(true)
   //const isMobile = useMobile();
@@ -84,7 +84,7 @@ export function DashboardContent({ user }: DashboardContentProps) {
 
         {/* Main Content */}
         <div className="flex-1 max-w-2xl border-r">
-          <Timeline userId={profile._id} /> {/* Pass MongoDB _id */}
+          <Timeline userId={profile._id} typesOfAlg/> {/* Pass MongoDB _id */}
         </div>
 
         {/* Right Sidebar */}

@@ -13,12 +13,12 @@ interface DashboardWrapperProps {
   }
 }
 
-export function DashboardWrapper({ user }: DashboardWrapperProps) {
+export function DashboardWrapper({ user, typesOfAlg }: DashboardWrapperProps) {
   const isMobile = useMobile()
   
   if (isMobile) {
-    return <DashboardContent user={user} />
+    return <DashboardContent user={user} typesOfAlg/>
   } else {
-    return <WebDashboardContent user={user} />
+    return <WebDashboardContent user={user} typesOfAlg/>
   }
 }
