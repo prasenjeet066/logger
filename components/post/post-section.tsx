@@ -403,7 +403,7 @@ export function PostSection({ post, onLike, onRepost, onReply }: PostCardProps) 
                   {formatDistanceToNow(new Date(post.createdAt), { addSuffix: true })}
                 </time>
               </div>
-              </div>
+            </div>
             </div>
             {/* Post content */}
             {post.content && (
