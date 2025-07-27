@@ -11,6 +11,8 @@ const config: Config = {
   theme: {
     extend: {
       fontFamily: {
+        bold : ['"TikTokSansBold"'],
+        semibold:['"TikTokSansSemi"'],
         racing: ['"Racing Sans One"'],
         raleway: ["var(--font-raleway)"], // Use CSS variable for Raleway
         inconsolata: ["var(--font-inconsolata)"], // Add Inconsolata

@@ -8,7 +8,7 @@
 
 /* Add additional TikTok Sans weights if you have them */
 @font-face {
-  font-family: 'TikTokSans';
+  font-family: 'TikTokSansBold';
   src: url("TikTokSans-Bold.ttf") format('truetype');
   font-weight: 700;
   font-display: swap;
@@ -16,9 +16,8 @@
 }
 
 @font-face {
-  font-family: 'TikTokSans';
-  src: url("TikTokSans-Regular.ttf") format('truetype');
-  font-weight: 500;
+  font-family: 'TikTokSansSemi';
+  src: url("TikTokSans-SemiBold.ttf") format('truetype');
   font-display: swap;
   font-style: normal;
 }
