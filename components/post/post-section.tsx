@@ -338,38 +338,19 @@ export function PostSection({ post, onLike, onRepost, onReply }: PostCardProps) 
   
   return (
     <article
-      className="border-b hover:bg-gray-50 transition-colors cursor-pointer"
+      className={isMobile==true ? "border-b hover:bg-gray-50 transition-colors h-auto cursor-pointer":"space-y-2 hover:bg-gray-50 transition-colors cursor-pointer h-auto rounded-md border-2 border-gray-50 "}
+      onClick={handlePostClick}
       aria-label={`Post by ${post.author.displayName}`}
     >
-      <div className="p-4 flex flex-col">
+      <div className="p-4">
         {/* Repost header */}
-        {post.isReposted && (
-          <div className="flex items-center gap-2 mb-3 text-gray-500 text-sm">
-            <Repeat2 className="h-4 w-4" />
-            <span>
-              Reposted by{" "}
-              <Link
-                href={`/profile/${post.repostedBy}`}
-                className="text-blue-600 hover:underline transition-colors"
-                onClick={(e) => e.stopPropagation()}
-              >
-                @{post.repostedBy}
-              </Link>
-            </span>
-          </div>
-        )}
+        
 
         {/* Pin indicator */}
-        {post.isPinned && (
-          <div className="flex items-center gap-2 mb-3 text-blue-600 text-sm">
-            <Pin className="h-4 w-4" />
-            <span>Pinned Post</span>
-          </div>
-        )}
+        
 
-       <div className="flex flex-col gap-3">
+        <div className="flex flex-col gap-3">
           <div className = 'flex flex gap-3'>
-          
           <Link
             href={`/profile/${post.author.username}`}
             className="flex-shrink-0"
@@ -384,6 +365,7 @@ export function PostSection({ post, onLike, onRepost, onReply }: PostCardProps) 
           </Link>
 
           <div className="flex-1 min-w-0">
+            
             <div className="flex flex-col items-left gap-1">
               <div className='flex flex-row items-center justify-start gap-2'>
               <Link
@@ -396,6 +378,19 @@ export function PostSection({ post, onLike, onRepost, onReply }: PostCardProps) 
                   {post.author.isVerified && <VerificationBadge className="h-4 w-4" size={15} />}
                 </span>
               </Link>
+              {mentionsPeoples!==null && (
+                <div className='flex flex-row items-center gap-2'>
+                  <small className='text-xs text-gray-500'>{"with"}</small>
+                 <Link href ={"profile/"+mentionsPeoples[0]}>
+                      <small>@{mentionsPeoples[0]}</small>
+                      </Link>
+              {mentionsPeoples.length > 1 && (<small> and more {mentionsPeoples.length - 1 }</small>
+                
+              )}
+              
+              </div>
+              )}
+              </div>
               <div className="flex flex-row items-center gap-1 -mt-2">
                 <span className="text-gray-500 text-[10px]">@{post.author.username}</span>
                 <span className="text-gray-500 text-[10px]">·</span>
@@ -404,63 +399,33 @@ export function PostSection({ post, onLike, onRepost, onReply }: PostCardProps) 
                 </time>
               </div>
             </div>
-            </div>
+</div>
             {/* Post content */}
-            {post.content && (
-              <div className="mt-2 mb-3">
+           </div>
+           {post.content && (
+              <div className="mt-2">
                 <div
                   className="text-gray-900 whitespace-pre-wrap text-sm lg:text-base leading-relaxed"
                   dangerouslySetInnerHTML={{ __html: formatContent(contentToDisplay) }}
                 />
 
                 {/* Show more button */}
-                {shouldTrim && (
+                {shouldTrim && !isPostPage && (
                   <button
-                    className="text-blue-600 hover:text-blue-800 hover:underline text-sm mt-2 transition-colors"
+                    className="text-blue-600 rounded-full w-full py-2 text-center border text-sm mt-2 transition-colors"
                     onClick={(e) => {
                       e.stopPropagation()
-                      SetShowTrim(showTrim === "trim" ? "full" : "trim")
+                      router.push(`/post/${post._id}`)
                     }}
                   >
-                    {showTrim === "trim" ? "Show More" : "Show Less"}
+                    Show More
                   </button>
                 )}
               </div>
             )}
 
             {/* Translation controls */}
-            {isPostPage && (
-              <div className="mb-3">
-                <button
-                  className="flex items-center gap-1 text-sm text-gray-600 hover:text-blue-600 transition-colors disabled:opacity-50"
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    handleToggleTranslation()
-                  }}
-                  disabled={translation.isTranslating}
-                >
-                  {translation.isTranslating ? (
-                    <>
-                      <Loader2 className="h-3 w-3 animate-spin" />
-                      <span>Translating...</span>
-                    </>
-                  ) : (
-                    <>
-                      <Languages className="h-3 w-3" />
-                      <span>{translation.translatedText ? "Show Original" : "Translate"}</span>
-                    </>
-                  )}
-                </button>
-
-                {/* Translation error */}
-                {translation.error && (
-                  <div className="flex items-center gap-1 text-sm text-red-600 mt-1">
-                    <AlertCircle className="h-3 w-3" />
-                    <span>{translation.error}</span>
-                  </div>
-                )}
-              </div>
-            )}
+            
 
             {/* Link preview */}
             {!hasMedia && postUrl && (
@@ -471,13 +436,17 @@ export function PostSection({ post, onLike, onRepost, onReply }: PostCardProps) 
 
             {/* Media */}
             {renderMedia(post.mediaUrls, post.mediaType)}
-
+            {post.watch && (
+              <span className='text-xs text-gray-600'>
+                {post.watch} watched
+              </span>
+            )}
             {/* Action buttons */}
             <div className="flex items-center justify-between max-w-sm lg:max-w-md mt-3">
               <Button
                 variant="ghost"
                 size="sm"
-                className="text-gray-500 p-2 rounded-full transition-colors"
+                className="text-gray-500 hover:text-blue-600 hover:bg-blue-50 p-2 rounded-full transition-colors"
                 onClick={(e) => {
                   e.stopPropagation()
                   handleReplyClick()
@@ -546,9 +515,8 @@ export function PostSection({ post, onLike, onRepost, onReply }: PostCardProps) 
                 onPinPost={handlePinPost}
               />
             </div>
-          </div>
+          
         </div>
-            </div>
       </div>
     </article>
   )
