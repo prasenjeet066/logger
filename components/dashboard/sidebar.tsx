@@ -50,7 +50,7 @@ if (newSidebar !== undefined && Array.isArray(newSidebar) && newSidebar.length >
       {/* Close button for mobile */}
       {isMobile && (
       <div className="lg:hidden flex justify-between items-center mb-4 pb-2 border-b">
-        <h1 className="text-xl font-semibold logo-font">Cōdes</h1>
+        <h1 className="text-xl font-semibold logo-font">Zeeta</h1>
         <Button variant="ghost" size="icon" onClick={() => window.dispatchEvent(new Event("closeSidebar"))}>
           <X className="h-5 w-5" />
         </Button>
@@ -59,7 +59,7 @@ if (newSidebar !== undefined && Array.isArray(newSidebar) && newSidebar.length >
 {!isMobile && (
       
       <div className="hidden lg:block mb-6">
-        <h1 className="text-2xl font-semibold logo-font">Cōdes</h1>
+        <h1 className="text-2xl font-semibold logo-font">Zeeta</h1>
       </div>
       )}
 

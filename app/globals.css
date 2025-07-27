@@ -85,7 +85,7 @@
   
   body {
     @apply bg-background text-foreground;
-    font-family: 'TikTokSans' !important;
+    font-family: 'UbuntS' !important;
   }
   
   /* Apply TikTok Sans to all common text elements */
@@ -94,7 +94,7 @@
 
 /* Language-specific fonts */
 .font-english {
-  font-family: 'TikTokSans'
+  font-family: 'UbuntS'
 }
 
 .font-bengali {
@@ -111,7 +111,7 @@
 
 /* Logo font - keep this separate and unchanged */
 .logo-font {
-  font-family: 'Nippo-Medium', sans-serif;
+  font-family: 'TikTokSansBold', sans-serif;
   font-weight: 600;
   color: #121212;
 }

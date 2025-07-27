@@ -26,7 +26,7 @@ export const Header = ({profile,handleSignOut}) => {
                 />
               </SheetContent>
             </Sheet>
-          <h1 className="text-xl font-semibold logo-font">Cōdes</h1>
+          <h1 className="text-xl font-semibold logo-font">Zeeta</h1>
           <div className="flex flex-row w-full items-center gap-4 justify-end">
             
             

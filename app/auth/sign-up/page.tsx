@@ -525,7 +525,7 @@ export default function SignUpPage() {
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
       <Card className="w-full max-w-md shadow-none border-none bg-gray-50">
         <CardHeader className="text-center">
-          <CardTitle className="text-sm font-semibold logo-font">Cōdes</CardTitle>
+          <CardTitle className="text-sm font-semibold logo-font">Zeeta</CardTitle>
 
           {/* Progress Bar */}
           <div className="mt-4">
