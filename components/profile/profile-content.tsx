@@ -125,39 +125,8 @@ export function ProfileContent({ username }: ProfileContentProps) {
           const repostsData = await repostsResponse.json()
           setReposts(repostsData)
         }
-      } else {
-        // Try to fetch as a bot
-        const botsResponse = await fetch('/api/bot')
-        if (botsResponse.ok) {
-          const bots = await botsResponse.json()
-          // Find the bot with matching username
-          const bot = bots.find((bot: BotData) => bot.username === username)
-          
-          if (bot) {
-            // It's a bot
-            setBotData(bot)
-            setProfileData(null)
-            setProfileType('bot')
-            
-            // For bots, we'll show empty posts for now
-            // You can implement bot-specific post fetching here
-            setPosts([])
-            setReplies([])
-            setReposts([])
-            setMedia([])
-          } else {
-            // Neither user nor bot found
-            console.error("Profile not found")
-            // Optionally redirect or show error
-            // router.push("/")
-            // return
-          }
-        } else {
-          console.error("Failed to fetch bots")
-          // router.push("/")
-          // return
-        }
       }
+      
     } catch (error) {
       console.error("Error fetching profile data:", error)
       // router.push("/")
