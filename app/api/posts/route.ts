@@ -10,6 +10,29 @@ import { Like } from "@/lib/mongodb/models/Like" // Import Like model
 import { z } from "zod"
 import { createPostSchema } from "@/lib/validations/post"
 
+// Helper function to call the cron job
+async function triggerCronJob() {
+  try {
+    const baseUrl = process.env.NEXTAUTH_URL || process.env.VERCEL_URL || 'http://localhost:3000'
+    const cronUrl = `${baseUrl}/api/cron-job`
+    
+    const response = await fetch(cronUrl, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    })
+    
+    if (!response.ok) {
+      console.error('Failed to trigger cron job:', response.statusText)
+    } else {
+      console.log('Cron job triggered successfully')
+    }
+  } catch (error) {
+    console.error('Error triggering cron job:', error)
+  }
+}
+
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
@@ -161,7 +184,6 @@ export async function POST(request: NextRequest) {
     })
     
     await post.save()
-    // mention w
     
     // If it's a reply, increment repliesCount on the parent post
     if (post.parentPostId) {
@@ -172,6 +194,14 @@ export async function POST(request: NextRequest) {
     await User.findByIdAndUpdate(user._id, {
       $inc: { postsCount: 1 },
     })
+    
+    // Trigger cron job if the post has mentions (to process bot responses)
+    if (mentions.length > 0) {
+      // Fire and forget - don't wait for the cron job to complete
+      triggerCronJob().catch(error => {
+        console.error('Failed to trigger cron job:', error)
+      })
+    }
     
     // Populate author information for response
     const populatedPost = await Post.findById(post._id).lean()
