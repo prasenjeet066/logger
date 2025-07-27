@@ -62,7 +62,7 @@ export function Timeline(userId: string , typesOfAlg:string) {
   const [currentAlg, setCurrentAlg] = useState('algorithmic');
   const isMobile = useMobile()
   useEffect(() => {
-    ['chronological','algorithmic','trending'].some((al)=>{
+    ['chronological','algorithmic','trending'].map((al)=>{
       if (al === typesOfAlg) {
         setCurrentAlg(al)
       }
