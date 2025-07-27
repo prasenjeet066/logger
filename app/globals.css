@@ -78,9 +78,26 @@
 }
 
 @font-face {
-  font-family: 'mainSans';
-  src: url("/public/fonts/main/TikTokSans-Regular.ttf");
+  font-family: 'TikTokSans';
+  src: url("/public/fonts/main/TikTokSans-Regular.ttf") format('truetype');
   font-weight: 400;
+  font-display: swap;
+  font-style: normal;
+}
+
+/* Add additional TikTok Sans weights if you have them */
+@font-face {
+  font-family: 'TikTokSans';
+  src: url("/public/fonts/main/TikTokSans-Bold.ttf") format('truetype');
+  font-weight: 700;
+  font-display: swap;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'TikTokSans';
+  src: url("/public/fonts/main/TikTokSans-Medium.ttf") format('truetype');
+  font-weight: 500;
   font-display: swap;
   font-style: normal;
 }
@@ -92,15 +109,18 @@
   
   body {
     @apply bg-background text-foreground;
-    font-family: 'mainSans', sans-serif;
-    /* Use Ubuntu as default font for English text */
+    font-family: 'TikTokSans', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+  }
+  
+  /* Apply TikTok Sans to all common text elements */
+  h1, h2, h3, h4, h5, h6, p, span, div, button, input, textarea, label, a {
+    font-family: 'TikTokSans', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
   }
 }
 
 /* Language-specific fonts */
 .font-english {
-  font-family: 'mainSans', sans-serif;
-  /* Use Ubuntu for English text */
+  font-family: 'TikTokSans', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
 }
 
 .font-bengali {
@@ -115,9 +135,9 @@
   font-family: "Noto Sans Arabic", sans-serif;
 }
 
+/* Logo font - keep this separate and unchanged */
 .logo-font {
   font-family: 'Nippo-Medium', sans-serif;
-  /* Keep Bytesized for the logo only */
   font-weight: 600;
   color: #121212;
 }
