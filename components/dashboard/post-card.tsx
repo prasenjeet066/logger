@@ -449,7 +449,7 @@ const addUniqueMention = (newMention: string) =>
                 {/* Show more button */}
                 {shouldTrim && !isPostPage && (
                   <button
-                    className="text-blue-600 hover:text-blue-800 hover:underline text-sm mt-2 transition-colors"
+                    className="text-blue-600 hover:text-blue-800 w-full rounded-full text-center border text-sm mt-2 transition-colors"
                     onClick={(e) => {
                       e.stopPropagation()
                       router.push(`/post/${post._id}`)
