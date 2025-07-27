@@ -325,7 +325,7 @@ export function ProfileContent({ username }: ProfileContentProps) {
             <div className="sticky top-0 bg-white/50 z-30 backdrop-blur-md border-b px-4 py-3">
               <div className="flex items-center gap-2">
                 {profileType === 'bot' && <Bot className="h-5 w-5 text-blue-600" />}
-                <h2 className="text-xl font-bold">
+                <h2 className="text-xl font-semibold">
                   {profileType === 'user' ? profileData?.displayName : botData?.displayName}
                 </h2>
               </div>
@@ -424,7 +424,7 @@ export function ProfileContent({ username }: ProfileContentProps) {
               </div>
 
               <div className="space-y-3 mb-2">
-                <h1 className="text-xl font-bold flex flex-col items-start justify-center gap-2">
+                <h1 className="text-xl font-semibold flex flex-col items-start justify-center gap-2">
                   {profileType === 'user' ? profileData?.displayName : botData?.displayName}
                                     <p className="text-gray-500 font-[TikTokSans] text-sm">
                     @{profileType === 'user' ? profileData?.username : botData?.username}

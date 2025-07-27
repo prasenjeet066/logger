@@ -90,7 +90,7 @@ export default function SignInPage() {
       <h1 className='logo-font text-sm'>Cōdes</h1>
       <Card className="w-full max-w-md border-none shadow-none bg-gray-50">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-bold">Welcome Back</CardTitle>
+          <CardTitle className="text-2xl font-semibold">Welcome Back</CardTitle>
         </CardHeader>
         <CardContent>
           

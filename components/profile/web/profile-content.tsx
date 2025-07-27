@@ -242,7 +242,7 @@ export function WebProfileContent({ username }: ProfileContentProps) {
         <div className="w-full ">
           <div className="border-x bg-white min-h-screen">
             <div className="sticky top-0 bg-white/50 z-30 backdrop-blur-md border-b px-4 py-3">
-              <h2 className="text-xl font-bold">{profileData.displayName}</h2>
+              <h2 className="text-xl font-semibold">{profileData.displayName}</h2>
               <p className="text-sm text-gray-500">{profileData.postsCount} posts</p>
             </div>
 
@@ -310,7 +310,7 @@ export function WebProfileContent({ username }: ProfileContentProps) {
               </div>
 
               <div className="space-y-1">
-                <h1 className="text-xl font-bold flex items-center gap-2">
+                <h1 className="text-xl font-semibold flex items-center gap-2">
                   {profileData.displayName}
                   <p className="text-gray-500 text-sm">@{profileData.username}</p>
                 </h1>

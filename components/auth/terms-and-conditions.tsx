@@ -11,7 +11,7 @@ export function TermsAndConditions({ open, onOpenChange }: TermsAndConditionsPro
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl max-h-[80vh]">
         <DialogHeader>
-          <DialogTitle className="text-xl font-bold">শর্তাবলী এবং গোপনীয়তা নীতি</DialogTitle>
+          <DialogTitle className="text-xl font-semibold">শর্তাবলী এবং গোপনীয়তা নীতি</DialogTitle>
         </DialogHeader>
         <ScrollArea className="h-[60vh] pr-4">
           <div className="space-y-6 text-sm">

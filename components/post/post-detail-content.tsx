@@ -323,7 +323,7 @@ export function PostDetailContent({ postId, userId }: PostDetailContentProps) {
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <div className="flex flex-col">
-            <h1 className="text-xl font-bold">Post</h1>
+            <h1 className="text-xl font-semibold">Post</h1>
             <span className="text-sm text-gray-500">
               {replies.length} {replies.length === 1 ? "reply" : "replies"}
             </span>

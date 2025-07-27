@@ -8,7 +8,7 @@ export function LandingPage() {
       {/* Fixed Header: Clean, minimalist, and responsive */}
       <header className="fixed top-0 left-0 w-full bg-white bg-opacity-95 backdrop-blur-sm shadow-sm z-50 py-4 px-6 md:px-8">
         <div className="container mx-auto flex justify-between items-center max-w-6xl">
-          <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 tracking-tight" style={{ fontFamily: "Alkatra, cursive" }}>
+          <h1 className="text-3xl sm:text-4xl font-semibold text-gray-900 tracking-tight" style={{ fontFamily: "Alkatra, cursive" }}>
             Cōdes
           </h1>
           <nav>

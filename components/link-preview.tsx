@@ -122,7 +122,7 @@ function LinkPreview({ url ,variant}) {
         <p className="text-gray-500 text-[9px] font-medium uppercase mb-1 truncate">
           {preview.domain}
         </p>
-        <h3 className="text-sm font-bold text-gray-800 mb-2 line-clamp-2">
+        <h3 className="text-sm font-semibold text-gray-800 mb-2 line-clamp-2">
           <a
             href={preview.url}
             target="_blank"

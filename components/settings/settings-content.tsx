@@ -132,7 +132,7 @@ export function SettingsContent({ user }: SettingsContentProps) {
           <ArrowLeft className="h-5 w-5" />
         </Button>
         <div>
-          <h1 className="text-2xl font-bold">{getSectionTitle()}</h1>
+          <h1 className="text-2xl font-semibold">{getSectionTitle()}</h1>
           <p className="text-gray-500">Manage your account preferences and settings</p>
         </div>
       </div>

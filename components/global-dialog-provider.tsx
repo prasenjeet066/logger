@@ -276,7 +276,7 @@ function DialogDemo() {
   return (
     <div className="p-6 max-w-4xl mx-auto">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold mb-2">Global Dialog Provider Demo</h1>
+        <h1 className="text-2xl font-semibold mb-2">Global Dialog Provider Demo</h1>
         <p className="text-gray-600">
           This demonstrates a global dialog system that can be used throughout your React application.
         </p>

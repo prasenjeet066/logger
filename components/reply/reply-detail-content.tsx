@@ -126,7 +126,7 @@ export function ReplyDetailContent({ replyId, userId }: ReplyDetailContentProps)
           <Button variant="ghost" size="icon" onClick={() => router.back()}>
             <ArrowLeft className="h-5 w-5" />
           </Button>
-          <h1 className="text-xl font-bold">Reply</h1>
+          <h1 className="text-xl font-semibold">Reply</h1>
         </div>
 
         {/* Parent Post (if exists) */}

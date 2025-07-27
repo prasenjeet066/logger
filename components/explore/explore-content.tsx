@@ -497,7 +497,7 @@ export function ExploreContent({params}) {
               <div className="space-y-6 p-4">
                 {/* What's happening (Trending) Section */}
                 <div className="bg-gray-50 rounded-2xl p-4">
-                  <h2 className="text-xl font-bold mb-4">What's happening</h2>
+                  <h2 className="text-xl font-semibold mb-4">What's happening</h2>
                   <div className="space-y-3">
                     {hashtags.slice(0, 5).map((hashtag, index) => (
                       <div
@@ -525,7 +525,7 @@ export function ExploreContent({params}) {
 
                 {/* Who to Follow Section */}
                 <div className="bg-gray-50 rounded-2xl p-4">
-                  <h2 className="text-xl font-bold mb-4">Who to follow</h2>
+                  <h2 className="text-xl font-semibold mb-4">Who to follow</h2>
                   <div className="space-y-4">
                     {users.slice(0, 3).map((suggestedUser) => (
                       <div key={suggestedUser._id} className="flex items-center justify-between">
@@ -578,7 +578,7 @@ export function ExploreContent({params}) {
         <aside className="hidden lg:block w-80 p-4 space-y-6">
           {/* What's happening (Trending) */}
           <div className="bg-gray-50 rounded-2xl p-4">
-            <h2 className="text-xl font-bold mb-4">What's happening</h2>
+            <h2 className="text-xl font-semibold mb-4">What's happening</h2>
             <div className="space-y-3">
               {hashtags.slice(0, 5).map((hashtag, index) => (
                 <div
@@ -605,7 +605,7 @@ export function ExploreContent({params}) {
           </div>
           {/* Who to Follow */}
           <div className="bg-gray-50 rounded-2xl p-4">
-            <h2 className="text-xl font-bold mb-4">Who to follow</h2>
+            <h2 className="text-xl font-semibold mb-4">Who to follow</h2>
             <div className="space-y-4">
               {users.slice(0, 3).map((suggestedUser) => (
                 <div key={suggestedUser._id} className="flex items-center justify-between">
