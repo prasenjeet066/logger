@@ -424,13 +424,13 @@ export function ProfileContent({ username }: ProfileContentProps) {
               </div>
 
               <div className="space-y-3 mb-2">
-                <h1 className="text-xl font-bold flex items-center gap-2">
+                <h1 className="text-xl font-bold flex flex-col items-start justify-center gap-2">
                   {profileType === 'user' ? profileData?.displayName : botData?.displayName}
-                  <p className="text-gray-500 text-sm">
+                                    <p className="text-gray-500 font-[TikTokSans] text-sm">
                     @{profileType === 'user' ? profileData?.username : botData?.username}
                   </p>
                 </h1>
-
+                
                 {/* Bio/Description */}
                 {((profileType === 'user' && profileData?.bio) || (profileType === 'bot' && botData?.dio)) && (
                   <p className="text-gray-900">
