@@ -1,9 +1,9 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-@import url("/public/fonts/WEB/css/pally.css");
-@import url("/public/fonts/Nippo_Complete/Fonts/WEB/css/nippo.css");
-
+@import url("/fonts/WEB/css/pally.css");
+@import url("/fonts/Nippo_Complete/Fonts/WEB/css/nippo.css");
+@import url("/fonts/main/main.css");
 @layer base {
   :root {
     --background: 0 0% 100%;
@@ -77,30 +77,6 @@
   }
 }
 
-@font-face {
-  font-family: 'TikTokSans';
-  src: url("/fonts/main/TikTokSans-Regular.ttf") format('truetype');
-  font-weight: 400;
-  font-display: swap;
-  font-style: normal;
-}
-
-/* Add additional TikTok Sans weights if you have them */
-@font-face {
-  font-family: 'TikTokSans';
-  src: url("/fonts/main/TikTokSans-Bold.ttf") format('truetype');
-  font-weight: 700;
-  font-display: swap;
-  font-style: normal;
-}
-
-@font-face {
-  font-family: 'TikTokSans';
-  src: url("/fonts/main/TikTokSans-Regular.ttf") format('truetype');
-  font-weight: 500;
-  font-display: swap;
-  font-style: normal;
-}
 
 @layer base {
   * {
