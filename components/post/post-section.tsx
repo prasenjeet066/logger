@@ -367,7 +367,9 @@ export function PostSection({ post, onLike, onRepost, onReply }: PostCardProps) 
           </div>
         )}
 
-        <div className="flex gap-3">
+       <div className="flex flex-col gap-3">
+          <div className = 'flex flex gap-3'>
+          
           <Link
             href={`/profile/${post.author.username}`}
             className="flex-shrink-0"
@@ -402,7 +404,7 @@ export function PostSection({ post, onLike, onRepost, onReply }: PostCardProps) 
                 </time>
               </div>
               </div>
-            
+            </div>
             {/* Post content */}
             {post.content && (
               <div className="mt-2 mb-3">

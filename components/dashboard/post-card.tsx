@@ -82,12 +82,13 @@ export function PostCard({ post, onLike, onRepost, onReply }: PostCardProps) {
   const router = useRouter()
   const pathname = usePathname()
   const [mentionsPeoples, setMentions] = useState < string[] | null > (null);
-  
-  const addUniqueMention = (newMention: string) =>
-    setMentions(prev =>
-      prev?.includes(newMention) ?
-      prev : [...(prev ?? []), newMention]
-    );
+
+const addUniqueMention = (newMention: string) =>
+  setMentions(prev =>
+    prev?.includes(newMention) ?
+    prev :
+    [...(prev ?? []), newMention]
+  );
   // Memoized values
   const postUrl = useMemo(() => extractFirstUrl(post.content), [post.content])
   const hasMedia = useMemo(() => post.mediaUrls && post.mediaUrls.length > 0, [post.mediaUrls])
@@ -128,19 +129,19 @@ export function PostCard({ post, onLike, onRepost, onReply }: PostCardProps) {
     }
   }, [])
   const checkTrueMentions = async (username) => {
-    try {
-      const res = await fetch('/api/users/' + encodeURIComponent(username));
-      if (!res.ok) return false; // return false if request failed
-      const data = await res.json();
-      if (data.user) {
-        addUniqueMention(username);
-        return true;
-      }
-      return false;
-    } catch (e) {
-      return false;
+  try {
+    const res = await fetch('/api/users/' + encodeURIComponent(username));
+    if (!res.ok) return false; // return false if request failed
+    const data = await res.json();
+    if (data.user) {
+      addUniqueMention(username);
+      return true;
     }
-  };
+    return false;
+  } catch (e) {
+    return false;
+  }
+};
   // Enhanced content formatting with better security
   const formatContent = useCallback((content: string) => {
     const urlRegex = /(https?:\/\/[^\s]+)/g
@@ -163,10 +164,10 @@ export function PostCard({ post, onLike, onRepost, onReply }: PostCardProps) {
         }
       )
       .replace(
-        /@([a-zA-Z0-9_]+)/g, (match, m1) => {
-          checkTrueMentions(m1)
-          return `<span class="text-blue-600 hover:underline cursor-pointer font-medium transition-colors">@${m1}</span>`;
-          
+        /@([a-zA-Z0-9_]+)/g,(match,m1) =>{
+        checkTrueMentions(m1)
+        return `<span class="text-blue-600 hover:underline cursor-pointer font-medium transition-colors">@${m1}</span>`;
+        
         }
       )
   }, [])
@@ -386,7 +387,6 @@ export function PostCard({ post, onLike, onRepost, onReply }: PostCardProps) {
         )}
 
         <div className="flex flex-col gap-3">
-          
           <div className = 'flex flex gap-3'>
           <Link
             href={`/profile/${post.author.username}`}
@@ -404,7 +404,7 @@ export function PostCard({ post, onLike, onRepost, onReply }: PostCardProps) {
           <div className="flex-1 min-w-0">
             
             <div className="flex flex-col items-left gap-1">
-
+              <div className='flex flex-row items-center justify-start gap-2'>
               <Link
                 href={`/profile/${post.author.username}`}
                 className="hover:underline transition-colors"
@@ -437,9 +437,9 @@ export function PostCard({ post, onLike, onRepost, onReply }: PostCardProps) {
               </div>
             </div>
 </div>
-
             {/* Post content */}
-                {post.content && (
+           </div>
+           {post.content && (
               <div className="mt-2">
                 <div
                   className="text-gray-900 whitespace-pre-wrap text-sm lg:text-base leading-relaxed"
@@ -449,7 +449,7 @@ export function PostCard({ post, onLike, onRepost, onReply }: PostCardProps) {
                 {/* Show more button */}
                 {shouldTrim && !isPostPage && (
                   <button
-                    className="text-blue-600  hover:text-blue-800 p-2 w-full rounded-full text-center border text-sm mt-2 transition-colors"
+                    className="text-blue-600 rounded-full w-full py-2 text-center border text-sm mt-2 transition-colors"
                     onClick={(e) => {
                       e.stopPropagation()
                       router.push(`/post/${post._id}`)
@@ -462,38 +462,7 @@ export function PostCard({ post, onLike, onRepost, onReply }: PostCardProps) {
             )}
 
             {/* Translation controls */}
-            {isPostPage && (
-              <div className="mb-3">
-                <button
-                  className="flex items-center gap-1 text-sm text-gray-600 hover:text-blue-600 transition-colors disabled:opacity-50"
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    handleToggleTranslation()
-                  }}
-                  disabled={translation.isTranslating}
-                >
-                  {translation.isTranslating ? (
-                    <>
-                      <Loader2 className="h-3 w-3 animate-spin" />
-                      <span>Translating...</span>
-                    </>
-                  ) : (
-                    <>
-                      <Languages className="h-3 w-3" />
-                      <span>{translation.translatedText ? "Show Original" : "Translate"}</span>
-                    </>
-                  )}
-                </button>
-
-                {/* Translation error */}
-                {translation.error && (
-                  <div className="flex items-center gap-1 text-sm text-red-600 mt-1">
-                    <AlertCircle className="h-3 w-3" />
-                    <span>{translation.error}</span>
-                  </div>
-                )}
-              </div>
-            )}
+            
 
             {/* Link preview */}
             {!hasMedia && postUrl && (
@@ -504,13 +473,13 @@ export function PostCard({ post, onLike, onRepost, onReply }: PostCardProps) {
 
             {/* Media */}
             {renderMedia(post.mediaUrls, post.mediaType)}
-
-            {/* Action buttons */}
             {post.watch && (
-            <div>
-              <span className='text-xs mb-[-2px] text-gray-700'>{post.watch} Watches</span>
-            </div>)}
-            <div className="flex items-center justify-between max-w-sm lg:max-w-md">
+              <span className='text-xs text-gray-600'>
+                {post.watch} watched
+              </span>
+            )}
+            {/* Action buttons */}
+            <div className="flex items-center justify-between max-w-sm lg:max-w-md mt-3">
               <Button
                 variant="ghost"
                 size="sm"
@@ -584,10 +553,8 @@ export function PostCard({ post, onLike, onRepost, onReply }: PostCardProps) {
               />
             </div>
           
-           </div>
-       
         </div>
-      
+      </div>
     </article>
   )
 }
