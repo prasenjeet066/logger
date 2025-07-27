@@ -506,6 +506,9 @@ const addUniqueMention = (newMention: string) =>
             {renderMedia(post.mediaUrls, post.mediaType)}
 
             {/* Action buttons */}
+            <div>
+              <span className='text-xs'>{post.watch} Watches</span>
+            </div>
             <div className="flex items-center justify-between max-w-sm lg:max-w-md mt-3">
               <Button
                 variant="ghost"

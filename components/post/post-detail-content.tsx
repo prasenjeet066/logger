@@ -78,7 +78,7 @@ export function PostDetailContent({ postId, userId }: PostDetailContentProps) {
   useEffect(() => {
     fetchCurrentUser()
     fetchPostAndReplies()
-
+    updateWatch()
     // Reset comment state when postId changes
     setCommentState({
       text: "",
@@ -86,7 +86,14 @@ export function PostDetailContent({ postId, userId }: PostDetailContentProps) {
       replyParentId: postId,
     })
   }, [postId, userId])
-
+  const updateWatch = async ()=>{
+    try {
+      const w_ = await fetch('/api/viewUpdate',{method:'POST',body: JSON.stringify({'postId': postId})})
+      
+    } catch (e) {
+      setError(e)
+    }
+  }
   const fetchCurrentUser = async () => {
     try {
       const response = await fetch(`/api/users/current`)

@@ -378,6 +378,7 @@ export async function GET(request: NextRequest) {
       const author = authorMap.get(post.authorId)
       
       return {
+        ...post,
         _id: post._id.toString(),
         content: post.content,
         authorId: post.authorId,
@@ -551,6 +552,7 @@ export async function getTrendingPosts(request: NextRequest) {
       const author = authorMap.get(post.authorId)
       
       return {
+        ...post,
         _id: post._id.toString(),
         content: post.content,
         authorId: post.authorId,

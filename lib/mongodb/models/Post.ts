@@ -14,6 +14,7 @@ export interface IPost extends Document {
   parentPostId?: string
   hashtags: string[]
   mentions: string[]
+  watch: number
   isPinned: boolean
   processed: boolean
   createdAt: Date
@@ -86,6 +87,17 @@ const postSchema = new Schema<IPost>(
       type: Boolean,
       default: false,
     },
+    watch:{
+      type : Number,
+      default: 0,
+      required: true
+    },
+    watchedBy:[
+      {
+        type:String,
+        ref:"User"
+      }
+    ]
   },
   {
     timestamps: true,
@@ -99,5 +111,9 @@ postSchema.index({ hashtags: 1 })
 postSchema.index({ mentions: 1 })
 postSchema.index({ originalPostId: 1 })
 postSchema.index({ parentPostId: 1 })
+postSchema.statics.getWatchByPostId = async function(postId: string): Promise<number | null> {
+  const post = await this.findById(postId).select("watch").lean()
+  return post ? post.watch : null
+}
 
 export const Post = mongoose.models.Post || mongoose.model<IPost>("Post", postSchema)
