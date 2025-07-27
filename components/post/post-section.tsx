@@ -402,7 +402,7 @@ export function PostSection({ post, onLike, onRepost, onReply }: PostCardProps) 
                 </time>
               </div>
               </div>
-            </div>
+            
             {/* Post content */}
             {post.content && (
               <div className="mt-2 mb-3">
@@ -546,7 +546,7 @@ export function PostSection({ post, onLike, onRepost, onReply }: PostCardProps) 
             </div>
           </div>
         </div>
-            
+            </div>
       </div>
     </article>
   )
