@@ -3,6 +3,7 @@
 @tailwind utilities;
 @import url("/public/fonts/WEB/css/pally.css");
 @import url("/public/fonts/Nippo_Complete/Fonts/WEB/css/nippo.css");
+
 @layer base {
   :root {
     --background: 0 0% 100%;
@@ -39,7 +40,7 @@
     --sidebar-border: 220 13% 91%;
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
-
+  
   .dark {
     --background: 222.2 84% 4.9%;
     --foreground: 210 40% 98%;
@@ -76,19 +77,30 @@
   }
 }
 
+@font-face {
+  font-family: 'mainSans';
+  src: url("/public/fonts/main/TikTokSans-Regular.ttf");
+  font-weight: 400;
+  font-display: swap;
+  font-style: normal;
+}
+
 @layer base {
   * {
     @apply border-border;
   }
+  
   body {
     @apply bg-background text-foreground;
-    font-family: 'Pally-Regular', sans-serif; /* Use Ubuntu as default font for English text */
+    font-family: 'mainSans', sans-serif;
+    /* Use Ubuntu as default font for English text */
   }
 }
 
 /* Language-specific fonts */
 .font-english {
-  font-family: 'Pally-Regular', sans-serif; /* Use Ubuntu for English text */
+  font-family: 'mainSans', sans-serif;
+  /* Use Ubuntu for English text */
 }
 
 .font-bengali {
@@ -104,7 +116,8 @@
 }
 
 .logo-font {
-  font-family: 'Nippo-Medium', sans-serif; /* Keep Bytesized for the logo only */
+  font-family: 'Nippo-Medium', sans-serif;
+  /* Keep Bytesized for the logo only */
   font-weight: 600;
   color: #121212;
 }
@@ -191,6 +204,7 @@
   from {
     opacity: 0;
   }
+  
   to {
     opacity: 1;
   }
@@ -201,6 +215,7 @@
     transform: translateY(20px);
     opacity: 0;
   }
+  
   to {
     transform: translateY(0);
     opacity: 1;
