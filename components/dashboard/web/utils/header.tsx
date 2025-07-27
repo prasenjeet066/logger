@@ -109,7 +109,7 @@ export function Header({ profile, sidebarExpand, setSidebarExpand, onCreatePost 
   }
   
   return (
-    <div className="sticky top-0 border-b bg-white/95 z-30 backdrop-blur-md px-4 py-3">
+    <div className="sticky top-0 z-30 px-4 py-3">
       <div className="flex items-center justify-between">
         {/* Left Section */}
         <div className='flex flex-row items-center gap-3'>
