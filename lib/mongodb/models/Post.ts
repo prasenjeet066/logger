@@ -79,7 +79,7 @@ const postSchema = new Schema<IPost>(
       },
     ],
     processed : {
-      type : boolean,
+      type : Boolean,
       default : false
     },
     isPinned: {
