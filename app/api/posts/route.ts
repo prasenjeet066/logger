@@ -199,8 +199,8 @@ export async function POST(request: NextRequest) {
     if (mentions.length > 0) {
       // Fire and forget - don't wait for the cron job to complete
       /**triggerCronJob().catch(error => {
-        console.error('Failed to trigger cron job:', error)**/
-      })
+        console.error('Failed to trigger cron job:', error)
+      })**/
     }
     
     // Populate author information for response
