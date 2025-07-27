@@ -509,7 +509,7 @@ const addUniqueMention = (newMention: string) =>
             <div>
               <span className='text-xs'>{post.watch} Watches</span>
             </div>
-            <div className="flex items-center justify-between max-w-sm lg:max-w-md mt-3">
+            <div className="flex items-center justify-between max-w-sm lg:max-w-md">
               <Button
                 variant="ghost"
                 size="sm"
