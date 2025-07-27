@@ -47,7 +47,7 @@ if (newSidebar !== undefined && Array.isArray(newSidebar) && newSidebar.length >
 }
   return (
     
-    <div className={isMobile ? "h-full flex flex-col p-3 z-50" : "h-auto flex flex-col p-3 z-50 bg-white rounded-lg m-4"}>
+    <div className={isMobile ? "h-full flex flex-col p-3 z-50" : "h-auto flex flex-col p-3 z-50 bg-white rounded-lg "}>
       {/* Close button for mobile */}
       {isMobile && (
       <div className="lg:hidden flex justify-between items-center mb-4 pb-2 border-b">
