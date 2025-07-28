@@ -1,15 +1,23 @@
 "use client"
 
+import { useEffect, useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 
 export function TrendingHashtags() {
-  const trendingTags = [
-    { tag: "প্রযুক্তি", posts: 1234 },
-    { tag: "ডিজাইন", posts: 856 },
-    { tag: "স্টার্টআপ", posts: 642 },
-    { tag: "কোডিং", posts: 523 },
-    { tag: "কৃত্রিমবুদ্ধিমত্তা", posts: 445 },
-  ]
+  const [trendingTags, setTrendingTags] = useState<{ tag: string; posts: number }[]>([])
+
+  useEffect(() => {
+    async function fetchTags() {
+      try {
+        const res = await fetch("/api/hashtags/trending")
+        const data = await res.json()
+        setTrendingTags(data)
+      } catch (error) {
+        console.error("Failed to load trending hashtags", error)
+      }
+    }
+    fetchTags()
+  }, [])
 
   return (
     <Card className="bengali-font">

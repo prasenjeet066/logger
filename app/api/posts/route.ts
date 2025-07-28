@@ -7,6 +7,7 @@ import { Post } from "@/lib/mongodb/models/Post"
 import { User } from "@/lib/mongodb/models/User"
 import { Follow } from "@/lib/mongodb/models/Follow"
 import { Like } from "@/lib/mongodb/models/Like" // Import Like model
+import { PostHashtag } from '@/lib/mongodb/models/PostHashtag'
 import { z } from "zod"
 import { createPostSchema } from "@/lib/validations/post"
 
@@ -164,9 +165,10 @@ export async function POST(request: NextRequest) {
     const validatedData = createPostSchema.parse(body)
     
     // Extract hashtags and mentions
-    const hashtags = (validatedData.content.match(/#[a-zA-Z0-9_\u0980-\u09FF]+/g) || []).map((tag) =>
+    let hashtags = (validatedData.content.match(/#[a-zA-Z0-9_\u0980-\u09FF]+/g) || []).map((tag) =>
       tag.slice(1).toLowerCase(),
     )
+    hashtags = [...new Set(hashtags)];
     
     const mentions = (validatedData.content.match(/@[a-zA-Z0-9_]+/g) || []).map((mention) =>
       mention.slice(1).toLowerCase(),
@@ -194,7 +196,17 @@ export async function POST(request: NextRequest) {
     await User.findByIdAndUpdate(user._id, {
       $inc: { postsCount: 1 },
     })
-    
+    //  Insert hashtags into PostHashtag collection
+    if (hashtags.length > 0) {
+      await Promise.all(
+        hashtags.map((hashtag) =>
+          new PostHashtag({
+            postId: post._id.toString(),
+            hashtagId: hashtag,
+          }).save()
+        )
+      )
+    }
     // Trigger cron job if the post has mentions (to process bot responses)
     if (mentions.length > 0) {
       // Fire and forget - don't wait for the cron job to complete
