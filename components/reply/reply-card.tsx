@@ -69,7 +69,7 @@ interface ReplyPreviewProps {
 
 const ReplyPreview = ({ reply, index, total }: ReplyPreviewProps) => {
   return (
-    <div className="rounded-lg p-3 mb-2 last:mb-0">
+    <div className="rounded-lg p-3 mb-2 -mr-1 last:mb-0">
       <div className="flex gap-3">
         <Link href={`/profile/${reply.author.username}`} className="flex-shrink-0" onClick={(e) => e.stopPropagation()}>
           <Avatar className="h-6 w-6 border-2 border-white">

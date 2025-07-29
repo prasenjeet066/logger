@@ -335,12 +335,12 @@ export function ProfileContent({ username }: ProfileContentProps) {
             </div>
 
             {/* Cover Image */}
-            <div className="relative">
+            <div className="relative p-4">
               <div
-                className={`w-full h-48 ${
+                className={`w-full h-48 rounded-lg ${
                   profileType === 'bot' 
-                    ? 'bg-gradient-to-r from-blue-500 to-purple-600' 
-                    : 'bg-gradient-to-r from-blue-400 to-purple-500'
+                    ? 'bg-gray-100' 
+                    : 'bg-gray-100'
                 }`}
                 style={{
                   backgroundImage: profileType === 'user' 
@@ -356,7 +356,7 @@ export function ProfileContent({ username }: ProfileContentProps) {
             <div className="p-4 border-b relative">
               <div className="flex items-start justify-between mb-4">
                 <div className="flex flex-col items-center justify-center">
-                  <Avatar className="w-20 h-20 -mt-10 border-4 border-white" onClick={() => {
+                  <Avatar className="w-24 h-24 -mt-10 border-4 border-white" onClick={() => {
                     const avatarUrl = profileType === 'user' ? profileData?.avatarUrl : botData?.avatarUrl
                     if (avatarUrl) setImageViewerOpen(avatarUrl)
                   }}>
