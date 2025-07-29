@@ -147,7 +147,7 @@ export function ProfileContent({ username }: ProfileContentProps) {
   useEffect(() => {
     fetchPinnedPost()
     fetchProfileData()
-  }, [fetchProfileData])
+  }, [fetchProfileData,fetchPinnedPost])
   
   const handleFollow = async () => {
     if (profileType === 'bot' || !session?.user) return
