@@ -9,10 +9,15 @@ export async function GET(request: NextRequest) {
     // Aggregate top 10 trending hashtags based on count of usage in PostHashtag
     const trendingHashtags = await PostHashtag.aggregate([
       {
+        $match: {
+          hashtagName: { $nin: [null, ""] }
+        }
+      },
+      {
         $group: {
-          _id: "$hashtagName", // group by hashtagName
-          postsCount: { $sum: 1 } // count how many times it appears
-        },
+          _id: "$hashtagName",
+          postsCount: { $sum: 1 }
+        }
       },
       { $sort: { postsCount: -1 } },
       { $limit: 10 }
