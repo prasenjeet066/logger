@@ -54,7 +54,7 @@ interface Post {
   repostedBy ? : string
 }
 
-export function Timeline(userId: string , typesOfAlg:string) {
+export function Timeline(userId: string, typesOfAlg: string) {
   const [posts, setPosts] = useState < Post[] > ([])
   const [loading, setLoading] = useState(true)
   const [loadingPost, setLoadingPost] = useState(true)
@@ -63,13 +63,13 @@ export function Timeline(userId: string , typesOfAlg:string) {
   const [currentAlg, setCurrentAlg] = useState('algorithmic');
   const isMobile = useMobile()
   useEffect(() => {
-    ['chronological','algorithmic','trending'].map((al)=>{
+    ['chronological', 'algorithmic', 'trending'].map((al) => {
       if (al === typesOfAlg) {
         setCurrentAlg(al)
       }
     })
     fetchPosts()
-  }, [currentAlg,typesOfAlg])
+  }, [currentAlg, typesOfAlg])
   
   const fetchPosts = async () => {
     try {
@@ -187,8 +187,10 @@ export function Timeline(userId: string , typesOfAlg:string) {
       </div>
         </>
       ) : (
+      <>
+      <SuggestedUsers/>
       <div>
-        <SuggestedUsers/>
+
       {posts.map((post) => (
         <PostCard
           key={post._id}
@@ -199,7 +201,7 @@ export function Timeline(userId: string , typesOfAlg:string) {
         />
       ))}
       </div>
-      
+      </>
     )}
     </div>
   )

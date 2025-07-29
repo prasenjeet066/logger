@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth/auth-config"
-import { SettingsContent } from "@/components/settings/settings-content"
+import { SettingsContent } from "@/components/settings/settings.tsx"
 
 export default async function SettingsPage() {
   const session = await getServerSession(authOptions)

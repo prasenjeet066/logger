@@ -124,7 +124,7 @@ const SuggestedUsers: React.FC < SuggestedUsersProps > = ({ className = '' }) =>
         <h1 className='font-semibold text-gray-700 text-sm'>Suggestions for you</h1>
       </div>
       {/* Use overflow-x-auto for horizontal scroll only when needed */}
-      <div className='flex flex-row items-center gap-2 overflow-x-auto p-2'>
+      <div className='flex flex-row items-center gap-2 overflow-x-auto p-2 border'>
         {users.map((user) => (
           // **CRITICAL FIX**: Added the `key` prop for list rendering.
           <div key={user._id} className='flex flex-shrink-0 flex-col items-center justify-center p-3 w-40 text-center space-y-1'>
@@ -135,7 +135,7 @@ const SuggestedUsers: React.FC < SuggestedUsersProps > = ({ className = '' }) =>
               </AvatarFallback>
             </Avatar>
             <h2 className='text-md font-semibold truncate w-full' title={user.displayName}>
-              {user.displayName.split(' ').length > 0 ? user.displayName.split(' ')[0]  : user.displayName}
+              {user.displayName}
             </h2>
             <div className="h-4"> {/* Placeholder to prevent layout shift */}
               <MutualFollowers targetUsername={user.username} />
