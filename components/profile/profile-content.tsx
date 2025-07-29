@@ -238,25 +238,46 @@ export function ProfileContent({ username }: ProfileContentProps) {
   const currentProfile = profileType === 'user' ? profileData : botData
   const isOwnProfile = profileType === 'user' && profileData?._id === currentUser?._id
   
-  const renderTabContent = (tabPosts: Post[], emptyMessage: string) => (
+  const renderTabContent = (tabPosts: Post[], emptyMessage: string) => {
+  if (tabPosts.length === 0) {
+    return (
+      <div className="text-center py-8 text-gray-500">
+        <p>{emptyMessage}</p>
+      </div>
+    );
+  }
+  
+  // Separate pinned posts (if you have isPinned field in Post type)
+  const pinnedPosts = tabPosts.filter((post) => post.isPinned);
+  const otherPosts = tabPosts.filter((post) => !post.isPinned);
+  
+  return (
     <div>
-      {tabPosts.length === 0 ? (
-        <div className="text-center py-8 text-gray-500">
-          <p>{emptyMessage}</p>
-        </div>
-      ) : (
-        tabPosts.map((post) => (
-          <PostCard
-            key={post._id}
-            post={post}
-            onLike={handleLike}
-            onRepost={handleRepost}
-            onReply={fetchProfileData}
-          />
-        ))
-      )}
+     <div className = 'flex items-center text-xs'>
+       <small>{"Pinned Post"}</small>
+     </div>
+      {pinnedPosts.map((post) => (
+        <PostCard
+          key={post._id}
+          post={post}
+          onLike={handleLike}
+          onRepost={handleRepost}
+          onReply={fetchProfileData}
+        />
+      ))}
+
+      {otherPosts.map((post) => (
+        <PostCard
+          key={post._id}
+          post={post}
+          onLike={handleLike}
+          onRepost={handleRepost}
+          onReply={fetchProfileData}
+        />
+      ))}
     </div>
-  )
+  );
+};
 
   // Bot-specific render method
   const renderBotInfo = () => {

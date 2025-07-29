@@ -23,6 +23,7 @@ export interface IUser extends Document {
   botId?: string // Reference to bot if userType is 'bot'
   createdAt: Date
   updatedAt: Date
+  pinnedPostId: string
   emailVerified?: Date
   resetPasswordToken?: string
   resetPasswordExpires?: Date
@@ -79,6 +80,11 @@ const userSchema = new Schema<IUser>(
       type: String,
       maxlength: 100,
       default: "",
+    },
+    pinnedPostId: {
+      type: Schema.Types.ObjectId,
+      ref: "Post",
+      default: null
     },
     isVerified: {
       type: Boolean,
