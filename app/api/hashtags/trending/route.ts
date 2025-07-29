@@ -1,32 +1,21 @@
-import { NextResponse } from "next/server"
+import { type NextRequest, NextResponse } from "next/server"
 import connectDB from "@/lib/mongodb/connection"
-import { PostHashtag } from "@/lib/mongodb/models/PostHashtag"
+import { Hashtag } from "@/lib/mongodb/models/Hashtag"
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
     await connectDB()
-    
-    // Aggregate hashtags and count how many times each appears
-    const trending = await PostHashtag.aggregate([
-      {
-        $group: {
-          _id: "$hashtagName",
-          posts: { $sum: 1 }
-        }
-      },
-      { $sort: { posts: -1 } },
-      { $limit: 10 }
-    ])
-    
-    // Format response
+
+    const trendingHashtags = await Hashtag.find().sort({ postsCount: -1 }).limit(10).lean()
+
     return NextResponse.json(
-      trending.map((item) => ({
-        tag: item._id,
-        posts: item.posts,
-      }))
+      trendingHashtags.map((hashtag) => ({
+        ...hashtag,
+        _id: hashtag._id.toString(),
+      })),
     )
   } catch (error) {
-    console.error("Trending hashtags error:", error)
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+    console.error("Error fetching trending hashtags:", error)
+    return NextResponse.json({ error: "Failed to fetch trending hashtags" }, { status: 500 })
   }
 }
