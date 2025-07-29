@@ -119,9 +119,10 @@ const SuggestedUsers: React.FC < SuggestedUsersProps > = ({ className = '' }) =>
   }
   
   return (
-    <div className={`bg-white rounded-xl border border-gray-200 overflow-hidden ${className}`}>
+    <div className={`bg-white rounded-xl border-b border-gray-200 overflow-hidden ${className}`}>
      <div className =' flex flex-row items-center justify-between'>
-       <h1 className='text-md'>
+       
+       <h1 className='p-3'>
          Introduce With them
        </h1>
        
@@ -129,8 +130,8 @@ const SuggestedUsers: React.FC < SuggestedUsersProps > = ({ className = '' }) =>
      <div className=  'flex flex-row items-center gap-2 overflow-scroll'>
        {
          users.map((user)=>(
-           <div className = 'flex flex-col items-center justify-center'>
-               <Avatar className="cursor-pointer h-6 w-6 ring-2 ring-white border-2 border-gray-200 hover:ring-blue-200 transition-all">
+           <div className = 'flex flex-col items-center justify-center p-2'>
+               <Avatar className="cursor-pointer h-20 w-20  transition-all">
               <AvatarImage src={user.avatarUrl || undefined} alt={`${user.displayName}'s avatar`} />
               <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white">
                 {user.displayName?.charAt(0)?.toUpperCase() || "U"}
@@ -141,7 +142,7 @@ const SuggestedUsers: React.FC < SuggestedUsersProps > = ({ className = '' }) =>
             </h1>
             <small className='text-xs'>@{user.username}</small>
             <MutualFollowers targetUsername={user!.username}/>
-            <button className='bg-black text-white p-2 px-4 rounded-full'>Follow Him</button>
+            <button className='bg-black text-white text-sm p-2 px-4 rounded-full'>Follow Him</button>
            </div>
          ))
        }

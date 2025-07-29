@@ -265,7 +265,7 @@ export function ReplyCard({ post, onLike, onRepost }: PostCardProps) {
             className="flex-shrink-0 relative z-10"
             onClick={(e) => e.stopPropagation()}
           >
-            <Avatar className="cursor-pointer h-6 w-6 ring-2 ring-white border-2 border-gray-200 hover:ring-blue-200 transition-all">
+            <Avatar className="cursor-pointer h-8 w-8 ring-2 ring-white border-2 border-gray-200 hover:ring-blue-200 transition-all">
               <AvatarImage src={post.author.avatarUrl || undefined} alt={`${post.author.displayName}'s avatar`} />
               <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white">
                 {post.author.displayName?.charAt(0)?.toUpperCase() || "U"}
