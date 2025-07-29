@@ -1,19 +1,28 @@
 import { NextResponse } from "next/server"
 import connectDB from "@/lib/mongodb/connection"
-import { Hashtag } from "@/lib/mongodb/models/Hashtag"
+import { PostHashtag } from "@/lib/mongodb/models/PostHashtag"
 
 export async function GET() {
   try {
     await connectDB()
-    const hashtags = await Hashtag.find()
-      .sort({ postsCount: -1 })
-      .limit(10)
-      .lean()
-
+    
+    // Aggregate hashtags and count how many times each appears
+    const trending = await PostHashtag.aggregate([
+      {
+        $group: {
+          _id: "$hashtagName",
+          posts: { $sum: 1 }
+        }
+      },
+      { $sort: { posts: -1 } },
+      { $limit: 10 }
+    ])
+    
+    // Format response
     return NextResponse.json(
-      hashtags.map((tag) => ({
-        tag: tag.name,
-        posts: tag.postsCount,
+      trending.map((item) => ({
+        tag: item._id,
+        posts: item.posts,
       }))
     )
   } catch (error) {
