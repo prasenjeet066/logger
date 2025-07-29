@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"
 import { PostCard } from "./post-card"
 import { useMobile } from "@/hooks/use-mobile"
 import { Spinner } from "@/components/loader/spinner"
+import SuggestedUsers from "@/components/dashboard/suggestions"
 // Get user's personalized timeline
 /*
 const timeline = await getPersonalizedTimeline(
@@ -187,6 +188,7 @@ export function Timeline(userId: string , typesOfAlg:string) {
         </>
       ) : (
       <div>
+        <SuggestedUsers/>
       {posts.map((post) => (
         <PostCard
           key={post._id}

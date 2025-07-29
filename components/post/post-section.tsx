@@ -342,6 +342,7 @@ export function PostSection({ post, onLike, onRepost, onReply }: PostCardProps) 
       aria-label={`Post by ${post.author.displayName}`}
     >
       <div className="p-4 flex flex-col">
+        <div>
         {/* Repost header */}
         {post.isReposted && (
           <div className="flex items-center gap-2 mb-3 text-gray-500 text-sm">
@@ -401,7 +402,8 @@ export function PostSection({ post, onLike, onRepost, onReply }: PostCardProps) 
                 </time>
               </div>
             </div>
-
+            </div>
+            <div className='w-full'>
             {/* Post content */}
             {post.content && (
               <div className="mt-2 mb-3">
@@ -413,7 +415,7 @@ export function PostSection({ post, onLike, onRepost, onReply }: PostCardProps) 
                 {/* Show more button */}
                 {shouldTrim && (
                   <button
-                    className="text-blue-600 hover:text-blue-800 hover:underline text-sm mt-2 transition-colors"
+                    className="text-blue-600 border rounded-full w-full py-2 text-sm mt-2 transition-colors"
                     onClick={(e) => {
                       e.stopPropagation()
                       SetShowTrim(showTrim === "trim" ? "full" : "trim")
@@ -426,7 +428,7 @@ export function PostSection({ post, onLike, onRepost, onReply }: PostCardProps) 
             )}
 
             {/* Translation controls */}
-            {isPostPage && (
+            
               <div className="mb-3">
                 <button
                   className="flex items-center gap-1 text-sm text-gray-600 hover:text-blue-600 transition-colors disabled:opacity-50"
@@ -457,7 +459,7 @@ export function PostSection({ post, onLike, onRepost, onReply }: PostCardProps) 
                   </div>
                 )}
               </div>
-            )}
+            
 
             {/* Link preview */}
             {!hasMedia && postUrl && (
@@ -544,6 +546,7 @@ export function PostSection({ post, onLike, onRepost, onReply }: PostCardProps) 
               />
             </div>
           </div>
+        </div>
         </div>
       </div>
     </article>
