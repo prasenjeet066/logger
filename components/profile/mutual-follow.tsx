@@ -18,9 +18,10 @@ interface MutualFollowersProps {
   targetUsername: string
   targetUserId: string
   targetDisplayName: string
+  type ? : 'center' | undefined
 }
 
-export function MutualFollowers({ targetUsername, targetUserId, targetDisplayName }: MutualFollowersProps) {
+export function MutualFollowers({ targetUsername, targetUserId, targetDisplayName, type }: MutualFollowersProps) {
   const { data: session } = useSession()
   const [mutualFollowers, setMutualFollowers] = useState < MutualFollower[] > ([])
   const [totalCount, setTotalCount] = useState(0)
@@ -63,6 +64,8 @@ export function MutualFollowers({ targetUsername, targetUserId, targetDisplayNam
   const remainingCount = totalCount - displayFollowers.length
   return (
     <div className="flex items-center gap-2">
+      {type!== 'center' ? (
+      <>
       <div className="flex -space-x-2">
         {displayFollowers.map((follower) => (
           <Link key={follower._id} href={`/${follower.username}`}>
@@ -93,7 +96,30 @@ export function MutualFollowers({ targetUsername, targetUserId, targetDisplayNam
           )}
         </span>
         <span> follow{totalCount === 1 ? 's' : ''} {targetDisplayName}</span>
-      </div>
+      </div></>): (
+        <>
+          <div className = 'flex flex-col items-center justify-center'>
+            <div className='flrx flex-row items-center justify-center'>
+            {
+              displayFollowers.map((follower)=>(
+                            <Avatar className="w-4 h-4 border-2 border-white hover:scale-110 transition-transform cursor-pointer -m-1 border border-white">
+              <AvatarImage src={follower.avatarUrl || undefined} />
+              <AvatarFallback className="text-xs">
+                {follower.displayName?.charAt(0)?.toUpperCase() || "U"}
+              </AvatarFallback>
+            </Avatar>
+              ))
+          
+            }
+            </div>
+            <small>
+              {displayFollowers.map((followers)=>(
+                <>{followers.displayName + " " } </>
+              ))}
+            </small>
+          </div>
+        </>
+      )}
     </div>
   )
 }

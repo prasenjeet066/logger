@@ -74,8 +74,7 @@ const SuggestedUsers: React.FC < SuggestedUsersProps > = ({ className = '' }) =>
             ...user,
             isFollowing: action === 'follow',
             followersCount: action === 'follow' ?
-              user.followersCount + 1 :
-              Math.max(0, user.followersCount - 1),
+              user.followersCount + 1 : Math.max(0, user.followersCount - 1),
           };
         }
         return user;
@@ -124,11 +123,11 @@ const SuggestedUsers: React.FC < SuggestedUsersProps > = ({ className = '' }) =>
         <h1 className='font-semibold text-gray-700 text-sm'>Suggestions for you</h1>
       </div>
       {/* Use overflow-x-auto for horizontal scroll only when needed */}
-      <div className='flex flex-row items-center gap-2 overflow-x-auto p-2'>
+      <div className='flex flex-row items-center gap-2 overflow-x-auto p-2 '>
         {users.map((user) => (
           // **CRITICAL FIX**: Added the `key` prop for list rendering.
-          <div key={user._id} className='flex border flex-shrink-0 flex-col items-center justify-center p-3 w-40 text-center space-y-1'>
-            <Avatar className="cursor-pointer h-16 w-16 transition-all">
+          <div key={user._id} className='flex border flex-shrink-0 flex-col items-center rounded-lg justify-center p-3 w-40 text-center space-y-1'>
+            <Avatar className="cursor-pointer h-16 w-16">
               <AvatarImage src={user.avatarUrl || undefined} alt={`${user.displayName}'s avatar`} />
               <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white">
                 {user.displayName?.charAt(0)?.toUpperCase() || "U"}
@@ -138,30 +137,15 @@ const SuggestedUsers: React.FC < SuggestedUsersProps > = ({ className = '' }) =>
               {user.displayName}
             </h2>
             <div className="h-4"> {/* Placeholder to prevent layout shift */}
-              <MutualFollowers targetUsername={user.username} />
+              <MutualFollowers targetUsername={user.username}  type='center'/>
             </div>
 
             {/* --- DYNAMIC BUTTON LOGIC --- */}
-            <button
-              onClick={() => handleToggleFollow(user._id, user.isFollowing ? 'unfollow' : 'follow')}
-              disabled={followingLoading[user._id]}
-              className={`mt-2  flex items-center justify-center text-xs p-2 px-4 rounded-full font-bold transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
-                user.isFollowing
-                  ? 'bg-gray-200 text-black hover:bg-gray-300'
-                  : 'bg-black text-white hover:bg-gray-800'
-              }`}
-            >
-              {followingLoading[user._id] ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : user.isFollowing ? (
-                <>
-                  <UserCheck className="w-4 h-4 mr-1" /> Following
-                </>
-              ) : (
+<button className=' rounded-full text-center bg-yellow-500 text-gray-800 p-2 py-4'>
                 <>
                   <UserPlus className="w-4 h-4 mr-1" /> Follow
                 </>
-              )}
+            {"Add Follow"}
             </button>
           </div>
         ))}
