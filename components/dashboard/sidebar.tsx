@@ -47,7 +47,7 @@ if (newSidebar !== undefined && Array.isArray(newSidebar) && newSidebar.length >
 }
   return (
     
-    <div className={isMobile ? "h-full flex flex-col p-3 z-50" : "h-auto flex flex-col p-3 z-50 bg-white rounded-lg "}>
+    <div className={isMobile ? "h-full w-auto flex flex-col p-3 z-50" : "h-auto flex flex-col p-3 z-50 bg-white rounded-lg "}>
       {/* Close button for mobile */}
       {isMobile && (
       <div className="lg:hidden flex justify-between items-center mb-4 pb-2 border-b">
@@ -103,7 +103,7 @@ if (newSidebar !== undefined && Array.isArray(newSidebar) && newSidebar.length >
         
         <Button
           variant="ghost"
-          className="w-full justify-start mt-2 text-red-600 hover:text-red-700 hover:bg-red-50 text-sm"
+          className="w-full justify-start mt-2 text-red-600 text-sm"
           onClick={onSignOut}
         >
           <LogOut className="mr-3 h-4 w-4" />
