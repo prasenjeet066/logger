@@ -126,22 +126,22 @@ const SuggestedUsers: React.FC < SuggestedUsersProps > = ({ className = '' }) =>
       <div className='flex flex-row items-center gap-2 overflow-x-auto p-2 '>
         {users.map((user) => (
           // **CRITICAL FIX**: Added the `key` prop for list rendering.
-          <div key={user._id} className='flex border flex-shrink-0 flex-col items-center rounded-lg justify-center p-3 w-40 text-center space-y-1'>
+          <div key={user._id} className='flex border flex-shrink-0 flex-col items-center rounded-lg justify-center p-3  text-center space-y-1'>
             <Avatar className="cursor-pointer h-16 w-16">
               <AvatarImage src={user.avatarUrl || undefined} alt={`${user.displayName}'s avatar`} />
               <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white">
                 {user.displayName?.charAt(0)?.toUpperCase() || "U"}
               </AvatarFallback>
             </Avatar>
-            <h2 className='text-md font-semibold truncate w-full' title={user.displayName}>
+            <h2 className='text-md font-semibold truncate w-full text-sm' title={user.displayName}>
               {user.displayName}
             </h2>
             <div className="h-4"> {/* Placeholder to prevent layout shift */}
               <MutualFollowers targetUsername={user.username}  type='center'/>
             </div>
 
-            {/* --- DYNAMIC BUTTON LOGIC --- */}<div className='flex flex-row items-center justify-center'>
-<button className=' rounded-full text-center bg-gray-800 text-white p-2 px-4'>
+            {/* --- DYNAMIC BUTTON LOGIC --- */}<div className='flex flex-row text-xs items-center justify-center'>
+<button className='w-full rounded-full text-center bg-gray-800 text-white p-2 px-4'>
                 <>
                   <UserPlus className="w-4 h-4 mr-1" /> Follow
                 </>
