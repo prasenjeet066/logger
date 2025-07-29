@@ -72,7 +72,7 @@ const ReplyPreview = ({ reply, index, total }: ReplyPreviewProps) => {
     <div className="rounded-lg p-3 mb-2 last:mb-0">
       <div className="flex gap-3">
         <Link href={`/profile/${reply.author.username}`} className="flex-shrink-0" onClick={(e) => e.stopPropagation()}>
-          <Avatar className="h-8 w-8 border-2 border-white">
+          <Avatar className="h-6 w-6 border-2 border-white">
             <AvatarImage src={reply.author.avatarUrl || undefined} alt={`${reply.author.displayName}'s avatar`} />
             <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white text-xs">
               {reply.author.displayName?.charAt(0)?.toUpperCase() || "U"}
@@ -81,13 +81,13 @@ const ReplyPreview = ({ reply, index, total }: ReplyPreviewProps) => {
         </Link>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
-            <span className="font-medium text-sm">{reply.author.displayName}</span>
+            <span className="font-medium text-xs">{reply.author.displayName}</span>
             <span className="text-gray-500 text-xs">·</span>
             <time className="text-gray-500 text-xs" dateTime={reply.createdAt}>
               {formatDistanceToNow(new Date(reply.createdAt), { addSuffix: false })}
             </time>
           </div>
-          <p className="text-sm text-gray-700 mt-1 line-clamp-2">{reply.content}</p>
+          <p className="text-xs text-gray-700 mt-1 line-clamp-2">{reply.content}</p>
         </div>
       </div>
     </div>
@@ -265,7 +265,7 @@ export function ReplyCard({ post, onLike, onRepost }: PostCardProps) {
             className="flex-shrink-0 relative z-10"
             onClick={(e) => e.stopPropagation()}
           >
-            <Avatar className="cursor-pointer h-12 w-12 ring-2 ring-white border-2 border-gray-200 hover:ring-blue-200 transition-all">
+            <Avatar className="cursor-pointer h-6 w-6 ring-2 ring-white border-2 border-gray-200 hover:ring-blue-200 transition-all">
               <AvatarImage src={post.author.avatarUrl || undefined} alt={`${post.author.displayName}'s avatar`} />
               <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white">
                 {post.author.displayName?.charAt(0)?.toUpperCase() || "U"}
@@ -280,15 +280,15 @@ export function ReplyCard({ post, onLike, onRepost }: PostCardProps) {
                 className="hover:underline transition-colors"
                 onClick={(e) => e.stopPropagation()}
               >
-                <span className="font-semibold flex items-center gap-1">
+                <span className="font-semibold flex items-center gap-1 text-xs">
                   {post.author.displayName}
                   {post.author.isVerified && <VerificationBadge className="h-4 w-4" size={15} />}
                 </span>
               </Link>
               <div className="flex flex-row items-center gap-1 -mt-1">
-                <span className="text-gray-500 text-sm">@{post.author.username}</span>
-                <span className="text-gray-500 text-sm">·</span>
-                <time className="text-gray-500 text-sm" dateTime={post.createdAt}>
+                <span className="text-gray-500 text-xs">@{post.author.username}</span>
+                <span className="text-gray-500 text-xs">·</span>
+                <time className="text-gray-500 text-xs" dateTime={post.createdAt}>
                   {formatDistanceToNow(new Date(post.createdAt), { addSuffix: true })}
                 </time>
               </div>
@@ -298,13 +298,13 @@ export function ReplyCard({ post, onLike, onRepost }: PostCardProps) {
             {post.content && (
               <div className="mt-2 mb-3">
                 <div
-                  className="text-gray-900 whitespace-pre-wrap text-sm lg:text-base leading-relaxed"
+                  className="text-gray-900 whitespace-pre-wrap text-xs lg:text-base leading-relaxed"
                   dangerouslySetInnerHTML={{ __html: formatContent(contentToDisplay) }}
                 />
 
                 {shouldTrim && (
                   <button
-                    className="text-blue-600 hover:text-blue-800 hover:underline text-sm mt-2 transition-colors"
+                    className="text-blue-600 hover:text-blue-800 hover:underline text-xs mt-2 transition-colors"
                     onClick={(e) => {
                       e.stopPropagation()
                       router.push(`/post/${post._id}`)
@@ -339,7 +339,7 @@ export function ReplyCard({ post, onLike, onRepost }: PostCardProps) {
                 aria-label={`Reply to post. ${replies.length || 0} replies`}
               >
                 <MessageCircle className="h-4 w-4 mr-1" />
-                <span className="text-xs lg:text-sm">{replies.length || 0}</span>
+                <span className="text-xs lg:text-xs">{replies.length || 0}</span>
               </Button>
 
               <Button
@@ -358,7 +358,7 @@ export function ReplyCard({ post, onLike, onRepost }: PostCardProps) {
                 ) : (
                   <Repeat2 className="h-4 w-4 mr-1" />
                 )}
-                <span className="text-xs lg:text-sm">{post.repostsCount || 0}</span>
+                <span className="text-xs lg:text-xs">{post.repostsCount || 0}</span>
               </Button>
 
               <Button
@@ -376,7 +376,7 @@ export function ReplyCard({ post, onLike, onRepost }: PostCardProps) {
                 aria-label={`Like post. ${post.likesCount || 0} likes`}
               >
                 <Heart className={`h-4 w-4 mr-1 ${post.isLiked ? "fill-current" : ""}`} />
-                <span className="text-xs lg:text-sm">{post.likesCount || 0}</span>
+                <span className="text-xs lg:text-xs">{post.likesCount || 0}</span>
               </Button>
 
               <Button
@@ -406,7 +406,7 @@ export function ReplyCard({ post, onLike, onRepost }: PostCardProps) {
 
             {hasMoreReplies && (
               <button
-                className="text-blue-600 hover:text-blue-800 hover:underline text-sm mt-3 flex items-center gap-1 transition-colors"
+                className="text-blue-600 hover:text-blue-800 hover:underline text-xs mt-3 flex items-center gap-1 transition-colors"
                 onClick={(e) => {
                   e.stopPropagation()
                   router.push(`/post/${post._id}`)
