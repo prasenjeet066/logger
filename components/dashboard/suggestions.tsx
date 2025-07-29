@@ -147,7 +147,10 @@ const SuggestedUsers: React.FC < SuggestedUsersProps > = ({ className = '' }) =>
                 </>
             
             </button>
-            <button className=' rounded-full text-center bg-gray-100 text-gray-800 p-2'>
+            <button className=' rounded-full text-center bg-gray-100 text-gray-800 p-2' onClick={()=>{
+              let users__ = {...users,user}
+              setUsers(users)
+            }}>
                 <>
                   <X className="w-4 h-4" />
                   </>
