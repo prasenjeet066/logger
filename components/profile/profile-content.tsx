@@ -135,7 +135,15 @@ export function ProfileContent({ username }: ProfileContentProps) {
       setIsLoading(false)
     }
   }, [username, session, router])
-  
+  const fetchPinnedPost = async () => {
+    if (profileData.pinnedPostId && profileData.pinnedPostId !== null) {
+      const _pinnedPost = await fetch('/api/post/' + profileData.pinnedPostId);
+      if (_pinnedPost.ok) {
+        const pinnedPost = await _pinnedPost.json();
+        setPinnedPost(pinnedPost)
+      }
+    }
+  }
   useEffect(() => {
     fetchPinnedPost()
     fetchProfileData()
@@ -239,15 +247,7 @@ export function ProfileContent({ username }: ProfileContentProps) {
   // Get current profile data based on type
   const currentProfile = profileType === 'user' ? profileData : botData
   const isOwnProfile = profileType === 'user' && profileData?._id === currentUser?._id
-  const fetchPinnedPost = async () => {
-    if (profileData.pinnedPostId &&  profileData.pinnedPostId!== null) {
-      const _pinnedPost=  await fetch('/api/post/'+profileData.pinnedPostId);
-      if (_pinnedPost.ok) {
-        const pinnedPost = await _pinnedPost.json();
-        setPinnedPost(pinnedPost)
-      }
-    }
-  }
+  
   
   const renderTabContent = (tabPosts: Post[], emptyMessage: string) => {
     if (tabPosts.length === 0) {
