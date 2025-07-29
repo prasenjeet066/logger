@@ -83,7 +83,7 @@ export function ProfileContent({ username }: ProfileContentProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const isMobile = useMobile()
   const [editDialogOpen, setEditDialogOpen] = useState(false)
-  const [pinnedPost, setPinnedPost] = useState(null)
+  const [_pinnedPost, setPinnedPost] = useState(null)
   const [activeTab, setActiveTab] = useState("posts")
   const [imageViewerOpen, setImageViewerOpen] = useState < string | null > (null)
   const router = useRouter()
@@ -259,7 +259,7 @@ export function ProfileContent({ username }: ProfileContentProps) {
     }
     
     // Separate pinned posts (if you have isPinned field in Post type)
-    const pinnedPosts = tabPosts.filter((post) => post.isPinned);
+    const pinnedPosts = _pinnedPost
     const otherPosts = tabPosts.filter((post) => !post.isPinned);
     
     return (
