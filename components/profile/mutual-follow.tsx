@@ -112,7 +112,7 @@ export function MutualFollowers({ targetUsername, targetUserId, targetDisplayNam
           
             }
             </div>
-            <small>
+            <small className='text-[7px]'>
               {displayFollowers.map((followers)=>(
                 <>{followers.displayName + " " } </>
               ))}

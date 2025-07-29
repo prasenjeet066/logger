@@ -145,7 +145,7 @@ const SuggestedUsers: React.FC < SuggestedUsersProps > = ({ className = '' }) =>
                 <>
                   <UserPlus className="w-4 h-4 mr-1" /> Follow
                 </>
-            {"Add Follow"}
+            
             </button>
             <button className=' rounded-full text-center bg-gray-100 text-gray-800 p-2'>
                 <>
