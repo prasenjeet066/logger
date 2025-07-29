@@ -124,10 +124,10 @@ const SuggestedUsers: React.FC < SuggestedUsersProps > = ({ className = '' }) =>
         <h1 className='font-semibold text-gray-700 text-sm'>Suggestions for you</h1>
       </div>
       {/* Use overflow-x-auto for horizontal scroll only when needed */}
-      <div className='flex flex-row items-center gap-2 overflow-x-auto p-2 border'>
+      <div className='flex flex-row items-center gap-2 overflow-x-auto p-2'>
         {users.map((user) => (
           // **CRITICAL FIX**: Added the `key` prop for list rendering.
-          <div key={user._id} className='flex flex-shrink-0 flex-col items-center justify-center p-3 w-40 text-center space-y-1'>
+          <div key={user._id} className='flex border flex-shrink-0 flex-col items-center justify-center p-3 w-40 text-center space-y-1'>
             <Avatar className="cursor-pointer h-16 w-16 transition-all">
               <AvatarImage src={user.avatarUrl || undefined} alt={`${user.displayName}'s avatar`} />
               <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white">

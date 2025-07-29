@@ -322,7 +322,7 @@ export function ProfileContent({ username }: ProfileContentProps) {
         {/* Main content */}
         <div className="flex-1 max-w-2xl mx-auto">
           <div className="border-x bg-white min-h-screen">
-            <div className="sticky top-0 bg-white/50 z-30 backdrop-blur-md border-b px-4 py-3">
+            <div className="sticky top-0 bg-white/50 z-30 backdrop-blur-md  px-4 py-3">
               <div className="flex items-center gap-2">
                 {profileType === 'bot' && <Bot className="h-5 w-5 text-blue-600" />}
                 <h2 className="text-xl font-semibold">
@@ -335,9 +335,9 @@ export function ProfileContent({ username }: ProfileContentProps) {
             </div>
 
             {/* Cover Image */}
-            <div className="relative p-4">
+            <div className="relative">
               <div
-                className={`w-full h-48 rounded-lg ${
+                className={`w-full h-48 ${
                   profileType === 'bot' 
                     ? 'bg-gray-100' 
                     : 'bg-gray-100'
@@ -356,7 +356,7 @@ export function ProfileContent({ username }: ProfileContentProps) {
             <div className="p-4 border-b relative">
               <div className="flex items-start justify-between mb-4">
                 <div className="flex flex-col items-center justify-center">
-                  <Avatar className="w-24 h-24 -mt-10 border-4 border-white" onClick={() => {
+                  <Avatar className="w-24 h-24 -mt-12 border-4 border-white" onClick={() => {
                     const avatarUrl = profileType === 'user' ? profileData?.avatarUrl : botData?.avatarUrl
                     if (avatarUrl) setImageViewerOpen(avatarUrl)
                   }}>

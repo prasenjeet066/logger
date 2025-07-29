@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { signOut } from "next-auth/react" // Import signOut from next-auth/react
+import SuggestedUsers from "@/components/dashboard/suggestions"
 import { Spinner } from "@/components/loader/spinner" // Updated import path
 import { Sidebar } from "./sidebar"
 import { Timeline } from "./timeline"
@@ -84,6 +85,7 @@ export function DashboardContent({ user, typesOfAlg }: DashboardContentProps) {
 
         {/* Main Content */}
         <div className="flex-1 max-w-2xl border-r">
+            <SuggestedUsers/>
           <Timeline userId={profile._id} typesOfAlg/> {/* Pass MongoDB _id */}
         </div>
 

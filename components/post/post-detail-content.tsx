@@ -122,7 +122,7 @@ export function PostDetailContent({ postId, userId }: PostDetailContentProps) {
           throw new Error("Failed to fetch post")
         }
         setPost(null)
-        setIsLoading(false)
+        setIsLoadingPost(false)
         return
       }
 
