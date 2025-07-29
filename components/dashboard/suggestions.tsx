@@ -105,15 +105,7 @@ const SuggestedUsers: React.FC < SuggestedUsersProps > = ({ className = '' }) =>
   
   // Improved loading state with a skeleton loader for better UX
   if (loading) {
-    return (
-      <div className={`bg-white rounded-xl border-b border-gray-200 overflow-hidden ${className}`}>
-        <h1 className='p-4 font-semibold text-gray-700'>Suggestions for you</h1>
-        <div className='flex flex-row items-center gap-2 overflow-x-auto p-2'>
-          {/* Render a few skeleton loaders */}
-          {[...Array(4)].map((_, i) => <UserSkeleton key={i} />)}
-        </div>
-      </div>
-    );
+    return null;
   }
   
   // Improved empty state: show a message instead of rendering nothing
@@ -129,23 +121,22 @@ const SuggestedUsers: React.FC < SuggestedUsersProps > = ({ className = '' }) =>
   return (
     <div className={`bg-white rounded-xl border-b border-gray-200 overflow-hidden ${className}`}>
       <div className='flex flex-row items-center justify-between p-4'>
-        <h1 className='font-semibold text-gray-700'>Suggestions for you</h1>
+        <h1 className='font-semibold text-gray-700 text-sm'>Suggestions for you</h1>
       </div>
       {/* Use overflow-x-auto for horizontal scroll only when needed */}
       <div className='flex flex-row items-center gap-2 overflow-x-auto p-2'>
         {users.map((user) => (
           // **CRITICAL FIX**: Added the `key` prop for list rendering.
-          <div key={user._id} className='flex flex-shrink-0 flex-col items-center justify-center p-3 border rounded-lg w-40 text-center space-y-1'>
-            <Avatar className="cursor-pointer h-20 w-20 transition-all">
+          <div key={user._id} className='flex flex-shrink-0 flex-col items-center justify-center p-3 w-40 text-center space-y-1'>
+            <Avatar className="cursor-pointer h-16 w-16 transition-all">
               <AvatarImage src={user.avatarUrl || undefined} alt={`${user.displayName}'s avatar`} />
               <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white">
                 {user.displayName?.charAt(0)?.toUpperCase() || "U"}
               </AvatarFallback>
             </Avatar>
             <h2 className='text-md font-semibold truncate w-full' title={user.displayName}>
-              {user.displayName.split(' ')[0] || user.displayName}
+              {user.displayName.split(' ').length > 0 ? user.displayName.split(' ')[0]  : user.displayName}
             </h2>
-            <small className='text-xs text-gray-500 truncate w-full'>@{user.username}</small>
             <div className="h-4"> {/* Placeholder to prevent layout shift */}
               <MutualFollowers targetUsername={user.username} />
             </div>
@@ -154,7 +145,7 @@ const SuggestedUsers: React.FC < SuggestedUsersProps > = ({ className = '' }) =>
             <button
               onClick={() => handleToggleFollow(user._id, user.isFollowing ? 'unfollow' : 'follow')}
               disabled={followingLoading[user._id]}
-              className={`mt-2 w-28 h-9 flex items-center justify-center text-sm p-2 px-4 rounded-full font-bold transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
+              className={`mt-2  flex items-center justify-center text-xs p-2 px-4 rounded-full font-bold transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
                 user.isFollowing
                   ? 'bg-gray-200 text-black hover:bg-gray-300'
                   : 'bg-black text-white hover:bg-gray-800'
