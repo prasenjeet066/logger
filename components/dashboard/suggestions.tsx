@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 // Icons are used for a better user experience on the button
-import { UserPlus, UserCheck, Loader2 } from 'lucide-react';
+import { UserPlus, UserCheck, Loader2, X } from 'lucide-react';
 import { MutualFollowers } from "@/components/profile/mutual-follow";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
@@ -140,13 +140,19 @@ const SuggestedUsers: React.FC < SuggestedUsersProps > = ({ className = '' }) =>
               <MutualFollowers targetUsername={user.username}  type='center'/>
             </div>
 
-            {/* --- DYNAMIC BUTTON LOGIC --- */}
-<button className=' rounded-full text-center bg-yellow-500 text-gray-800 p-2 py-4'>
+            {/* --- DYNAMIC BUTTON LOGIC --- */}<div className='flex flex-row items-center justify-center'>
+<button className=' rounded-full text-center bg-gray-800 text-white p-2 px-4'>
                 <>
                   <UserPlus className="w-4 h-4 mr-1" /> Follow
                 </>
             {"Add Follow"}
             </button>
+            <button className=' rounded-full text-center bg-gray-100 text-gray-800 p-2'>
+                <>
+                  <X className="w-4 h-4" />
+                  </>
+                  </button>
+            </div>
           </div>
         ))}
       </div>
