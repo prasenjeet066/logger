@@ -337,218 +337,182 @@ export function PostSection({ post, onLike, onRepost, onReply }: PostCardProps) 
   const contentToDisplay = translation.translatedText || displayContent
 
   return (
-    <article
-      className="border-b hover:bg-gray-50 transition-colors cursor-pointer"
-      aria-label={`Post by ${post.author.displayName}`}
-    >
-      <div className="p-4 flex flex-col">
-        <div>
-        {/* Repost header */}
-        {post.isReposted && (
-          <div className="flex items-center gap-2 mb-3 text-gray-500 text-sm">
-            <Repeat2 className="h-4 w-4" />
-            <span>
-              Reposted by{" "}
-              <Link
-                href={`/profile/${post.repostedBy}`}
-                className="text-blue-600 hover:underline transition-colors"
-                onClick={(e) => e.stopPropagation()}
-              >
-                @{post.repostedBy}
-              </Link>
-            </span>
-          </div>
-        )}
+      <article 
+        className="border-b hover:bg-gray-50 transition-colors cursor-pointer"
+        
+        aria-label={`Post by ${post.display_name}`}
+      >
+        <div className="p-4 flex flex-col">
+          {/* Repost header */}
+          
 
-        {/* Pin indicator */}
-        {post.isPinned && (
-          <div className="flex items-center gap-2 mb-3 text-blue-600 text-sm">
-            <Pin className="h-4 w-4" />
-            <span>Pinned Post</span>
-          </div>
-        )}
-
-        <div className="flex gap-3">
-          <Link
-            href={`/profile/${post.author.username}`}
-            className="flex-shrink-0"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <Avatar className="cursor-pointer h-10 w-10 lg:h-12 lg:w-12 ring-2 ring-transparent hover:ring-blue-200 transition-all">
-              <AvatarImage src={post.author.avatarUrl || undefined} alt={`${post.author.displayName}'s avatar`} />
-              <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white">
-                {post.author.displayName?.charAt(0)?.toUpperCase() || "U"}
-              </AvatarFallback>
-            </Avatar>
-          </Link>
-
-          <div className="flex-1 min-w-0">
-            <div className="flex flex-col items-left gap-1">
-              <Link
-                href={`/profile/${post.author.username}`}
-                className="hover:underline transition-colors"
-                onClick={(e) => e.stopPropagation()}
-              >
-                <span className="font-semibold flex items-center gap-1">
-                  {post.author.displayName}
-                  {post.author.isVerified && <VerificationBadge className="h-4 w-4" size={15} />}
-                </span>
-              </Link>
-              <div className="flex flex-row items-center gap-1 -mt-2">
-                <span className="text-gray-500 text-[10px]">@{post.author.username}</span>
-                <span className="text-gray-500 text-[10px]">·</span>
-                <time className="text-gray-500 text-[10px]" dateTime={post.createdAt}>
-                  {formatDistanceToNow(new Date(post.createdAt), { addSuffix: true })}
-                </time>
-              </div>
-            </div>
-            </div>
-            <div className='w-full'>
-            {/* Post content */}
-            {post.content && (
-              <div className="mt-2 mb-3">
-                <div
-                  className="text-gray-900 whitespace-pre-wrap text-sm lg:text-base leading-relaxed"
-                  dangerouslySetInnerHTML={{ __html: formatContent(contentToDisplay) }}
-                />
-
-                {/* Show more button */}
-                {shouldTrim && (
-                  <button
-                    className="text-blue-600 border rounded-full w-full py-2 text-sm mt-2 transition-colors"
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      SetShowTrim(showTrim === "trim" ? "full" : "trim")
-                    }}
-                  >
-                    {showTrim === "trim" ? "Show More" : "Show Less"}
-                  </button>
-                )}
-              </div>
-            )}
-
-            {/* Translation controls */}
+          <div className="flex gap-3">
+            <Link 
+              href={`/profile/${post.username}`} 
+              className="flex-shrink-0" 
+              onClick={(e) => e.stopPropagation()}
+            >
+              <Avatar className="cursor-pointer h-10 w-10 lg:h-12 lg:w-12 ring-2 ring-transparent hover:ring-blue-200 transition-all">
+                <AvatarImage src={post.avatar_url || undefined} alt={`${post.display_name}'s avatar`} />
+                <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white">
+                  {post.display_name?.charAt(0)?.toUpperCase() || "U"}
+                </AvatarFallback>
+              </Avatar>
+            </Link>
             
-              <div className="mb-3">
-                <button
-                  className="flex items-center gap-1 text-sm text-gray-600 hover:text-blue-600 transition-colors disabled:opacity-50"
+            <div className="flex-1 min-w-0">
+              <div className="flex flex-col items-left gap-1">
+                <Link
+                  href={`/profile/${post.username}`}
+                  className="hover:underline transition-colors"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <span className="font-semibold flex items-center gap-1">
+                    {post.display_name}
+                    {post.is_verified && <VerificationBadge className="h-4 w-4" size={15} />}
+                  </span>
+                </Link>
+                <div className="flex flex-row items-center gap-1 -mt-2">
+                  <span className="text-gray-500 text-[10px]">@{post.username}</span>
+                  <span className="text-gray-500 text-[10px]">·</span>
+                  <time className="text-gray-500 text-[10px]" dateTime={post.created_at}>
+                    {formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}
+                  </time>
+                </div>
+              </div>
+
+              {/* Post content */}
+             
+            </div>
+          </div>
+          <div >
+             {post.content && (
+                <div className="mt-2 mb-3">
+                  <div
+                    className="text-gray-900 whitespace-pre-wrap text-sm lg:text-base leading-relaxed"
+                    dangerouslySetInnerHTML={{ __html: formatContent(contentToDisplay) }}
+                  />
+                  
+                  {/* Show more button */}
+                  {shouldTrim== true ? (
+                    <button
+                      className="text-blue-600 hover:text-blue-800 hover:underline text-sm mt-2 transition-colors"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                       
+                      }}
+                    >
+                      Show More
+                    </button>
+                  ):(
+                     <button
+                      className="text-blue-600 hover:text-blue-800 hover:underline text-sm mt-2 transition-colors"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                       
+                      }}
+                    >
+                      Show Less
+                    </button>
+                  )}
+                </div>
+              )}
+
+              {/* Translation controls */}
+              
+
+              {/* Link preview */}
+              {!hasMedia && postUrl && (
+                <div className="mb-3">
+                  <LinkPreview url={postUrl} variant="compact" />
+                </div>
+              )}
+
+              {/* Media */}
+              {renderMedia(post.media_urls, post.media_type)}
+
+              {/* Action buttons */}
+              <div className="flex items-center justify-between
+                 max-w-sm lg:max-w-md mt-3">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-gray-500  p-2 rounded-full transition-colors"
                   onClick={(e) => {
                     e.stopPropagation()
-                    handleToggleTranslation()
+                    //handleReplyClick()
                   }}
-                  disabled={translation.isTranslating}
+                  aria-label={`Reply to post. ${post.replies_count || 0} replies`}
                 >
-                  {translation.isTranslating ? (
-                    <>
-                      <Loader2 className="h-3 w-3 animate-spin" />
-                      <span>Translating...</span>
-                    </>
+                  <MessageCircle className="h-4 w-4 mr-1" />
+                  <span className="text-xs lg:text-sm">{post.replies_count || 0}</span>
+                </Button>
+
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className={`${
+                    post.is_reposted 
+                      ? "text-green-600 bg-green-50" 
+                      : "text-gray-500 hover:text-green-600 hover:bg-green-50"
+                  } p-2 rounded-full transition-colors`}
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    handleRepostClick()
+                  }}
+                  disabled={repostLoading}
+                  aria-label={`${post.is_reposted ? 'Unrepost' : 'Repost'}. ${post.reposts_count || 0} reposts`}
+                >
+                  {repostLoading ? (
+                    <Loader2 className="h-4 w-4 mr-1 animate-spin" />
                   ) : (
-                    <>
-                      <Languages className="h-3 w-3" />
-                      <span>{translation.translatedText ? "Show Original" : "Translate"}</span>
-                    </>
+                    <Repeat2 className={`h-4 w-4 mr-1 ${post.is_reposted ? "fill-current" : ""}`} />
                   )}
-                </button>
+                  <span className="text-xs lg:text-sm">{post.reposts_count || 0}</span>
+                </Button>
 
-                {/* Translation error */}
-                {translation.error && (
-                  <div className="flex items-center gap-1 text-sm text-red-600 mt-1">
-                    <AlertCircle className="h-3 w-3" />
-                    <span>{translation.error}</span>
-                  </div>
-                )}
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className={`${
+                    post.is_liked 
+                      ? "text-red-600 bg-red-50" 
+                      : "text-gray-500 hover:text-red-600 hover:bg-red-50"
+                  } p-2 rounded-full transition-colors`}
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    onLike(post.id, post.is_liked)
+                  }}
+                  aria-label={`${post.is_liked ? 'Unlike' : 'Like'} post. ${post.likes_count} likes`}
+                >
+                  <Heart className={`h-4 w-4 mr-1 ${post.is_liked ? "fill-current" : ""}`} />
+                  <span className="text-xs lg:text-sm">{post.likes_count}</span>
+                </Button>
+
+           <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-gray-500 hover:text-blue-600 hover:bg-blue-50 p-2 rounded-full transition-colors"
+                  onClick={(e) => e.stopPropagation()}
+                  aria-label="Share post"
+                >
+                  <Share className="h-4 w-4 mr-1" />
+                  <span className="text-xs lg:text-sm">Share</span>
+                </Button>
+
+
+        
+             
+                <PostActionsMenu
+                  post={post}
+                  currentUserId={currentUserId}
+                  onPostUpdated={onReply}
+                  onPostDeleted={onReply}
+                  onPinPost={handlePinPost}
+                />
               </div>
-            
-
-            {/* Link preview */}
-            {!hasMedia && postUrl && (
-              <div className="mb-3">
-                <LinkPreview url={postUrl} variant="compact" />
-              </div>
-            )}
-
-            {/* Media */}
-            {renderMedia(post.mediaUrls, post.mediaType)}
-
-            {/* Action buttons */}
-            <div className="flex items-center justify-between max-w-sm lg:max-w-md mt-3">
-              <Button
-                variant="ghost"
-                size="sm"
-                className="text-gray-500 p-2 rounded-full transition-colors"
-                onClick={(e) => {
-                  e.stopPropagation()
-                  handleReplyClick()
-                }}
-                aria-label={`Reply to post. ${post.repliesCount || 0} replies`}
-              >
-                <MessageCircle className="h-4 w-4 mr-1" />
-                <span className="text-xs lg:text-sm">{post.repliesCount || 0}</span>
-              </Button>
-
-              <Button
-                variant="ghost"
-                size="sm"
-                className={`${
-                  post.isReposted
-                    ? "text-green-600 bg-green-50"
-                    : "text-gray-500 hover:text-green-600 hover:bg-green-50"
-                } p-2 rounded-full transition-colors`}
-                onClick={(e) => {
-                  e.stopPropagation()
-                  handleRepostClick()
-                }}
-                disabled={repostLoading}
-                aria-label={`${post.isReposted ? "Unrepost" : "Repost"}. ${post.repostsCount || 0} reposts`}
-              >
-                {repostLoading ? (
-                  <Loader2 className="h-4 w-4 mr-1 animate-spin" />
-                ) : (
-                  <Repeat2 className={`h-4 w-4 mr-1 ${post.isReposted ? "fill-current" : ""}`} />
-                )}
-                <span className="text-xs lg:text-sm">{post.repostsCount || 0}</span>
-              </Button>
-
-              <Button
-                variant="ghost"
-                size="sm"
-                className={`${
-                  post.isLiked ? "text-red-600 bg-red-50" : "text-gray-500 hover:text-red-600 hover:bg-red-50"
-                } p-2 rounded-full transition-colors`}
-                onClick={(e) => {
-                  e.stopPropagation()
-                  onLike(post._id, post.isLiked)
-                }}
-                aria-label={`${post.isLiked ? "Unlike" : "Like"} post. ${post.likesCount} likes`}
-              >
-                <Heart className={`h-4 w-4 mr-1 ${post.isLiked ? "fill-current" : ""}`} />
-                <span className="text-xs lg:text-sm">{post.likesCount}</span>
-              </Button>
-
-              <Button
-                variant="ghost"
-                size="sm"
-                className="text-gray-500 hover:text-blue-600 hover:bg-blue-50 p-2 rounded-full transition-colors"
-                onClick={(e) => e.stopPropagation()}
-                aria-label="Share post"
-              >
-                <Share className="h-4 w-4 mr-1" />
-                <span className="text-xs lg:text-sm">Share</span>
-              </Button>
-
-              <PostActionsMenu
-                post={post}
-                currentUserId={currentUserId || ""}
-                onPostUpdated={onReply}
-                onPostDeleted={onReply}
-                onPinPost={handlePinPost}
-              />
-            </div>
           </div>
         </div>
-        </div>
-      </div>
-    </article>
+      </article> 
   )
 }
