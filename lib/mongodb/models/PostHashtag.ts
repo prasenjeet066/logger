@@ -1,44 +1,82 @@
 import mongoose, { type Document, Schema } from "mongoose"
-import { Hashtag } from "@/lib/mongodb/models/Hashtag";
+import { Hashtag } from "@/lib/mongodb/models/Hashtag"
 
 export interface IPostHashtag extends Document {
   postId: string
-  hashtagId: string
+  hashtagName: string
   createdAt: Date
+  updatedAt: Date
 }
 
-const PostHashtagSchema = new Schema < IPostHashtag > (
-{
-  postId: { type: String, required: true, ref: "Post" },
-  hashtagId: { type: String, required: true },
-},
-{
-  timestamps: true,
-}, )
+const PostHashtagSchema = new Schema<IPostHashtag>(
+  {
+    postId: { type: String, required: true, ref: "Post" },
+    hashtagName: { type: String, required: true },
+  },
+  {
+    timestamps: true,
+  }
+)
 
-PostHashtagSchema.index({ postId: 1, hashtagId: 1 }, { unique: true })
-PostHashtagSchema.index({ hashtagId: 1 })
-// adjust the import path if needed
+PostHashtagSchema.index({ postId: 1, hashtagName: 1 }, { unique: true })
+PostHashtagSchema.index({ hashtagName: 1 })
+
+// Pre-save hook to ensure hashtag exists
+PostHashtagSchema.pre("save", async function(next) {
+  try {
+    // Check if hashtag exists, create if it doesn't
+    const existingHashtag = await Hashtag.findOne({ name: this.hashtagName })
+    
+    if (!existingHashtag) {
+      await Hashtag.create({
+        name: this.hashtagName,
+        postsCount: 0
+      })
+      console.log(`Created new hashtag: ${this.hashtagName}`)
+    }
+    
+    next()
+  } catch (error) {
+    console.error("Error in pre-save hook:", error)
+    next(error)
+  }
+})
 
 // After a new PostHashtag is created
 PostHashtagSchema.post("save", async function(doc) {
   try {
-    await Hashtag.findOneAndUpdate({ name: doc.hashtagId },
-    {
-      $inc: { postsCount: 1 },
-      $setOnInsert: { createdAt: new Date(), updatedAt: new Date() }
-    }, { upsert: true, new: true });
+    await Hashtag.findOneAndUpdate(
+      { name: doc.hashtagName },
+      { $inc: { postsCount: 1 } }
+    )
   } catch (error) {
-    console.error("Error incrementing hashtag postsCount:", error);
+    console.error("Error incrementing hashtag postsCount:", error)
   }
-});
+})
 
-// After a PostHashtag is removed
+// Handle deletions
 PostHashtagSchema.post("remove", async function(doc) {
   try {
-    await Hashtag.findOneAndUpdate({ name: doc.hashtagId }, { $inc: { postsCount: -1 } });
+    await Hashtag.findOneAndUpdate(
+      { name: doc.hashtagName },
+      { $inc: { postsCount: -1 } }
+    )
   } catch (error) {
-    console.error("Error decrementing hashtag postsCount:", error);
+    console.error("Error decrementing hashtag postsCount:", error)
   }
-});
-export const PostHashtag = mongoose.models.PostHashtag || mongoose.model < IPostHashtag > ("PostHashtag", PostHashtagSchema)
+})
+
+PostHashtagSchema.post("findOneAndDelete", async function(doc) {
+  if (doc) {
+    try {
+      await Hashtag.findOneAndUpdate(
+        { name: doc.hashtagName },
+        { $inc: { postsCount: -1 } }
+      )
+    } catch (error) {
+      console.error("Error decrementing hashtag postsCount:", error)
+    }
+  }
+})
+
+export const PostHashtag = mongoose.models.PostHashtag || mongoose.model<IPostHashtag>("PostHashtag", PostHashtagSchema)
