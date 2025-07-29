@@ -2,7 +2,7 @@ import { type NextRequest, NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth/auth-config"
 import { connectToDatabase } from "@/lib/mongodb/connection"
-import { Post } from "@/lib/mongodb/models/Post"
+import { User } from "@/lib/mongodb/models/User"
 
 export async function POST(request: NextRequest, { params }: { params: { id: string } }) {
   try {
@@ -10,29 +10,34 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
-
+    
     await connectToDatabase()
-
-    const post = await Post.findById(params.id)
-    if (!post) {
-      return NextResponse.json({ error: "Post not found" }, { status: 404 })
+    
+    // Find the user
+    const user = await User.findById(session.user.id)
+    if (!user) {
+      return NextResponse.json({ error: "User not found" }, { status: 404 })
     }
-
-    // Only the author can pin/unpin their post
-    if (post.authorId.toString() !== session.user.id) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+    
+    let newPinnedPostId
+    
+    if (user.pinnedPostId?.toString() === params.id) {
+      // If already pinned, unpin it
+      newPinnedPostId = null
+    } else {
+      // Pin new post
+      newPinnedPostId = params.id
     }
-
-    // Toggle pin status
-    post.isPinned = !post.isPinned
-    await post.save()
-
+    
+    user.pinnedPostId = newPinnedPostId
+    await user.save()
+    
     return NextResponse.json({
       success: true,
-      isPinned: post.isPinned,
+      pinnedPostId: user.pinnedPostId,
     })
   } catch (error) {
-    console.error("Error toggling pin status:", error)
+    console.error("Error updating pinnedPostId:", error)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
 }

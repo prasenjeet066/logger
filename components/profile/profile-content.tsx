@@ -8,11 +8,11 @@ import { useSession } from "next-auth/react"
 import { useMobile } from "@/hooks/use-mobile"
 import { Button } from "@/components/ui/button"
 import { Spinner } from "@/components/loader/spinner"
-import {Header} from "@/components/dashboard/utils/header"
+import { Header } from "@/components/dashboard/utils/header"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Sidebar } from "@/components/dashboard/sidebar"
-import {MutualFollowers} from "@/components/profile/mutual-follow"
+import { MutualFollowers } from "@/components/profile/mutual-follow"
 import { PostCard } from "@/components/dashboard/post-card"
 import { EditProfileDialog } from "./edit-profile-dialog"
 import { Menu, X, UserPlus, UserCheck, Calendar, MapPin, LinkIcon, Plus, Search, Bot, Code, Terminal, User } from "lucide-react"
@@ -60,9 +60,9 @@ interface BotData {
   postsCount: number
   ownerId: {
     _id: string
-    name?: string
-    email?: string
-    username?: string
+    name ? : string
+    email ? : string
+    username ? : string
   }
   createdAt: string
 }
@@ -71,20 +71,21 @@ type ProfileType = 'user' | 'bot'
 
 export function ProfileContent({ username }: ProfileContentProps) {
   const { data: session, status } = useSession()
-  const [currentUser, setCurrentUser] = useState<any>(null)
-  const [profileData, setProfileData] = useState<ProfileData | null>(null)
-  const [botData, setBotData] = useState<BotData | null>(null)
-  const [profileType, setProfileType] = useState<ProfileType>('user')
-  const [posts, setPosts] = useState<Post[]>([])
-  const [replies, setReplies] = useState<Post[]>([])
-  const [reposts, setReposts] = useState<Post[]>([])
-  const [media, setMedia] = useState<Post[]>([])
+  const [currentUser, setCurrentUser] = useState < any > (null)
+  const [profileData, setProfileData] = useState < ProfileData | null > (null)
+  const [botData, setBotData] = useState < BotData | null > (null)
+  const [profileType, setProfileType] = useState < ProfileType > ('user')
+  const [posts, setPosts] = useState < Post[] > ([])
+  const [replies, setReplies] = useState < Post[] > ([])
+  const [reposts, setReposts] = useState < Post[] > ([])
+  const [media, setMedia] = useState < Post[] > ([])
   const [isLoading, setIsLoading] = useState(true)
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const isMobile = useMobile()
   const [editDialogOpen, setEditDialogOpen] = useState(false)
+  const [pinnedPost, setPinnedPost] = useState(null)
   const [activeTab, setActiveTab] = useState("posts")
-  const [imageViewerOpen, setImageViewerOpen] = useState<string | null>(null)
+  const [imageViewerOpen, setImageViewerOpen] = useState < string | null > (null)
   const router = useRouter()
   
   const fetchProfileData = useCallback(async () => {
@@ -136,6 +137,7 @@ export function ProfileContent({ username }: ProfileContentProps) {
   }, [username, session, router])
   
   useEffect(() => {
+    fetchPinnedPost()
     fetchProfileData()
   }, [fetchProfileData])
   
@@ -233,27 +235,36 @@ export function ProfileContent({ username }: ProfileContentProps) {
       </div>
     )
   }
-
+  
   // Get current profile data based on type
   const currentProfile = profileType === 'user' ? profileData : botData
   const isOwnProfile = profileType === 'user' && profileData?._id === currentUser?._id
-  
-  const renderTabContent = (tabPosts: Post[], emptyMessage: string) => {
-  if (tabPosts.length === 0) {
-    return (
-      <div className="text-center py-8 text-gray-500">
-        <p>{emptyMessage}</p>
-      </div>
-    );
+  const fetchPinnedPost = async () => {
+    if (profileData.pinnedPostId &&  profileData.pinnedPostId!== null) {
+      const _pinnedPost=  await fetch('/api/post/'+profileData.pinnedPostId);
+      if (_pinnedPost.ok) {
+        const pinnedPost = await _pinnedPost.json();
+        setPinnedPost(pinnedPost)
+      }
+    }
   }
   
-  // Separate pinned posts (if you have isPinned field in Post type)
-  const pinnedPosts = tabPosts.filter((post) => post.isPinned);
-  const otherPosts = tabPosts.filter((post) => !post.isPinned);
-  
-  return (
-    <div>
-     <div className = 'flex items-center text-xs'>
+  const renderTabContent = (tabPosts: Post[], emptyMessage: string) => {
+    if (tabPosts.length === 0) {
+      return (
+        <div className="text-center py-8 text-gray-500">
+        <p>{emptyMessage}</p>
+      </div>
+      );
+    }
+    
+    // Separate pinned posts (if you have isPinned field in Post type)
+    const pinnedPosts = tabPosts.filter((post) => post.isPinned);
+    const otherPosts = tabPosts.filter((post) => !post.isPinned);
+    
+    return (
+      <div>
+     <div className = 'flex items-center text-semibold text-sm'>
        <small>{"Pinned Post"}</small>
      </div>
       {pinnedPosts.map((post) => (
@@ -276,13 +287,13 @@ export function ProfileContent({ username }: ProfileContentProps) {
         />
       ))}
     </div>
-  );
-};
-
+    );
+  };
+  
   // Bot-specific render method
   const renderBotInfo = () => {
     if (!botData) return null
-
+    
     return (
       <div className="space-y-4 bg-blue-50 p-4 rounded-lg border border-blue-200">
         <div className="flex items-center gap-2 text-blue-700">

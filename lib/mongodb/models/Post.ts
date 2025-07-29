@@ -115,29 +115,5 @@ postSchema.statics.getWatchByPostId = async function(postId: string): Promise<nu
   const post = await this.findById(postId).select("watch").lean()
   return post ? post.watch : null
 }
-postSchema.pre("save", async function(next) {
-  if (!this.isModified("isPinned") || !this.isPinned) return next()
 
-  try {
-    
-    if (!this.authorId) return next(new Error("Post must have authorId to pin"))
-
-    // Find the user
-    const user = await User.findById(this.authorId)
-    if (!user) return next(new Error("User not found"))
-
-    // Unpin previous post if any
-    if (user.pinnedPostId && user.pinnedPostId.toString() !== this._id.toString()) {
-      await mongoose.models.Post.findByIdAndUpdate(user.pinnedPostId, { isPinned: false })
-    }
-
-    // Update user's pinnedPostId to this post
-    user.pinnedPostId = this._id
-    await user.save()
-
-    next()
-  } catch (err) {
-    next(err)
-  }
-})
 export const Post = mongoose.models.Post || mongoose.model<IPost>("Post", postSchema)
