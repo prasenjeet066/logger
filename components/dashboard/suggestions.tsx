@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Users, UserPlus, Check, Loader2 } from 'lucide-react';
-
+import {MutualFollowers} from "@/components/profile/mutual-follow"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 interface SuggestedUser {
   _id: string;
   username: string;
@@ -119,86 +120,32 @@ const SuggestedUsers: React.FC < SuggestedUsersProps > = ({ className = '' }) =>
   
   return (
     <div className={`bg-white rounded-xl border border-gray-200 overflow-hidden ${className}`}>
-      <div className="p-4 border-b border-gray-100">
-        <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-          <Users className="w-5 h-5" />
-          Who to follow
-        </h3>
-      </div>
-      
-      <div className="divide-y divide-gray-100">
-        {users.map((user) => (
-          <div key={user._id} className="p-4 hover:bg-gray-50 transition-colors">
-            <div className="flex items-start gap-3">
-              <div className="relative">
-                <img
-                  src={user.avatarUrl || '/default-avatar.png'}
-                  alt={user.displayName}
-                  className="w-12 h-12 rounded-full object-cover"
-                />
-                {user.isVerified && (
-                  <div className="absolute -bottom-1 -right-1 bg-blue-500 rounded-full p-0.5">
-                    <Check className="w-3 h-3 text-white" />
-                  </div>
-                )}
-              </div>
-              
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center justify-between">
-                  <div className="min-w-0 flex-1">
-                    <h4 className="font-semibold text-gray-900 truncate">
-                      {user.displayName}
-                    </h4>
-                    <p className="text-sm text-gray-500 truncate">
-                      @{user.username}
-                    </p>
-                  </div>
-                  
-                  <button
-                    onClick={() => followingStates[user._id] ? handleUnfollow(user._id) : handleFollow(user._id)}
-                    disabled={followingLoading[user._id]}
-                    className={`ml-3 px-4 py-1.5 rounded-full text-sm font-medium transition-colors flex items-center gap-1.5 ${
-                      followingStates[user._id]
-                        ? 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                        : 'bg-blue-500 text-white hover:bg-blue-600'
-                    } disabled:opacity-50 disabled:cursor-not-allowed`}
-                  >
-                    {followingLoading[user._id] ? (
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                    ) : followingStates[user._id] ? (
-                      <>
-                        <Check className="w-4 h-4" />
-                        Following
-                      </>
-                    ) : (
-                      <>
-                        <UserPlus className="w-4 h-4" />
-                        Follow
-                      </>
-                    )}
-                  </button>
-                </div>
-                
-                {user.bio && (
-                  <p className="text-sm text-gray-600 mt-1 line-clamp-2">
-                    {user.bio}
-                  </p>
-                )}
-                
-                <p className="text-xs text-gray-500 mt-1">
-                  {user.followersCount.toLocaleString()} followers
-                </p>
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-      
-      <div className="p-4 border-t border-gray-100">
-        <button className="text-blue-500 hover:text-blue-600 text-sm font-medium transition-colors">
-          Show more
-        </button>
-      </div>
+     <div className =' flex flex-row items-center justify-between'>
+       <h1 className='text-md'>
+         Introduce With them
+       </h1>
+       
+     </div>
+     <div className=  'flex flex-row items-center gap-2 overflow-scroll'>
+       {
+         users.map((user)=>(
+           <div className = 'flex flex-col items-center justify-center'>
+               <Avatar className="cursor-pointer h-6 w-6 ring-2 ring-white border-2 border-gray-200 hover:ring-blue-200 transition-all">
+              <AvatarImage src={user.avatarUrl || undefined} alt={`${user.displayName}'s avatar`} />
+              <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white">
+                {user.displayName?.charAt(0)?.toUpperCase() || "U"}
+              </AvatarFallback>
+            </Avatar>
+            <h1 className ='text-md'>
+              {user.displayName.split(' ')[0] || user.displayName}
+            </h1>
+            <small className='text-xs'>@{user.username}</small>
+            <MutualFollowers targetUsername={user!.username}/>
+            <button className='bg-black text-white p-2 px-4 rounded-full'>Follow Him</button>
+           </div>
+         ))
+       }
+     </div>
     </div>
   );
 };
