@@ -259,7 +259,7 @@ export function ReplyCard({ post, onLike, onRepost }: PostCardProps) {
             className="flex-shrink-0 relative z-10"
             onClick={(e) => e.stopPropagation()}
           >
-            <Avatar className="cursor-pointer h-9 w-9 ring-2 ring-white border-2 border-gray-200 hover:ring-blue-200 transition-all">
+            <Avatar className="cursor-pointer h-9 w-9">
               <AvatarImage src={post.author.avatarUrl || undefined} alt={`${post.author.displayName}'s avatar`} />
               <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white">
                 {post.author.displayName?.charAt(0)?.toUpperCase() || "U"}
@@ -289,14 +289,14 @@ export function ReplyCard({ post, onLike, onRepost }: PostCardProps) {
         </div>
         </div>
         <div className='flex relative h-full flex-row p-4 gap-2 pt-1'>
-          <div className='h-auto w-2 border-l border-b border-b-2  border-l-2 border-gray-400 rounded-bl-md'>
+          <div className='h-auto w-2 border-l border-b border-b  border-l border-gray-100 rounded-bl-md'>
             
           </div>
           <div className='flex flex-col w-full'>
             <div>
           
             {post.content && (
-              <div className="mt-2 mb-3">
+              <div className="mt-2 mb-1">
                 <div
                   className="text-gray-900 whitespace-pre-wrap text-xs lg:text-base leading-relaxed"
                   dangerouslySetInnerHTML={{ __html: formatContent(contentToDisplay) }}
@@ -328,7 +328,7 @@ export function ReplyCard({ post, onLike, onRepost }: PostCardProps) {
             </div>
             
                {/* Action buttons */}
-            <div className="flex items-center justify-between w-full mt-3">
+            <div className="flex items-center justify-between w-full mt-1 border-t">
               <Button
                 variant="ghost"
                 size="sm"
