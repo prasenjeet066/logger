@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState, useCallback, useMemo, useRef } from "react"
+import { useState, useCallback, useMemo, useRef,useEffect } from "react"
 import { formatDistanceToNow } from "date-fns"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { getImageRatioFromSrc, getHeightFromWidth } from "@/lib/ration-lib"
@@ -16,6 +16,8 @@ import DOMPurify from "dompurify"
 import { useRouter, usePathname } from "next/navigation"
 import type { Post } from "@/types/post"
 import { useSession } from "next-auth/react"
+import { loadModule } from 'cld3-asm';
+
 
 interface PostCardProps {
   post: Post
@@ -90,9 +92,28 @@ export function PostSection({ post, onLike, onRepost, onReply, isMobile = false 
   const isPostPage = useMemo(() => pathname.startsWith("/post"), [pathname])
   const imageRef = useRef<HTMLImageElement>(null)
   const [imageH, setH] = useState(0)
+  const [postLang,setPostLang] = useState('en')
   const MAX_LENGTH = 100
   const shouldTrim = post.content.length > MAX_LENGTH
   const displayContent = shouldTrim && showTrim === "trim" ? smartTruncate(post.content, MAX_LENGTH) : post.content
+async function detectLanguage(text) {
+  try {
+    const cldFactory = await loadModule(); // Load the WebAssembly module
+    const cld = cldFactory.create(); // Create a CLD3 instance
+    const result = cld.findLanguage(text); // Detect the language
+    
+    if (result && result.isReliable) {
+      return result.language
+    } else if (result) {
+      return result.language
+    } else {
+      //
+    }
+  } catch (error) {
+    console.error("Error loading or using CLD3:", error);
+  }
+}
+
 
   // Function to check mentions - added missing implementation
   const checkTrueMentions = useCallback((username: string) => {
@@ -251,7 +272,11 @@ export function PostSection({ post, onLike, onRepost, onReply, isMobile = false 
       console.error("Error pinning post:", error)
     }
   }, [post._id, currentUserId, onReply])
-  
+  useEffect(()=>{
+    if (post.content.length) {
+      setPostLang(detectLanguage(post.content))
+    }
+  },[post.content])
   // Enhanced media rendering with loading states
   const renderMedia = useCallback(
     (mediaUrls: string[] | null, mediaType: string | null) => {
@@ -441,7 +466,7 @@ export function PostSection({ post, onLike, onRepost, onReply, isMobile = false 
           {post.content && (
             <div className="mt-2">
               <div
-                className="text-gray-900 whitespace-pre-wrap text-sm lg:text-base leading-relaxed"
+                className={"text-gray-900 whitespace-pre-wrap text-sm lg:text-base leading-relaxed" + " " + postLang === 'bn' ? "font-bengali": ""}
                 dangerouslySetInnerHTML={{ __html: formatContent(contentToDisplay) }}
               />
 
