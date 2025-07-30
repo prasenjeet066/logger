@@ -287,7 +287,7 @@ export function ReplyCard({ post, onLike, onRepost }: PostCardProps) {
               </div>
             </div>
         </div>
-        
+        </div>
         
         
         
@@ -396,7 +396,7 @@ export function ReplyCard({ post, onLike, onRepost }: PostCardProps) {
                 <Share className="h-4 w-4" />
               </Button>
             </div>
-          </div>
+          
           </div>
         </div>
       </div>
