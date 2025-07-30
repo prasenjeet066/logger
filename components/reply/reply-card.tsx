@@ -288,11 +288,11 @@ export function ReplyCard({ post, onLike, onRepost }: PostCardProps) {
             </div>
         </div>
         </div>
-        <div className='flex relative h-full flex-row p-4 gap-2 pt-1'>
-          {replies.length && (
+        <div className={'flex relative h-full flex-row p-4 gap-2 pt-1'}>
+          {replies.length ? (
           <div className='h-auto w-2 border-l border-b border-b  border-l  rounded-bl-md'>
             
-          </div>)}
+          </div>):<></>}
           <div className='flex flex-col w-full'>
             <div>
           
@@ -394,7 +394,8 @@ export function ReplyCard({ post, onLike, onRepost }: PostCardProps) {
                 <Share className="h-4 w-4" />
               </Button>
             </div>
-            <small className = 'text-xs -mb-2'>{"See more " + replies.length + " replies…"}</small>
+            {replies.length ?(
+            <small className = 'text-xs -mb-2'>{"See more " + replies.length + " replies…"}</small>):<></>}
           </div>
         </div>
       </div>
