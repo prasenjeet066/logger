@@ -267,7 +267,8 @@ export function ProfileContent({ username }: ProfileContentProps) {
      <div className = 'flex items-center text-semibold text-sm'>
        <small>{"Pinned Post"}</small>
      </div>
-      {pinnedPosts.map((post) => (
+      {pinnedPosts && (
+      pinnedPosts.map((post) => (
         <PostCard
           key={post._id}
           post={post}
@@ -275,7 +276,7 @@ export function ProfileContent({ username }: ProfileContentProps) {
           onRepost={handleRepost}
           onReply={fetchProfileData}
         />
-      ))}
+      )))}
 
       {otherPosts.map((post) => (
         <PostCard
