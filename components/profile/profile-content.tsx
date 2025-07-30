@@ -147,7 +147,7 @@ export function ProfileContent({ username }: ProfileContentProps) {
   useEffect(() => {
     fetchPinnedPost()
     fetchProfileData()
-  }, [fetchProfileData,fetchPinnedPost])
+  }, [fetchProfileData, fetchPinnedPost])
   
   const handleFollow = async () => {
     if (profileType === 'bot' || !session?.user) return
@@ -267,7 +267,7 @@ export function ProfileContent({ username }: ProfileContentProps) {
      <div className = 'flex items-center text-semibold text-sm'>
        <small>{"Pinned Post"}</small>
      </div>
-      {pinnedPosts && (
+      {pinnedPosts && pinnedPosts.length && (
       pinnedPosts.map((post) => (
         <PostCard
           key={post._id}
