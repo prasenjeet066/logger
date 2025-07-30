@@ -252,14 +252,14 @@ export function ReplyCard({ post, onLike, onRepost }: PostCardProps) {
   
   return (
     <main>
-      <div className='flex flex-col'>
-        <div className ='flex flex-row items-center'>
+      <div className='flex p-4 flex-col'>
+        <div className ='flex flex-row items-center gap-2'>
            <Link
             href={`/profile/${post.author.username}`}
             className="flex-shrink-0 relative z-10"
             onClick={(e) => e.stopPropagation()}
           >
-            <Avatar className="cursor-pointer h-12 w-12 ring-2 ring-white border-2 border-gray-200 hover:ring-blue-200 transition-all">
+            <Avatar className="cursor-pointer h-⁸ w-8 ring-2 ring-white border-2 border-gray-200 hover:ring-blue-200 transition-all">
               <AvatarImage src={post.author.avatarUrl || undefined} alt={`${post.author.displayName}'s avatar`} />
               <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white">
                 {post.author.displayName?.charAt(0)?.toUpperCase() || "U"}
@@ -273,15 +273,15 @@ export function ReplyCard({ post, onLike, onRepost }: PostCardProps) {
                 className="hover:underline transition-colors"
                 onClick={(e) => e.stopPropagation()}
               >
-                <span className="font-semibold flex items-center gap-1">
+                <span className="font-semibold flex items-center gap-1 text-sm">
                   {post.author.displayName}
                   {post.author.isVerified && <VerificationBadge className="h-4 w-4" size={15} />}
                 </span>
               </Link>
               <div className="flex flex-row items-center gap-1 -mt-1">
-                <span className="text-gray-500 text-sm">@{post.author.username}</span>
-                <span className="text-gray-500 text-sm">·</span>
-                <time className="text-gray-500 text-sm" dateTime={post.createdAt}>
+                <span className="text-gray-500 text-xs">@{post.author.username}</span>
+                <span className="text-gray-500 text-xs">·</span>
+                <time className="text-gray-500 text-xs" dateTime={post.createdAt}>
                   {formatDistanceToNow(new Date(post.createdAt), { addSuffix: true })}
                 </time>
               </div>
@@ -291,7 +291,7 @@ export function ReplyCard({ post, onLike, onRepost }: PostCardProps) {
         
         
         
-        <div className='flex flex-row items-center'>
+        <div className='flex flex-row items-center relative h-full'>
           <div className='h-full w-4 border-l-2 border-b-2 border-gray-300 rounded-bl-md'>
             
           </div>
@@ -301,7 +301,7 @@ export function ReplyCard({ post, onLike, onRepost }: PostCardProps) {
             {post.content && (
               <div className="mt-2 mb-3">
                 <div
-                  className="text-gray-900 whitespace-pre-wrap text-sm lg:text-base leading-relaxed"
+                  className="text-gray-900 whitespace-pre-wrap text-xs lg:text-base leading-relaxed"
                   dangerouslySetInnerHTML={{ __html: formatContent(contentToDisplay) }}
                 />
 
