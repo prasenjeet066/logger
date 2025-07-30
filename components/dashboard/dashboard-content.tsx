@@ -85,7 +85,7 @@ export function DashboardContent({ user, typesOfAlg }: DashboardContentProps) {
 
         {/* Main Content */}
         <div className="flex-1 max-w-2xl border-r">
-            <SuggestedUsers/>
+          
           <Timeline userId={profile._id} typesOfAlg/> {/* Pass MongoDB _id */}
         </div>
 
