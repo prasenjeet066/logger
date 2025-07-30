@@ -1,8 +1,6 @@
 "use client"
 
-import type React from "react"
-
-import { useState, useEffect, useCallback, useMemo } from "react"
+import React, { useState, useEffect, useCallback, useMemo } from "react"
 import { formatDistanceToNow } from "date-fns"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
@@ -12,8 +10,25 @@ import { VerificationBadge } from "@/components/badge/verification-badge"
 import LinkPreview from "@/components/link-preview"
 import DOMPurify from "dompurify"
 import { useRouter, usePathname } from "next/navigation"
-import type { Post } from "@/types/post"
 import { useSession } from "next-auth/react"
+
+interface Post {
+  _id: string
+  content: string
+  author: {
+    username: string
+    displayName?: string
+    avatarUrl?: string
+    isVerified?: boolean
+  }
+  mediaUrls?: string[]
+  mediaType?: "image" | "video" | null
+  createdAt: string
+  likesCount?: number
+  repostsCount?: number
+  isLiked?: boolean
+  isReposted?: boolean
+}
 
 interface PostCardProps {
   post: Post
@@ -73,7 +88,7 @@ const ReplyPreview = ({ reply, index, total }: ReplyPreviewProps) => {
       <div className="flex gap-3">
         <Link href={`/profile/${reply.author.username}`} className="flex-shrink-0" onClick={(e) => e.stopPropagation()}>
           <Avatar className="h-6 w-6 border-2 border-white">
-            <AvatarImage src={reply.author.avatarUrl || undefined} alt={`${reply.author.displayName}'s avatar`} />
+            <AvatarImage src={reply.author.avatarUrl || undefined} alt={`${reply.author.displayName || "User"}'s avatar`} />
             <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white text-xs">
               {reply.author.displayName?.charAt(0)?.toUpperCase() || "U"}
             </AvatarFallback>
@@ -81,10 +96,10 @@ const ReplyPreview = ({ reply, index, total }: ReplyPreviewProps) => {
         </Link>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
-            <span className="font-medium text-xs">{reply.author.displayName}</span>
+            <span className="font-medium text-xs">{reply.author.displayName || "Unknown User"}</span>
             <span className="text-gray-500 text-xs">·</span>
             <time className="text-gray-500 text-xs" dateTime={reply.createdAt}>
-              {formatDistanceToNow(new Date(reply.createdAt), { addSuffix: false })}
+              {reply.createdAt ? formatDistanceToNow(new Date(reply.createdAt), { addSuffix: false }) : "Unknown time"}
             </time>
           </div>
           <p className="text-xs text-gray-700 mt-1 line-clamp-2">{reply.content}</p>
@@ -94,12 +109,12 @@ const ReplyPreview = ({ reply, index, total }: ReplyPreviewProps) => {
   )
 }
 
-export function ReplyCard({ post, onLike, onRepost }: PostCardProps) {
+export function ReplyCard({ post, onLike, onRepost, onReply }: PostCardProps) {
   const { data: session } = useSession()
   const currentUserId = session?.user?.id
-
   const [showReplyDialog, setShowReplyDialog] = useState(false)
   const [replies, setReplies] = useState<Post[]>([])
+  const [isLoadingReplies, setIsLoadingReplies] = useState(false)
   const [showAllReplies, setShowAllReplies] = useState(false)
   const [repostLoading, setRepostLoading] = useState(false)
   const [translation, setTranslation] = useState<TranslationState>({
@@ -117,28 +132,29 @@ export function ReplyCard({ post, onLike, onRepost }: PostCardProps) {
   const postUrl = useMemo(() => extractFirstUrl(post.content), [post.content])
   const hasMedia = useMemo(() => post.mediaUrls && post.mediaUrls.length > 0, [post.mediaUrls])
   const isPostPage = useMemo(() => pathname.startsWith("/post"), [pathname])
+  const formattedContent = useMemo(
+    () => formatContent(translation.translatedText || post.content),
+    [translation.translatedText, post.content]
+  )
 
+  // Fetch replies
   const fetchReplies = async () => {
+    setIsLoadingReplies(true)
     try {
       const response = await fetch(`/api/posts/${post._id}/replies`)
-
-      if (!response.ok) {
-        throw new Error("Failed to fetch replies")
-      }
+      if (!response.ok) throw new Error("Failed to fetch replies")
       const data = await response.json()
       setReplies(data || [])
     } catch (error) {
       console.error("Error fetching replies:", error)
+    } finally {
+      setIsLoadingReplies(false)
     }
   }
 
   useEffect(() => {
     fetchReplies()
   }, [post._id])
-
-  const MAX_LENGTH = 100
-  const shouldTrim = !isPostPage && post.content.length > MAX_LENGTH
-  const displayContent = shouldTrim ? smartTruncate(post.content, MAX_LENGTH) : post.content
 
   // Translation function
   const translateText = useCallback(async (text: string, targetLang = "bn"): Promise<string> => {
@@ -171,7 +187,17 @@ export function ReplyCard({ post, onLike, onRepost }: PostCardProps) {
     }
   }, [])
 
-  // Enhanced content formatting
+  const handleTranslate = async () => {
+    setTranslation((prev) => ({ ...prev, isTranslating: true }))
+    try {
+      const translated = await translateText(post.content, translation.targetLang)
+      setTranslation((prev) => ({ ...prev, translatedText: translated, isTranslating: false, error: null }))
+    } catch (error) {
+      setTranslation((prev) => ({ ...prev, error: error.message, isTranslating: false }))
+    }
+  }
+
+  // Content formatting
   const formatContent = useCallback((content: string) => {
     const urlRegex = /(https?:\/\/[^\s]+)/g
     const sanitizedContent = DOMPurify.sanitize(content, {
@@ -182,15 +208,15 @@ export function ReplyCard({ post, onLike, onRepost }: PostCardProps) {
     return sanitizedContent
       .replace(
         urlRegex,
-        '<a href="$1" target="_blank" rel="noopener noreferrer" class="text-blue-600 underline break-all hover:text-blue-800 transition-colors">$1</a>',
+        '<a href="$1" target="_blank" rel="noopener noreferrer" class="text-blue-600 underline break-all hover:text-blue-800 transition-colors">$1</a>'
       )
       .replace(
         /#([a-zA-Z0-9_\u0980-\u09FF]+)/g,
-        '<span class="text-blue-600 hover:underline cursor-pointer font-medium transition-colors">#$1</span>',
+        '<span class="text-blue-600 hover:underline cursor-pointer font-medium transition-colors">#$1</span>'
       )
       .replace(
         /@([a-zA-Z0-9_]+)/g,
-        '<span class="text-blue-600 hover:underline cursor-pointer font-medium transition-colors">@$1</span>',
+        '<span class="text-blue-600 hover:underline cursor-pointer font-medium transition-colors">@$1</span>'
       )
   }, [])
 
@@ -214,7 +240,9 @@ export function ReplyCard({ post, onLike, onRepost }: PostCardProps) {
             onError={(e) => {
               console.error("Video load error:", e)
             }}
-          />
+          >
+            <p className="text-xs text-gray-500">Video failed to load.</p>
+          </video>
         </div>
       )
     }
@@ -246,177 +274,207 @@ export function ReplyCard({ post, onLike, onRepost }: PostCardProps) {
     )
   }, [])
 
-  const contentToDisplay = translation.translatedText || displayContent
-  const previewReplies = replies.slice(0, 1)
-  const hasMoreReplies = replies.length > 1
+  // Share functionality
+  const handleShare = async () => {
+    try {
+      if (navigator.share) {
+        await navigator.share({
+          title: `Post by ${post.author.displayName || "User"}`,
+          url: `${window.location.origin}/post/${post._id}`,
+        })
+      } else {
+        await navigator.clipboard.writeText(`${window.location.origin}/post/${post._id}`)
+        alert("Post URL copied to clipboard!")
+      }
+    } catch (error) {
+      console.error("Share error:", error)
+      alert("Failed to share post.")
+    }
+  }
+
+  const MAX_LENGTH = 100
+  const shouldTrim = !isPostPage && post.content.length > MAX_LENGTH
+  const displayContent = shouldTrim ? smartTruncate(post.content, MAX_LENGTH) : post.content
 
   return (
     <article
       className="hover:bg-gray-50 transition-colors cursor-pointer border-b border-gray-200"
-      aria-label={`Post by ${post.author.displayName}`}
+      aria-label={`Post by ${post.author.displayName || "User"}`}
+      onClick={() => router.push(`/post/${post._id}`)}
     >
-      <div className="p-4">
-        <div className="flex gap-3 relative">
-          {/* Thread line */}
-          {replies.length > 0 && <div className="absolute left-6 top-14 w-[5px] bg-none border-l-2  h-full"></div>}
-
-          <Link
-            href={`/profile/${post.author.username}`}
-            className="flex-shrink-0 relative z-10"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <Avatar className="cursor-pointer h-8 w-8 ring-2 ring-white border-2 border-gray-200 hover:ring-blue-200 transition-all">
-              <AvatarImage src={post.author.avatarUrl || undefined} alt={`${post.author.displayName}'s avatar`} />
-              <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white">
-                {post.author.displayName?.charAt(0)?.toUpperCase() || "U"}
-              </AvatarFallback>
-            </Avatar>
-          </Link>
-
-          <div className="flex-1 min-w-0">
-            <div className="flex flex-col items-left gap-1">
-              <Link
-                href={`/profile/${post.author.username}`}
-                className="hover:underline transition-colors"
-                onClick={(e) => e.stopPropagation()}
-              >
-                <span className="font-semibold flex items-center gap-1 text-xs">
-                  {post.author.displayName}
-                  {post.author.isVerified && <VerificationBadge className="h-4 w-4" size={15} />}
-                </span>
-              </Link>
-              <div className="flex flex-row items-center gap-1 -mt-1">
-                <span className="text-gray-500 text-xs">@{post.author.username}</span>
-                <span className="text-gray-500 text-xs">·</span>
-                <time className="text-gray-500 text-xs" dateTime={post.createdAt}>
-                  {formatDistanceToNow(new Date(post.createdAt), { addSuffix: true })}
-                </time>
+      <div className="flex flex-col p-4">
+        <div className="flex gap-2 flex-col">
+          <div className="flex flex-row items-center gap-2">
+            <Link
+              href={`/profile/${post.author.username}`}
+              className="flex-shrink-0 relative z-10"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <Avatar className="cursor-pointer h-8 w-8 ring-2 ring-white border-2 border-gray-200 hover:ring-blue-200 transition-all">
+                <AvatarImage src={post.author.avatarUrl || undefined} alt={`${post.author.displayName || "User"}'s avatar`} />
+                <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white">
+                  {post.author.displayName?.charAt(0)?.toUpperCase() || "U"}
+                </AvatarFallback>
+              </Avatar>
+            </Link>
+            <div className="flex-1 min-w-0">
+              <div className="flex flex-col items-left gap-1">
+                <Link
+                  href={`/profile/${post.author.username}`}
+                  className="hover:underline transition-colors"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <span className="font-semibold flex items-center gap-1 text-xs">
+                    {post.author.displayName || "Unknown User"}
+                    {post.author.isVerified && <VerificationBadge className="h-4 w-4" size={15} />}
+                  </span>
+                </Link>
+                <div className="flex flex-row items-center gap-1 -mt-1">
+                  <span className="text-gray-500 text-xs">@{post.author.username || "unknown"}</span>
+                  <span className="text-gray-500 text-xs">·</span>
+                  <time className="text-gray-500 text-xs" dateTime={post.createdAt}>
+                    {post.createdAt ? formatDistanceToNow(new Date(post.createdAt), { addSuffix: true }) : "Unknown time"}
+                  </time>
+                </div>
               </div>
             </div>
-
-            {/* Post content */}
-            {post.content && (
-              <div className="mt-2 mb-3">
-                <div
-                  className="text-gray-900 whitespace-pre-wrap text-xs lg:text-base leading-relaxed"
-                  dangerouslySetInnerHTML={{ __html: formatContent(contentToDisplay) }}
-                />
-
-                {shouldTrim && (
-                  <button
-                    className="text-blue-600 hover:text-blue-800 hover:underline text-xs mt-2 transition-colors"
+          </div>
+          <div className="flex relative h-full flex-row p-4 gap-2 pt-1">
+            <div className="h-auto w-2 border-l border-b border-b-2 border-l-2 border-red-400 rounded-bl-md"></div>
+            <div className="flex flex-col">
+              <div className="">
+                {post.content && (
+                  <div className="mt-2 mb-3">
+                    <div
+                      className="text-gray-900 whitespace-pre-wrap text-xs lg:text-base leading-relaxed"
+                      dangerouslySetInnerHTML={{ __html: formattedContent }}
+                    />
+                    {translation.isTranslating && <Loader2 className="h-4 w-4 animate-spin mt-2" />}
+                    {translation.error && <p className="text-red-500 text-xs mt-2">{translation.error}</p>}
+                    {!translation.translatedText && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          handleTranslate()
+                        }}
+                        disabled={translation.isTranslating}
+                        className="text-blue-600 hover:text-blue-800 text-xs mt-2"
+                      >
+                        Translate to Bengali
+                      </Button>
+                    )}
+                    {shouldTrim && (
+                      <button
+                        className="text-blue-600 hover:text-blue-800 hover:underline text-xs mt-2"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          router.push(`/post/${post._id}`)
+                        }}
+                      >
+                        Show More
+                      </button>
+                    )}
+                  </div>
+                )}
+                {!hasMedia && postUrl && (
+                  <div className="mb-3">
+                    <LinkPreview url={postUrl} variant="compact" />
+                  </div>
+                )}
+                {renderMedia(post.mediaUrls, post.mediaType)}
+              </div>
+              <div className="w-full">
+                <div className="flex items-center justify-between max-w-sm lg:max-w-md mt-3">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-full transition-colors"
                     onClick={(e) => {
                       e.stopPropagation()
                       router.push(`/post/${post._id}`)
+                      onReply?.()
                     }}
+                    aria-label={`Reply to post by ${post.author.username || "user"}. ${replies.length || 0} replies`}
                   >
-                    Show More
-                  </button>
-                )}
+                    <MessageCircle className="h-4 w-4 mr-1" />
+                    <span className="text-xs">{replies.length || 0}</span>
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-gray-500 hover:text-green-600 hover:bg-green-50 rounded-full transition-colors"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      setRepostLoading(true)
+                      onRepost?.(post._id, post.isReposted || false)
+                      setRepostLoading(false)
+                    }}
+                    disabled={repostLoading}
+                    aria-label={`Repost. ${post.repostsCount || 0} reposts`}
+                  >
+                    {repostLoading ? (
+                      <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                    ) : (
+                      <Repeat2 className="h-4 w-4 mr-1" />
+                    )}
+                    <span className="text-xs">{post.repostsCount || 0}</span>
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className={`rounded-full transition-colors ${
+                      post.isLiked
+                        ? "text-red-500 hover:text-red-600 hover:bg-red-50"
+                        : "text-gray-500 hover:text-red-600 hover:bg-red-50"
+                    }`}
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      onLike?.(post._id, post.isLiked || false)
+                    }}
+                    aria-label={`Like post by ${post.author.username || "user"}. ${post.likesCount || 0} likes`}
+                  >
+                    <Heart className={`h-4 w-4 mr-1 ${post.isLiked ? "fill-current" : ""}`} />
+                    <span className="text-xs">{post.likesCount || 0}</span>
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-full transition-colors"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      handleShare()
+                    }}
+                    aria-label={`Share post by ${post.author.username || "user"}`}
+                  >
+                    <Share className="h-4 w-4" />
+                  </Button>
+                </div>
               </div>
-            )}
-
-            {/* Link preview */}
-            {!hasMedia && postUrl && (
-              <div className="mb-3">
-                <LinkPreview url={postUrl} variant="compact" />
-              </div>
-            )}
-
-            {/* Media */}
-            {renderMedia(post.mediaUrls, post.mediaType)}
-
-            {/* Action buttons */}
-            <div className="flex items-center justify-between max-w-sm lg:max-w-md mt-3">
-              <Button
-                variant="ghost"
-                size="sm"
-                className="text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-full transition-colors"
-                onClick={(e) => {
-                  e.stopPropagation()
-                  router.push("/post/" + post._id)
-                }}
-                aria-label={`Reply to post. ${replies.length || 0} replies`}
-              >
-                <MessageCircle className="h-4 w-4 mr-1" />
-                <span className="text-xs lg:text-xs">{replies.length || 0}</span>
-              </Button>
-
-              <Button
-                variant="ghost"
-                size="sm"
-                className="text-gray-500 hover:text-green-600 hover:bg-green-50 rounded-full transition-colors"
-                onClick={(e) => {
-                  e.stopPropagation()
-                  onRepost?.(post._id, post.isReposted)
-                }}
-                disabled={repostLoading}
-                aria-label={`Repost. ${post.repostsCount || 0} reposts`}
-              >
-                {repostLoading ? (
-                  <Loader2 className="h-4 w-4 mr-1 animate-spin" />
-                ) : (
-                  <Repeat2 className="h-4 w-4 mr-1" />
-                )}
-                <span className="text-xs lg:text-xs">{post.repostsCount || 0}</span>
-              </Button>
-
-              <Button
-                variant="ghost"
-                size="sm"
-                className={`rounded-full transition-colors ${
-                  post.isLiked
-                    ? "text-red-500 hover:text-red-600 hover:bg-red-50"
-                    : "text-gray-500 hover:text-red-600 hover:bg-red-50"
-                }`}
-                onClick={(e) => {
-                  e.stopPropagation()
-                  onLike?.(post._id, post.isLiked)
-                }}
-                aria-label={`Like post. ${post.likesCount || 0} likes`}
-              >
-                <Heart className={`h-4 w-4 mr-1 ${post.isLiked ? "fill-current" : ""}`} />
-                <span className="text-xs lg:text-xs">{post.likesCount || 0}</span>
-              </Button>
-
-              <Button
-                variant="ghost"
-                size="sm"
-                className="text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-full transition-colors"
-                onClick={(e) => {
-                  e.stopPropagation()
-                  // Share functionality
-                }}
-                aria-label="Share post"
-              >
-                <Share className="h-4 w-4" />
-              </Button>
+              {isLoadingReplies ? (
+                <Loader2 className="h-4 w-4 animate-spin mt-2" />
+              ) : (
+                <>
+                  {replies.slice(0, showAllReplies ? replies.length : 1).map((reply, index) => (
+                    <ReplyPreview key={reply._id} reply={reply} index={index} total={replies.length} />
+                  ))}
+                  {replies.length > 1 && !showAllReplies && (
+                    <button
+                      className="text-gray-700 text-xs -mb-2 hover:underline"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        setShowAllReplies(true)
+                      }}
+                    >
+                      See more replies ({replies.length - 1})
+                    </button>
+                  )}
+                </>
+              )}
             </div>
           </div>
         </div>
-
-        {/* Reply previews */}
-        {replies.length > 0 && (
-          <div className="-ml-4 pl-3">
-            <div className="space-y-2">
-              {previewReplies.map((reply, index) => (
-                <ReplyPreview key={reply._id} reply={reply} index={index} total={replies.length} />
-              ))}
-            </div>
-
-            {hasMoreReplies && (
-              <button
-                className="text-blue-600 hover:text-blue-800 hover:underline text-xs mt-3 flex items-center gap-1 transition-colors"
-                onClick={(e) => {
-                  e.stopPropagation()
-                  router.push(`/post/${post._id}`)
-                }}
-              >
-                See {replies.length - 1} more replies...
-              </button>
-            )}
-          </div>
-        )}
       </div>
     </article>
   )
