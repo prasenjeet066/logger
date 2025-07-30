@@ -137,11 +137,11 @@ const SuggestedUsers: React.FC < SuggestedUsersProps > = ({ className = '' }) =>
               {user.displayName}
             </h2>
             <div className="h-4"> {/* Placeholder to prevent layout shift */}
-              <MutualFollowers targetUsername={user.username}  type='center'/>
+              
             </div>
 
-            {/* --- DYNAMIC BUTTON LOGIC --- */}<div className='flex flex-row text-xs items-center justify-center'>
-<button className='w-full rounded-full text-center bg-gray-800 text-white p-2 px-4'>
+            {/* --- DYNAMIC BUTTON LOGIC --- */}<div className='flex w-full flex-row text-xs items-center justify-center'>
+<button className='flex-1 rounded-full text-center bg-gray-800 text-white p-2 px-4'>
                 <>
                   <UserPlus className="w-4 h-4 mr-1" /> Follow
                 </>

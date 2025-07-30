@@ -13,14 +13,12 @@ import { debounce } from "lodash"
 import { signOut } from "next-auth/react"
 import { Spinner } from "@/components/loader/spinner"
 import { PostCard } from "@/components/dashboard/post-card"
-
+import {AccountSettings , PrivacyAndPersonalSettings,PasswordAndSecuritySettings} from '@/components/settings/options'
 // Import or define your Settings components
 // import { Settings } from "@/components/settings" // Uncomment and adjust path as needed
 
 // Placeholder components - replace with your actual components
-const AccountSettings = () => <div>Account Settings Content</div>
-const PrivacyAndPersonalSettings = () => <div>Privacy and Personal Settings Content</div>
-const PasswordAndSecuritySettings = () => <div>Password and Security Settings Content</div>
+
 
 export const SettingsContent = ({ user, s }) => {
   const router = useRouter()
@@ -29,17 +27,17 @@ export const SettingsContent = ({ user, s }) => {
     {
       name: 'Account',
       icon: User,
-      _component: AccountSettings // Use the placeholder component
+      _component: <AccountSettings/> // Use the placeholder component
     },
     {
       name: 'Privacy and Personal',
       icon: Lock,
-      _component: PrivacyAndPersonalSettings // Use the placeholder component
+      _component: <PrivacyAndPersonalSettings/> // Use the placeholder component
     },
     {
       name: 'Password and Security',
       icon: Key,
-      _component: PasswordAndSecuritySettings // Use the placeholder component
+      _component: <PasswordAndSecuritySettings/> // Use the placeholder component
     }
   ]
   
@@ -95,7 +93,7 @@ export const SettingsContent = ({ user, s }) => {
           </div>
         ) : (
           <div>
-            {React.createElement(currentSection)}
+            {currentSection}
           </div>
         )}
       </div>
