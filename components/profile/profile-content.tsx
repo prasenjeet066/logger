@@ -89,20 +89,6 @@ export function ProfileContent({ username }: ProfileContentProps) {
   const [imageViewerOpen, setImageViewerOpen] = useState<string | null>(null)
   const router = useRouter()
   
-  const fetchPinnedPost = useCallback(async () => {
-    if (profileData?.pinnedPostId && profileData.pinnedPostId !== null) {
-      try {
-        const response = await fetch('/api/post/' + profileData.pinnedPostId);
-        if (response.ok) {
-          const pinnedPostData = await response.json();
-          setPinnedPost(pinnedPostData)
-        }
-      } catch (error) {
-        console.error("Error fetching pinned post:", error)
-      }
-    }
-  }, [profileData?.pinnedPostId])
-
   const fetchProfileData = useCallback(async () => {
     try {
       setIsLoading(true)
@@ -136,10 +122,34 @@ export function ProfileContent({ username }: ProfileContentProps) {
         setMedia(mediaPosts)
         
         // Get reposts separately
-        const repostsResponse = await fetch(`/api/users/${username}/reposts`)
-        if (repostsResponse.ok) {
-          const repostsData = await repostsResponse.json()
-          setReposts(repostsData)
+        try {
+          const repostsResponse = await fetch(`/api/users/${username}/reposts`)
+          if (repostsResponse.ok) {
+            const repostsData = await repostsResponse.json()
+            setReposts(repostsData)
+          } else {
+            setReposts([])
+          }
+        } catch {
+          setReposts([])
+        }
+
+        // Fetch pinned post if exists
+        if (profile.pinnedPostId) {
+          try {
+            const pinnedResponse = await fetch('/api/post/' + profile.pinnedPostId);
+            if (pinnedResponse.ok) {
+              const pinnedPostData = await pinnedResponse.json();
+              setPinnedPost(pinnedPostData)
+            } else {
+              setPinnedPost(null)
+            }
+          } catch (error) {
+            console.error("Error fetching pinned post:", error)
+            setPinnedPost(null)
+          }
+        } else {
+          setPinnedPost(null)
         }
       } else {
         // Try to fetch as a bot
@@ -150,11 +160,12 @@ export function ProfileContent({ username }: ProfileContentProps) {
           setBotData(botProfile)
           setProfileData(null)
           setProfileType('bot')
+          setPinnedPost(null) // Bots don't have pinned posts
           
           // For bots, set posts similarly
-          const regularPosts = botPosts.filter((post: Post) => !post.parentPostId && !post.isRepost)
-          const replyPosts = botPosts.filter((post: Post) => post.parentPostId)
-          const mediaPosts = botPosts.filter((post: Post) => post.mediaUrls && post.mediaUrls.length > 0)
+          const regularPosts = botPosts?.filter((post: Post) => !post.parentPostId && !post.isRepost) || []
+          const replyPosts = botPosts?.filter((post: Post) => post.parentPostId) || []
+          const mediaPosts = botPosts?.filter((post: Post) => post.mediaUrls && post.mediaUrls.length > 0) || []
           
           setPosts(regularPosts)
           setReplies(replyPosts)
@@ -164,6 +175,7 @@ export function ProfileContent({ username }: ProfileContentProps) {
           // Profile not found
           setProfileData(null)
           setBotData(null)
+          setPinnedPost(null)
         }
       }
       
@@ -171,20 +183,15 @@ export function ProfileContent({ username }: ProfileContentProps) {
       console.error("Error fetching profile data:", error)
       setProfileData(null)
       setBotData(null)
+      setPinnedPost(null)
     } finally {
       setIsLoading(false)
     }
-  }, [username, session])
+  }, [username, session?.user?.id]) // Only depend on username and user ID
 
   useEffect(() => {
     fetchProfileData()
-  }, [fetchProfileData])
-
-  useEffect(() => {
-    if (profileData) {
-      fetchPinnedPost()
-    }
-  }, [fetchPinnedPost, profileData])
+  }, [username, session?.user?.id]) // Direct dependencies instead of callback
   
   const handleFollow = async () => {
     if (profileType === 'bot' || !session?.user) return
@@ -257,7 +264,32 @@ export function ProfileContent({ username }: ProfileContentProps) {
       
       if (response.ok) {
         const result = await response.json()
-        fetchProfileData()
+        // Only refetch if necessary, or update state directly
+        // fetchProfileData()
+        
+        // Update reposts count in current data instead of full refetch
+        const updatePosts = (postsList: Post[]) =>
+          postsList.map((post) =>
+            post._id === postId ? { 
+              ...post, 
+              isReposted: result.reposted, 
+              repostsCount: post.repostsCount + (result.reposted ? 1 : -1) 
+            } : post,
+          )
+        
+        setPosts(updatePosts(posts))
+        setReplies(updatePosts(replies))
+        setReposts(updatePosts(reposts))
+        setMedia(updatePosts(media))
+        
+        // Update pinned post if it's the one being reposted
+        if (pinnedPost && pinnedPost._id === postId) {
+          setPinnedPost(prev => prev ? {
+            ...prev,
+            isReposted: result.reposted,
+            repostsCount: prev.repostsCount + (result.reposted ? 1 : -1)
+          } : null)
+        }
       }
     } catch (error) {
       console.error("Error toggling repost:", error)
@@ -317,7 +349,10 @@ export function ProfileContent({ username }: ProfileContentProps) {
               post={pinnedPost}
               onLike={handleLike}
               onRepost={handleRepost}
-              onReply={fetchProfileData}
+              onReply={() => {
+                // Optional: Add a more targeted update instead of full refetch
+                console.log('Reply action triggered')
+              }}
             />
           </div>
         )}
