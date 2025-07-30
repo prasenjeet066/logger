@@ -19,7 +19,7 @@ export async function PUT(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { displayName, bio, location, website, isPrivate, allowMessages, showEmail , superAccess,avatarUrl } = body
+    const { displayName, bio, location, website, isPrivate, allowMessages, showEmail , superAccess,avatarUrl, pinnedPostId} = body
 
     // Update user profile
     const updatedUser = await User.findByIdAndUpdate(
@@ -33,6 +33,7 @@ export async function PUT(request: NextRequest) {
         avatarUrl : avatarUrl!== undefined? avatarUrl: user.avatarUrl,
         allowMessages: allowMessages !== undefined ? allowMessages : user.allowMessages,
         showEmail: showEmail !== undefined ? showEmail : user.showEmail,
+        pinnedPostId: pinnedPostId !== undefined ? pinnedPostId : user.pinnedPostId,
         superAccess:superAccess!== undefined || superAccess!== null ? superAccess  : null 
       },
       { new: true, runValidators: true },

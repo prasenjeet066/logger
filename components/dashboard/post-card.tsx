@@ -245,8 +245,9 @@ const addUniqueMention = (newMention: string) =>
     if (!currentUserId) return
     
     try {
-      const response = await fetch(`/api/posts/${post._id}/pin`, {
+      const response = await fetch(`/api/users/profile`, {
         method: "POST",
+        body: JSON.stringify({pinnedPostId:post._id})
       })
       
       if (!response.ok) {
