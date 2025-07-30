@@ -118,12 +118,12 @@ const SuggestedUsers: React.FC < SuggestedUsersProps > = ({ className = '' }) =>
   }
   
   return (
-    <div className={`bg-white rounded-xl border-b border-gray-200 overflow-hidden ${className}`}>
+    <div className={`bg-white rounded-xl w-full border-b border-gray-200 overflow-hidden ${className}`}>
       <div className='flex flex-row items-center justify-between p-4'>
         <h1 className='font-semibold text-gray-700 text-sm'>Suggestions for you</h1>
       </div>
       {/* Use overflow-x-auto for horizontal scroll only when needed */}
-      <div className='flex flex-row items-center gap-2 overflow-x-auto p-2 '>
+      <div className='flex w-full flex-row items-center gap-2 overflow-x-auto p-2 '>
         {users.map((user) => (
           // **CRITICAL FIX**: Added the `key` prop for list rendering.
           <div key={user._id} className='w-auto flex border flex-shrink-0 flex-col items-center rounded-lg justify-center p-3  text-center space-y-1'>
@@ -141,7 +141,7 @@ const SuggestedUsers: React.FC < SuggestedUsersProps > = ({ className = '' }) =>
             </div>
 
             {/* --- DYNAMIC BUTTON LOGIC --- */}<div className='flex w-full flex-row text-xs items-center justify-center'>
-<button className='flex-1 rounded-full text-center bg-gray-800 text-white p-2 px-4'>
+<button className='w-full rounded-full text-center bg-gray-800 text-white p-2 px-4'>
                 <>
                   <UserPlus className="w-4 h-4 mr-1" /> Follow
                 </>
