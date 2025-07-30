@@ -42,6 +42,7 @@ interface ProfileData {
   followersCount: number
   followingCount: number
   isFollowing: boolean
+  pinnedPostId?: string | null
 }
 
 interface BotData {
@@ -60,9 +61,9 @@ interface BotData {
   postsCount: number
   ownerId: {
     _id: string
-    name ? : string
-    email ? : string
-    username ? : string
+    name?: string
+    email?: string
+    username?: string
   }
   createdAt: string
 }
@@ -71,23 +72,37 @@ type ProfileType = 'user' | 'bot'
 
 export function ProfileContent({ username }: ProfileContentProps) {
   const { data: session, status } = useSession()
-  const [currentUser, setCurrentUser] = useState < any > (null)
-  const [profileData, setProfileData] = useState < ProfileData | null > (null)
-  const [botData, setBotData] = useState < BotData | null > (null)
-  const [profileType, setProfileType] = useState < ProfileType > ('user')
-  const [posts, setPosts] = useState < Post[] > ([])
-  const [replies, setReplies] = useState < Post[] > ([])
-  const [reposts, setReposts] = useState < Post[] > ([])
-  const [media, setMedia] = useState < Post[] > ([])
+  const [currentUser, setCurrentUser] = useState<any>(null)
+  const [profileData, setProfileData] = useState<ProfileData | null>(null)
+  const [botData, setBotData] = useState<BotData | null>(null)
+  const [profileType, setProfileType] = useState<ProfileType>('user')
+  const [posts, setPosts] = useState<Post[]>([])
+  const [replies, setReplies] = useState<Post[]>([])
+  const [reposts, setReposts] = useState<Post[]>([])
+  const [media, setMedia] = useState<Post[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const isMobile = useMobile()
   const [editDialogOpen, setEditDialogOpen] = useState(false)
-  const [_pinnedPost, setPinnedPost] = useState(null)
+  const [pinnedPost, setPinnedPost] = useState<Post | null>(null)
   const [activeTab, setActiveTab] = useState("posts")
-  const [imageViewerOpen, setImageViewerOpen] = useState < string | null > (null)
+  const [imageViewerOpen, setImageViewerOpen] = useState<string | null>(null)
   const router = useRouter()
   
+  const fetchPinnedPost = useCallback(async () => {
+    if (profileData?.pinnedPostId && profileData.pinnedPostId !== null) {
+      try {
+        const response = await fetch('/api/post/' + profileData.pinnedPostId);
+        if (response.ok) {
+          const pinnedPostData = await response.json();
+          setPinnedPost(pinnedPostData)
+        }
+      } catch (error) {
+        console.error("Error fetching pinned post:", error)
+      }
+    }
+  }, [profileData?.pinnedPostId])
+
   const fetchProfileData = useCallback(async () => {
     try {
       setIsLoading(true)
@@ -126,28 +141,50 @@ export function ProfileContent({ username }: ProfileContentProps) {
           const repostsData = await repostsResponse.json()
           setReposts(repostsData)
         }
+      } else {
+        // Try to fetch as a bot
+        const botResponse = await fetch(`/api/bots/${username}`)
+        
+        if (botResponse.ok) {
+          const { bot: botProfile, posts: botPosts } = await botResponse.json()
+          setBotData(botProfile)
+          setProfileData(null)
+          setProfileType('bot')
+          
+          // For bots, set posts similarly
+          const regularPosts = botPosts.filter((post: Post) => !post.parentPostId && !post.isRepost)
+          const replyPosts = botPosts.filter((post: Post) => post.parentPostId)
+          const mediaPosts = botPosts.filter((post: Post) => post.mediaUrls && post.mediaUrls.length > 0)
+          
+          setPosts(regularPosts)
+          setReplies(replyPosts)
+          setMedia(mediaPosts)
+          setReposts([]) // Bots might not have reposts
+        } else {
+          // Profile not found
+          setProfileData(null)
+          setBotData(null)
+        }
       }
       
     } catch (error) {
       console.error("Error fetching profile data:", error)
-      // router.push("/")
+      setProfileData(null)
+      setBotData(null)
     } finally {
       setIsLoading(false)
     }
-  }, [username, session, router])
-  const fetchPinnedPost = async () => {
-    if (profileData.pinnedPostId && profileData.pinnedPostId !== null) {
-      const _pinnedPost = await fetch('/api/post/' + profileData.pinnedPostId);
-      if (_pinnedPost.ok) {
-        const pinnedPost = await _pinnedPost.json();
-        setPinnedPost(pinnedPost)
-      }
-    }
-  }
+  }, [username, session])
+
   useEffect(() => {
-    fetchPinnedPost()
     fetchProfileData()
-  }, [fetchProfileData, fetchPinnedPost])
+  }, [fetchProfileData])
+
+  useEffect(() => {
+    if (profileData) {
+      fetchPinnedPost()
+    }
+  }, [fetchPinnedPost, profileData])
   
   const handleFollow = async () => {
     if (profileType === 'bot' || !session?.user) return
@@ -191,10 +228,19 @@ export function ProfileContent({ username }: ProfileContentProps) {
             post,
           )
         
-        setPosts(updatePosts(posts))
-        setReplies(updatePosts(replies))
-        setReposts(updatePosts(reposts))
-        setMedia(updatePosts(media))
+        setPosts(updatePosts)
+        setReplies(updatePosts)
+        setReposts(updatePosts)
+        setMedia(updatePosts)
+        
+        // Update pinned post if it's the one being liked
+        if (pinnedPost && pinnedPost._id === postId) {
+          setPinnedPost(prev => prev ? {
+            ...prev,
+            isLiked: result.liked,
+            likesCount: prev.likesCount + (result.liked ? 1 : -1)
+          } : null)
+        }
       }
     } catch (error) {
       console.error("Error toggling like:", error)
@@ -250,44 +296,48 @@ export function ProfileContent({ username }: ProfileContentProps) {
   
   
   const renderTabContent = (tabPosts: Post[], emptyMessage: string) => {
-    if (tabPosts.length === 0) {
+    if (tabPosts.length === 0 && !pinnedPost) {
       return (
         <div className="text-center py-8 text-gray-500">
-        <p>{emptyMessage}</p>
-      </div>
+          <p>{emptyMessage}</p>
+        </div>
       );
     }
     
-    // Separate pinned posts (if you have isPinned field in Post type)
-    const pinnedPosts = _pinnedPost
-    const otherPosts = tabPosts.filter((post) => !post.isPinned);
-    
     return (
       <div>
-     <div className = 'flex items-center text-semibold text-sm'>
-       <small>{"Pinned Post"}</small>
-     </div>
-      {pinnedPosts && pinnedPosts.length && (
-      pinnedPosts.map((post) => (
-        <PostCard
-          key={post._id}
-          post={post}
-          onLike={handleLike}
-          onRepost={handleRepost}
-          onReply={fetchProfileData}
-        />
-      )))}
+        {/* Show pinned post only in posts tab */}
+        {activeTab === "posts" && pinnedPost && (
+          <div>
+            <div className="flex items-center text-semibold text-sm px-4 py-2 bg-gray-50">
+              <small>Pinned Post</small>
+            </div>
+            <PostCard
+              key={pinnedPost._id}
+              post={pinnedPost}
+              onLike={handleLike}
+              onRepost={handleRepost}
+              onReply={fetchProfileData}
+            />
+          </div>
+        )}
 
-      {otherPosts.map((post) => (
-        <PostCard
-          key={post._id}
-          post={post}
-          onLike={handleLike}
-          onRepost={handleRepost}
-          onReply={fetchProfileData}
-        />
-      ))}
-    </div>
+        {tabPosts.length === 0 ? (
+          <div className="text-center py-8 text-gray-500">
+            <p>{emptyMessage}</p>
+          </div>
+        ) : (
+          tabPosts.map((post) => (
+            <PostCard
+              key={post._id}
+              post={post}
+              onLike={handleLike}
+              onRepost={handleRepost}
+              onReply={fetchProfileData}
+            />
+          ))
+        )}
+      </div>
     );
   };
   
@@ -389,7 +439,7 @@ export function ProfileContent({ username }: ProfileContentProps) {
             <div className="p-4 border-b relative">
               <div className="flex items-start justify-between mb-4">
                 <div className="flex flex-col items-center justify-center">
-                  <Avatar className="w-24 h-24 -mt-12 border-4 border-white" onClick={() => {
+                  <Avatar className="w-24 h-24 -mt-12 border-4 border-white cursor-pointer" onClick={() => {
                     const avatarUrl = profileType === 'user' ? profileData?.avatarUrl : botData?.avatarUrl
                     if (avatarUrl) setImageViewerOpen(avatarUrl)
                   }}>
@@ -459,7 +509,7 @@ export function ProfileContent({ username }: ProfileContentProps) {
               <div className="space-y-3 mb-2">
                 <h1 className="text-xl font-semibold flex flex-col items-start justify-center gap-2">
                   {profileType === 'user' ? profileData?.displayName : botData?.displayName}
-                                    <p className="text-gray-500 font-[TikTokSans] text-sm">
+                  <p className="text-gray-500 font-[TikTokSans] text-sm">
                     @{profileType === 'user' ? profileData?.username : botData?.username}
                   </p>
                 </h1>
