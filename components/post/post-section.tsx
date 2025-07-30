@@ -99,18 +99,19 @@ export function PostSection({ post, onLike, onRepost, onReply, isMobile = false 
 async function detectLanguage(text) {
   try {
     const cldFactory = await loadModule(); // Load the WebAssembly module
-    const cld = cldFactory.create(); // Create a CLD3 instance
+    const cld = cldFactory.create();       // Create a CLD3 instance
     const result = cld.findLanguage(text); // Detect the language
     
     if (result && result.isReliable) {
-      return result.language
+      return result.language;
     } else if (result) {
-      return result.language
+      return result.language;
     } else {
-      //
+      return null; // Fallback when detection fails
     }
   } catch (error) {
     console.error("Error loading or using CLD3:", error);
+    return null;
   }
 }
 
@@ -272,11 +273,15 @@ async function detectLanguage(text) {
       console.error("Error pinning post:", error)
     }
   }, [post._id, currentUserId, onReply])
-  useEffect(()=>{
+  useEffect(() => {
+  const detect = async () => {
     if (post.content.length) {
-      setPostLang(detectLanguage(post.content))
+      const lang = await detectLanguage(post.content);
+      setPostLang(lang);
     }
-  },[post.content])
+  };
+  detect();
+}, [post.content]);
   // Enhanced media rendering with loading states
   const renderMedia = useCallback(
     (mediaUrls: string[] | null, mediaType: string | null) => {
