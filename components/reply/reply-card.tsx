@@ -288,8 +288,8 @@ export function ReplyCard({ post, onLike, onRepost }: PostCardProps) {
             </div>
         </div>
         </div>
-        <div className='flex flex-row items-center relative h-full p-4 mt-2'>
-          <div className='h-auto w-4 border-l-2 border-b-2 border-gray-300 rounded-bl-md'>
+        <div className='flex relative h-full flex-row p-4 gap-2 pt-1'>
+          <div className='h-auto w-2 border-l border-b border-b-2  border-l-2 border-gray-400 rounded-bl-md'>
             
           </div>
           <div className='flex flex-col w-full'>
