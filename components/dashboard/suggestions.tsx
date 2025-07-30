@@ -126,7 +126,7 @@ const SuggestedUsers: React.FC < SuggestedUsersProps > = ({ className = '' }) =>
       <div className='flex flex-row items-center gap-2 overflow-x-auto p-2 '>
         {users.map((user) => (
           // **CRITICAL FIX**: Added the `key` prop for list rendering.
-          <div key={user._id} className='w-full flex border flex-shrink-0 flex-col items-center rounded-lg justify-center p-3  text-center space-y-1'>
+          <div key={user._id} className='w-auto flex border flex-shrink-0 flex-col items-center rounded-lg justify-center p-3  text-center space-y-1'>
             <Avatar className="cursor-pointer h-10 w-10">
               <AvatarImage src={user.avatarUrl || undefined} alt={`${user.displayName}'s avatar`} />
               <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white">
