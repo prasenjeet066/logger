@@ -8,14 +8,19 @@ i18n
   .use(LanguageDetector) // detect user language
   .use(initReactI18next) // bind react-i18next to i18next
   .init({
-    fallbackLng: 'en',
+    fallbackLng: 'bn', // Changed to match next-i18next config
     debug: process.env.NODE_ENV === 'development',
     interpolation: {
       escapeValue: false
     },
     backend: {
       loadPath: '/locales/{{lng}}/{{ns}}.json'
-    }
+    },
+    // Add supported languages to match next-i18next
+    supportedLngs: ['en', 'bn'],
+    // Ensure namespace is loaded
+    defaultNS: 'lang',
+    ns: ['lang']
   })
 
 export default i18n

@@ -1,3 +1,14 @@
 {
-  "home" : "হোম"
+  
+  "home": "হোম",
+  "explore": "অন্বেষণ",
+  "notifications": "বিজ্ঞপ্তি",
+  "messages": "বার্তা",
+  "bookmarks": "বুকমার্ক",
+  "profile": "প্রোফাইল",
+  "settings": "সেটিংস",
+  "superAccess": "সুপার অ্যাক্সেস",
+  "createPost": "পোস্ট তৈরি করুন",
+  "signOut": "সাইন আউট"
+  
 }
