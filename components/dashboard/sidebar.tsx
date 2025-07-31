@@ -32,9 +32,7 @@ export function Sidebar({ isExpand = true, profile, onSignOut, newSidebar, conte
   }, [profile])
   
   // Show loading state if translations aren't ready
-  if (!ready) {
-    return <div>Loading...</div>
-  }
+  
   
   const menuItems = [
     { icon: Home, label: t("home"), href: "/dashboard" },
