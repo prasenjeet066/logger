@@ -252,7 +252,7 @@ export function ReplyCard({ post, onLike, onRepost }: PostCardProps) {
   
   return (
     <main>
-      <div className={"flex p-4 flex-col" + replies.length ? " " + "pb-1" : " "}>
+      <div className={"flex p-4 flex-col"}>
         <div className ='flex flex-row items-center gap-2'>
            <Link
             href={`/profile/${post.author.username}`}
