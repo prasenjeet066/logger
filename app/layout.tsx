@@ -9,8 +9,7 @@ import { LanguageProvider } from "@/lib/contexts/language-context"
 
 export const metadata: Metadata = {
   title: "Microblog - Share Your Thoughts",
-  description: "A modern microblogging platform built with Next.js",
-  generator: 'v0.dev'
+  description: "A modern microblogging platform built with Next.js"
 }
 
 export default function RootLayout({

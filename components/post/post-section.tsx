@@ -277,11 +277,12 @@ async function detectLanguage(text) {
   const detect = async () => {
     if (post.content.length) {
       const lang = await detectLanguage(post.content);
+      console.log(lang);
       setPostLang(lang);
     }
   };
   detect();
-}, [post.content]);
+}, [post]);
   // Enhanced media rendering with loading states
   const renderMedia = useCallback(
     (mediaUrls: string[] | null, mediaType: string | null) => {
