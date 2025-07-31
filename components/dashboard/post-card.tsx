@@ -128,7 +128,7 @@ const addUniqueMention = (newMention: string) =>
       throw new Error("Translation service unavailable")
     }
   }, [])
-  const reviewResults = JSON.parse(post.reviewResults.content) || null
+
   const checkTrueMentions = async (username) => {
   try {
     const res = await fetch('/api/users/' + encodeURIComponent(username));
@@ -344,7 +344,7 @@ const addUniqueMention = (newMention: string) =>
       </div>
     )
   }, [])
-  
+  const reviewResults = JSON.parse(post.reviewResults.content)
   // Enhanced post click handler
   const handlePostClick = useCallback(() => {
     const pathParts = pathname.split("/")
@@ -470,7 +470,7 @@ const addUniqueMention = (newMention: string) =>
             {/* Media */}
             {renderMedia(post.mediaUrls, post.mediaType)}
             
-            {reviewResults!==null && reviewResults.isTrueInfo? (
+            {reviewResults && reviewResults.isTrueInfo ? (
               <div className='bg-gary-50 p-2 text-left flex flex-col'>
                 {reviewResults.factCheck}
                 <small className='text-xs underline'>{reviewResults.writeReportWithSrc}</small>
