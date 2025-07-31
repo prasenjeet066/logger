@@ -137,11 +137,11 @@ export function Sidebar({ isExpand = true, profile, onSignOut, newSidebar, conte
           
           <Button
             variant="ghost"
-            className="w-full py-3 justify-start mt-4 text-red-600 text-sm"
+            className="w-full bg-none py-3 justify-start mt-4 text-sm"
             onClick={onSignOut}
           >
             <LogOut className=" h-4 w-4" />
-            {safeT("signOut", "Log Out")}
+          
           </Button>
         </div>
       )}

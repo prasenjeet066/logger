@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Checkbox } from "@/components/ui/checkbox"
 import { signInSchema, type SignInData } from "@/lib/validations/auth"
 import { Loader2 } from "lucide-react"
 
@@ -21,8 +22,10 @@ export default function SignInPage() {
   const [errors, setErrors] = useState<Partial<SignInData>>({})
   const [isLoading, setIsLoading] = useState(false)
   const [message, setMessage] = useState("")
+  const [rememberMe, setRememberMe] = useState(false)
   const router = useRouter()
-  const [state , setState] = useState(0);
+  const [state, setState] = useState(0)
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
@@ -36,12 +39,18 @@ export default function SignInPage() {
         redirect: false, // Prevent NextAuth from redirecting automatically
         email: validatedData.email,
         password: validatedData.password,
+        rememberMe: rememberMe.toString(), // Pass remember me preference
       })
 
       if (result?.error) {
         setMessage(result.error)
       } else if (result?.ok) {
-      //console.log(result);
+        // Store remember me preference in localStorage for session management
+        if (rememberMe) {
+          localStorage.setItem('rememberMe', 'true')
+        } else {
+          localStorage.removeItem('rememberMe')
+        }
         router.push("/dashboard")
       }
     } catch (error) {
@@ -68,6 +77,13 @@ export default function SignInPage() {
     setIsLoading(true)
     setMessage("")
     try {
+      // Store remember me preference for Google sign-in as well
+      if (rememberMe) {
+        localStorage.setItem('rememberMe', 'true')
+      } else {
+        localStorage.removeItem('rememberMe')
+      }
+      
       await signIn("google", {
         callbackUrl: `${window.location.origin}/dashboard`,
       })
@@ -106,51 +122,75 @@ export default function SignInPage() {
                 placeholder="Enter your email"
                 disabled={isLoading}
               />
-              {errors.email &&   <Alert>
+              {errors.email && <Alert>
                 <AlertDescription>{errors.email}</AlertDescription>
               </Alert>}
             </div>
             {state == 1 ? (
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                type="password"
-                className='rounded-full'
-                value={formData.password}
-                onChange={handleChange("password")}
-                placeholder="Enter your password"
-                disabled={isLoading}
-              />
-              {errors.password &&  <Alert>
-                <AlertDescription>{errors.password}</AlertDescription>
-              </Alert>}
-              <Link href="/auth/forgot-password" className="text-sm text-right text-blue-600 hover:underline pt-4">
-                Forgot password?
-              </Link>
-            </div>
-):<></>}
+            <>
+              <div className="space-y-2">
+                <Label htmlFor="password">Password</Label>
+                <Input
+                  id="password"
+                  type="password"
+                  className='rounded-full'
+                  value={formData.password}
+                  onChange={handleChange("password")}
+                  placeholder="Enter your password"
+                  disabled={isLoading}
+                />
+                {errors.password && <Alert>
+                  <AlertDescription>{errors.password}</AlertDescription>
+                </Alert>}
+              </div>
+              
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="remember-me"
+                    checked={rememberMe}
+                    onCheckedChange={(checked) => setRememberMe(checked as boolean)}
+                  />
+                  <Label 
+                    htmlFor="remember-me" 
+                    className="text-sm font-normal cursor-pointer"
+                  >
+                    Remember me
+                  </Label>
+                </div>
+                <Link 
+                  href="/auth/forgot-password" 
+                  className="text-sm text-blue-600 hover:underline"
+                >
+                  Forgot password?
+                </Link>
+              </div>
+            </>
+            ) : <></>}
+            
             {message && (
               <Alert>
                 <AlertDescription>{message}</AlertDescription>
               </Alert>
             )}
-{state === 1 ? (
-            <Button type="submit" className="w-full rounded-full" disabled={isLoading}>
-              {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Sign In
-            </Button>
-            ):(
+
+            {state === 1 ? (
+              <Button type="submit" className="w-full rounded-full" disabled={isLoading}>
+                {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Sign In
+              </Button>
+            ) : (
               <Button type="button"
-              onClick = {()=>{
-                setState(1)
-              }}
-              className="w-full rounded-full" disabled={isLoading}>
-              {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Continue
-            </Button>
+                onClick={() => {
+                  setState(1)
+                }}
+                className="w-full rounded-full" disabled={isLoading}>
+                {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Continue
+              </Button>
             )}
           </form>
+          
           <div className="relative mt-3">
             <div className="absolute inset-0 flex items-center">
               <span className="w-full border-t" />
@@ -159,6 +199,7 @@ export default function SignInPage() {
               <span className="bg-white px-2 text-gray-500">Or</span>
             </div>
           </div>
+          
           <div className="pt-4">
             <Button
               type="button"
