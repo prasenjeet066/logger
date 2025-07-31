@@ -239,256 +239,240 @@ export default function CreatePostPage({ user }: CreatePostPageProps) {
       });
       
       const data = await response.json();
-      /**
-       * {
-  "factCheck": "No, Bangladesh is not a city. Bangladesh is a country located in South Asia. It is a sovereign nation with its capital city being Dhaka. Bangladesh is bordered by India to the west, north, and east, and by Myanmar to the southeast. It has a population of over 160 million people and is one of the most densely populated countries in the world.",
-  "isTrueInfo": false,
-  "isharmful ": false,
-  "isAdultContent": false,
-  "newProperty6": "value6",
-  "writeReportWithSrc": "Bangladesh is a country, not a city. Source: World Atlas, Britannica"
-}
-       */
-      if (response.ok && data.factCheck && data.isTrueInfo && data.isharmful && data.isAdultContent && data.writeReportWithSrc) {
-        if (data.isTrueInfo && !data.isharmful) {
-          
-          
-          
-          const response = await fetch("/api/posts", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              content: validatedData.content,
-              mediaUrls: allMediaUrls.length > 0 ? allMediaUrls : [],
-              mediaType: mediaType,
-            }),
-          })
-          
-          if (!response.ok) {
-            const errorData = await response.json()
-            setError(errorData.error || "Failed to create post")
-            return
-          }
-          
-          const postData = await response.json()
-          
-          // Reset form
-          setUploadedFiles([])
-          setGiphyMedia([])
-          setContent("")
-          setShowPollCreator(false)
-          setPollQuestion("")
-          setPollOptions(["", ""])
-          setPollDuration("1 day")
-          if (contentEditableRef.current) {
-            contentEditableRef.current.textContent = ""
-            contentEditableRef.current.classList.add("placeholder-shown")
-          }
-          
-          toast("Post has been created", {
-            action: {
-              label: "View",
-              onClick: () => router.push("/dashboard"),
-            },
-          })
-          setIsPosted(true)
-          router.push("/dashboard")
-        } else {
-          setContent(JSON.stringify(data))
-        }
-      }
-      
-    } catch (err: any) {
-      console.error("Post submission error:", err)
-      setError(err.message || "An error occurred while submitting the post.")
-    } finally {
-      setIsPosting(false)
-    }
-  }
-  
-  const handleEnhanceText = async () => {
-    if (!content.trim()) {
-      setError("Please write some text to enhance first.")
-      return
-    }
-    
-    setIsEnhancingText(true)
-    setError("")
-    setEnhancedTextSuggestion(null)
-    
-    try {
-      const prompt = `Enhance the following text to be more engaging and descriptive for a social media post. Keep it concise and within 280 characters if possible. Here's the text: "${content}"`
-      const chatHistory = []
-      chatHistory.push({ role: "user", parts: [{ text: prompt }] })
-      const payload = { contents: chatHistory }
-      const apiKey = ""
-      const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`
-      
-      const response = await fetch(apiUrl, {
+
+      const response = await fetch("/api/posts", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+        body: JSON.stringify({
+          content: validatedData.content,
+          mediaUrls: allMediaUrls.length > 0 ? allMediaUrls : [],
+          mediaType: mediaType,
+          reviewResults: JSON.stringify(data)
+        }),
       })
       
-      const result = await response.json()
+      if (!response.ok) {
+        const errorData = await response.json()
+        setError(errorData.error || "Failed to create post")
+        return
+      }
       
-      if (
-        result.candidates &&
-        result.candidates.length > 0 &&
-        result.candidates[0].content &&
-        result.candidates[0].content.parts &&
-        result.candidates[0].content.parts.length > 0
-      ) {
-        const text = result.candidates[0].content.parts[0].text
-        setEnhancedTextSuggestion(text)
-        setShowEnhanceModal(true)
-      } else {
-        setError("Failed to get a text suggestion. Please try again.")
-      }
-    } catch (err: any) {
-      console.error("Gemini API error:", err)
-      setError("Failed to enhance text. Please check your network connection or try again later.")
-    } finally {
-      setIsEnhancingText(false)
-    }
-  }
-  
-  const useEnhancedSuggestion = () => {
-    if (enhancedTextSuggestion) {
-      setContent(enhancedTextSuggestion)
+      const postData = await response.json()
+      
+      // Reset form
+      setUploadedFiles([])
+      setGiphyMedia([])
+      setContent("")
+      setShowPollCreator(false)
+      setPollQuestion("")
+      setPollOptions(["", ""])
+      setPollDuration("1 day")
       if (contentEditableRef.current) {
-        contentEditableRef.current.textContent = enhancedTextSuggestion
-        const range = document.createRange()
-        const selection = window.getSelection()
-        range.selectNodeContents(contentEditableRef.current)
-        range.collapse(false)
-        selection?.removeAllRanges()
-        selection?.addRange(range)
+        contentEditableRef.current.textContent = ""
+        contentEditableRef.current.classList.add("placeholder-shown")
       }
-      setShowEnhanceModal(false)
-      setEnhancedTextSuggestion(null)
-    }
+      
+      toast("Post has been created", {
+        action: {
+          label: "View",
+          onClick: () => router.push("/dashboard"),
+        },
+      })
+      setIsPosted(true)
+      router.push("/dashboard")
+  
+    
+  } catch (err: any) {
+    console.error("Post submission error:", err)
+    setError(err.message || "An error occurred while submitting the post.")
+  } finally {
+    setIsPosting(false)
+  }
+}
+
+const handleEnhanceText = async () => {
+  if (!content.trim()) {
+    setError("Please write some text to enhance first.")
+    return
   }
   
-  const remainingChars = MAX_CHARACTERS - characterCount
+  setIsEnhancingText(true)
+  setError("")
+  setEnhancedTextSuggestion(null)
   
-  const highlightContent = (text: string) => {
-    const div = document.createElement("div")
-    div.textContent = text
-    let escapedText = div.innerHTML
+  try {
+    const prompt = `Enhance the following text to be more engaging and descriptive for a social media post. Keep it concise and within 280 characters if possible. Here's the text: "${content}"`
+    const chatHistory = []
+    chatHistory.push({ role: "user", parts: [{ text: prompt }] })
+    const payload = { contents: chatHistory }
+    const apiKey = ""
+    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`
     
-    escapedText = escapedText.replace(
-      /#([a-zA-Z0-9_\u0980-\u09FF]+)/g,
-      '<span style="color: #1DA1F2; font-weight: bold;">#$1</span>',
-    )
-    escapedText = escapedText.replace(
-      /@([a-zA-Z0-9_]+)/g,
-      '<span style="color: #1DA1F2; font-weight: bold;">@$1</span>',
-    )
-    escapedText = escapedText.replace(
-      /(https?:\/\/[^\s]+)/g,
-      '<a href="$1" target="_blank" rel="noopener noreferrer" style="color: #1DA1F2; text-decoration: underline;">$1</a>',
-    )
-    return escapedText
+    const response = await fetch(apiUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    })
+    
+    const result = await response.json()
+    
+    if (
+      result.candidates &&
+      result.candidates.length > 0 &&
+      result.candidates[0].content &&
+      result.candidates[0].content.parts &&
+      result.candidates[0].content.parts.length > 0
+    ) {
+      const text = result.candidates[0].content.parts[0].text
+      setEnhancedTextSuggestion(text)
+      setShowEnhanceModal(true)
+    } else {
+      setError("Failed to get a text suggestion. Please try again.")
+    }
+  } catch (err: any) {
+    console.error("Gemini API error:", err)
+    setError("Failed to enhance text. Please check your network connection or try again later.")
+  } finally {
+    setIsEnhancingText(false)
   }
-  
-  const featureOptions = [
-    {
-      icon: ImageIcon,
-      label: "Photo/Video",
-      onClick: () => setShowFileUpload(true),
-      disabled: totalMediaCount >= MAX_MEDIA_FILES,
-    },
-    {
-      icon: Smile,
-      label: "Gif",
-      onClick: () => setShowGiphyPicker(true),
-      disabled: totalMediaCount >= MAX_MEDIA_FILES,
-    },
-    {
-      icon: Vote,
-      label: "Poll",
-      onClick: () => {
-        if (totalMediaCount === 0) {
-          setShowPollCreator(true)
-          setShowAddOptions(true)
-          setContent("")
-          if (contentEditableRef.current) {
-            contentEditableRef.current.textContent = ""
-            contentEditableRef.current.classList.add("placeholder-shown")
-          }
-        } else {
-          setError("You cannot add a poll when media is already attached to your post.")
-        }
-      },
-      disabled: totalMediaCount > 0 || showPollCreator,
-    },
-    { icon: HandHelping, label: "Adoption", onClick: () => console.log("Adoption clicked") },
-    { icon: FileWarning, label: "Lost Notice", onClick: () => console.log("Lost Notice clicked") },
-    { icon: Calendar, label: "Event", onClick: () => console.log("Event clicked") },
-  ]
-  
-  const getCaretCharacterOffset = useCallback((element: HTMLElement) => {
-    let caretOffset = 0
-    const doc = element.ownerDocument
-    const win = doc.defaultView
-    const sel = win?.getSelection()
-    if (sel && sel.rangeCount > 0) {
-      const range = sel.getRangeAt(0)
-      const preCaretRange = range.cloneRange()
-      preCaretRange.selectNodeContents(element)
-      preCaretRange.setEnd(range.endContainer, range.endOffset)
-      caretOffset = preCaretRange.toString().length
-    }
-    return caretOffset
-  }, [])
-  
-  const setCaretPosition = useCallback((element: HTMLElement, offset: number) => {
-    const range = document.createRange()
-    const selection = window.getSelection()
-    
-    let currentNode: Node | null = element
-    let currentOffset = 0
-    let found = false
-    
-    const walk = document.createTreeWalker(element, NodeFilter.SHOW_TEXT, null)
-    while ((currentNode = walk.nextNode())) {
-      const nodeTextLength = currentNode.textContent?.length || 0
-      if (currentOffset + nodeTextLength >= offset) {
-        range.setStart(currentNode, offset - currentOffset)
-        range.collapse(true)
-        found = true
-        break
-      }
-      currentOffset += nodeTextLength
-    }
-    
-    if (!found) {
-      range.selectNodeContents(element)
+}
+
+const useEnhancedSuggestion = () => {
+  if (enhancedTextSuggestion) {
+    setContent(enhancedTextSuggestion)
+    if (contentEditableRef.current) {
+      contentEditableRef.current.textContent = enhancedTextSuggestion
+      const range = document.createRange()
+      const selection = window.getSelection()
+      range.selectNodeContents(contentEditableRef.current)
       range.collapse(false)
+      selection?.removeAllRanges()
+      selection?.addRange(range)
     }
-    
-    selection?.removeAllRanges()
-    selection?.addRange(range)
-  }, [])
+    setShowEnhanceModal(false)
+    setEnhancedTextSuggestion(null)
+  }
+}
+
+const remainingChars = MAX_CHARACTERS - characterCount
+
+const highlightContent = (text: string) => {
+  const div = document.createElement("div")
+  div.textContent = text
+  let escapedText = div.innerHTML
   
-  useEffect(() => {
-    if (contentEditableRef.current && cursorPositionRef.current) {
-      const { offset } = cursorPositionRef.current
-      setCaretPosition(contentEditableRef.current, offset)
-      cursorPositionRef.current = null
+  escapedText = escapedText.replace(
+    /#([a-zA-Z0-9_\u0980-\u09FF]+)/g,
+    '<span style="color: #1DA1F2; font-weight: bold;">#$1</span>',
+  )
+  escapedText = escapedText.replace(
+    /@([a-zA-Z0-9_]+)/g,
+    '<span style="color: #1DA1F2; font-weight: bold;">@$1</span>',
+  )
+  escapedText = escapedText.replace(
+    /(https?:\/\/[^\s]+)/g,
+    '<a href="$1" target="_blank" rel="noopener noreferrer" style="color: #1DA1F2; text-decoration: underline;">$1</a>',
+  )
+  return escapedText
+}
+
+const featureOptions = [
+  {
+    icon: ImageIcon,
+    label: "Photo/Video",
+    onClick: () => setShowFileUpload(true),
+    disabled: totalMediaCount >= MAX_MEDIA_FILES,
+  },
+  {
+    icon: Smile,
+    label: "Gif",
+    onClick: () => setShowGiphyPicker(true),
+    disabled: totalMediaCount >= MAX_MEDIA_FILES,
+  },
+  {
+    icon: Vote,
+    label: "Poll",
+    onClick: () => {
+      if (totalMediaCount === 0) {
+        setShowPollCreator(true)
+        setShowAddOptions(true)
+        setContent("")
+        if (contentEditableRef.current) {
+          contentEditableRef.current.textContent = ""
+          contentEditableRef.current.classList.add("placeholder-shown")
+        }
+      } else {
+        setError("You cannot add a poll when media is already attached to your post.")
+      }
+    },
+    disabled: totalMediaCount > 0 || showPollCreator,
+  },
+  { icon: HandHelping, label: "Adoption", onClick: () => console.log("Adoption clicked") },
+  { icon: FileWarning, label: "Lost Notice", onClick: () => console.log("Lost Notice clicked") },
+  { icon: Calendar, label: "Event", onClick: () => console.log("Event clicked") },
+]
+
+const getCaretCharacterOffset = useCallback((element: HTMLElement) => {
+  let caretOffset = 0
+  const doc = element.ownerDocument
+  const win = doc.defaultView
+  const sel = win?.getSelection()
+  if (sel && sel.rangeCount > 0) {
+    const range = sel.getRangeAt(0)
+    const preCaretRange = range.cloneRange()
+    preCaretRange.selectNodeContents(element)
+    preCaretRange.setEnd(range.endContainer, range.endOffset)
+    caretOffset = preCaretRange.toString().length
+  }
+  return caretOffset
+}, [])
+
+const setCaretPosition = useCallback((element: HTMLElement, offset: number) => {
+  const range = document.createRange()
+  const selection = window.getSelection()
+  
+  let currentNode: Node | null = element
+  let currentOffset = 0
+  let found = false
+  
+  const walk = document.createTreeWalker(element, NodeFilter.SHOW_TEXT, null)
+  while ((currentNode = walk.nextNode())) {
+    const nodeTextLength = currentNode.textContent?.length || 0
+    if (currentOffset + nodeTextLength >= offset) {
+      range.setStart(currentNode, offset - currentOffset)
+      range.collapse(true)
+      found = true
+      break
     }
-  }, [content, setCaretPosition])
+    currentOffset += nodeTextLength
+  }
   
-  useEffect(() => {
-    if (contentEditableRef.current && !content.trim()) {
-      contentEditableRef.current.textContent = contentEditableRef.current.dataset.placeholder || ""
-      contentEditableRef.current.classList.add("placeholder-shown")
-    }
-  }, [])
+  if (!found) {
+    range.selectNodeContents(element)
+    range.collapse(false)
+  }
   
-  return (
-    <div className="min-h-screen bg-white">
+  selection?.removeAllRanges()
+  selection?.addRange(range)
+}, [])
+
+useEffect(() => {
+  if (contentEditableRef.current && cursorPositionRef.current) {
+    const { offset } = cursorPositionRef.current
+    setCaretPosition(contentEditableRef.current, offset)
+    cursorPositionRef.current = null
+  }
+}, [content, setCaretPosition])
+
+useEffect(() => {
+  if (contentEditableRef.current && !content.trim()) {
+    contentEditableRef.current.textContent = contentEditableRef.current.dataset.placeholder || ""
+    contentEditableRef.current.classList.add("placeholder-shown")
+  }
+}, [])
+
+return (
+  <div className="min-h-screen bg-white">
       <div className="sticky top-0 z-50 bg-white border-b border-gray-200">
         <div className="max-w-2xl mx-auto px-4 py-3 flex justify-between items-center">
           <Button variant="ghost" size="icon" onClick={() => router.back()}>
@@ -780,5 +764,5 @@ export default function CreatePostPage({ user }: CreatePostPageProps) {
         </div>
       )}
     </div>
-  )
+)
 }
