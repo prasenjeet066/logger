@@ -14,15 +14,16 @@ interface SidebarProps {
   profile: any
   isExpand: boolean
   onSignOut: () => void
-  newSidebar ? : any[]
-  contextChangeTabs ? : [string, (tab: string) => void]
+  newSidebar?: any[]  
+  contextChangeTabs?: [string, (tab: string) => void]
 }
 
 export function Sidebar({ isExpand = true, profile, onSignOut, newSidebar, contextChangeTabs }: SidebarProps) {
-  const { t, ready } = useTranslation("lang") // Add 'ready' to check if translations are loaded
+  const { t, ready, i18n } = useTranslation("lang")
   const isMobile = useMobile()
-  const [isSA, setIsSA] = useState < string | null > (null)
-  
+  const [isSA, setIsSA] = useState<string | null>(null)
+  const [isI18nReady, setIsI18nReady] = useState(false)
+
   useEffect(() => {
     if (profile?.superAccess?.role) {
       setIsSA(profile.superAccess.role)
@@ -30,33 +31,53 @@ export function Sidebar({ isExpand = true, profile, onSignOut, newSidebar, conte
       setIsSA(null)
     }
   }, [profile])
-  
-  // Show loading state if translations aren't ready
-  
-  
+
+  // Handle i18n initialization with timeout
+  useEffect(() => {
+    const checkI18nReady = () => {
+      if (ready && i18n.isInitialized) {
+        setIsI18nReady(true)
+      } else {
+        // Force ready after 2 seconds to prevent infinite loading
+        const timeout = setTimeout(() => {
+          setIsI18nReady(true)
+        }, 2000)
+        return () => clearTimeout(timeout)
+      }
+    }
+    
+    checkI18nReady()
+  }, [ready, i18n.isInitialized])
+
+  // Don't show loading, just use fallbacks if not ready
+  const safeT = (key: string, fallback: string) => {
+    if (!isI18nReady) return fallback
+    return t(key, fallback)
+  }
+
   const menuItems = [
-    { icon: Home, label: t("home"), href: "/dashboard" },
-    { icon: Search, label: t("explore", "Explore"), href: "/explore" }, // Add fallback
-    { icon: Bell, label: t("notifications", "Notifications"), href: "/notifications" },
-    { icon: Mail, label: t("messages", "Messages"), href: "/messages" },
-    { icon: Bookmark, label: t("bookmarks", "Bookmarks"), href: "/bookmarks" },
-    { icon: User, label: t("profile", "Profile"), href: `/profile/${profile?.username}` },
-    { icon: Settings, label: t("settings", "Settings"), href: "/settings" },
+    { icon: Home, label: safeT("home", "Home"), href: "/dashboard" },
+    { icon: Search, label: safeT("explore", "Explore"), href: "/explore" },
+    { icon: Bell, label: safeT("notifications", "Notifications"), href: "/notifications" },
+    { icon: Mail, label: safeT("messages", "Messages"), href: "/messages" },
+    { icon: Bookmark, label: safeT("bookmarks", "Bookmarks"), href: "/bookmarks" },
+    { icon: User, label: safeT("profile", "Profile"), href: `/profile/${profile?.username}` },
+    { icon: Settings, label: safeT("settings", "Settings"), href: "/settings" },
   ]
-  
+
   if (isSA !== null) {
     menuItems.push({
       icon: Key,
-      label: t("superAccess", "Super Access"),
+      label: safeT("superAccess", "Super Access"),
       href: "/super-access"
     })
   }
-  
+
   let finalMenuItems = menuItems
   if (newSidebar !== undefined && Array.isArray(newSidebar) && newSidebar.length > 0) {
     finalMenuItems = newSidebar
   }
-  
+
   return (
     <div className={isMobile ? "h-full w-auto flex flex-col p-3 z-50" : "h-auto flex flex-col p-3 z-50 bg-white rounded-lg"}>
       {/* Close button for mobile */}
@@ -110,7 +131,7 @@ export function Sidebar({ isExpand = true, profile, onSignOut, newSidebar, conte
           <Link href="/create">
             <Button className="w-full justify-center mt-4 py-3 lg:py-6">
               <Plus className="mr-2 h-5 w-5" />
-              <span>{t("createPost", "Create Post")}</span>
+              <span>{safeT("createPost", "Create Post")}</span>
             </Button>
           </Link>
           
@@ -120,7 +141,7 @@ export function Sidebar({ isExpand = true, profile, onSignOut, newSidebar, conte
             onClick={onSignOut}
           >
             <LogOut className="mr-3 h-4 w-4" />
-            {t("signOut", "Sign Out")}
+            {safeT("signOut", "Sign Out")}
           </Button>
         </div>
       )}
