@@ -472,7 +472,7 @@ const addUniqueMention = (newMention: string) =>
             {/* Media */}
             {renderMedia(post.mediaUrls, post.mediaType)}
             
-            {reviewResults && reviewResults.isTrueInfo ? (
+            {reviewResults && !reviewResults.isTrueInfo ? (
               <div className='bg-gary-50 p-2 text-left flex flex-col'>
                 {reviewResults.factCheck}
                 <small className='text-xs underline'>{reviewResults.writeReportWithSrc}</small>
