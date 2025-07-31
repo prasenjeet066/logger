@@ -181,6 +181,7 @@ export async function POST(request: NextRequest) {
       mediaUrls: body.mediaUrls || [],
       mediaType: body.mediaType || null,
       hashtags,
+      reviewResults: JSON.parse(body.reviewResults) || null,
       mentions,
       parentPostId: body.parentPostId || null, // For replies
     })

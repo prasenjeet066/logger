@@ -92,6 +92,10 @@ const postSchema = new Schema<IPost>(
       default: 0,
       required: true
     },
+    reviewResults: {
+      type: object,
+      default : null
+    },
     watchedBy:[
       {
         type:String,
