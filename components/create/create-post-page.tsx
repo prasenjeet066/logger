@@ -228,7 +228,7 @@ export default function CreatePostPage({ user }: CreatePostPageProps) {
         }
       }
       // check with ai 
-      const response = await fetch("/api/chat", {
+      const response = await fetch("/api/context/ai/factCheck/", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
