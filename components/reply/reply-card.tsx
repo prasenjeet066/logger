@@ -333,7 +333,7 @@ export function ReplyCard({ post, onLike, onRepost }: PostCardProps) {
               <Button
                 variant="ghost"
                 size="sm"
-                className="text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-full transition-colors"
+                className="text-gray-500 hover:text-blue-600  rounded-full transition-colors"
                 onClick={(e) => {
                   e.stopPropagation()
                   router.push("/post/" + post._id)
@@ -384,7 +384,7 @@ export function ReplyCard({ post, onLike, onRepost }: PostCardProps) {
               <Button
                 variant="ghost"
                 size="sm"
-                className="text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-full transition-colors"
+                className="text-gray-500 hover:text-blue-600  rounded-full transition-colors"
                 onClick={(e) => {
                   e.stopPropagation()
                   // Share functionality
