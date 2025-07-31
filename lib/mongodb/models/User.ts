@@ -1,28 +1,26 @@
 import mongoose, { type Document, Schema } from "mongoose"
 import bcrypt from "bcryptjs"
 
-// --- Sub-schemas ---
-const WaysVerifySchema = new Schema(
-  {
-    name: {
-      type: String,
-      required: true
-    }
-  },
-  { _id: false }
-);
+// Define interfaces for nested objects
+interface IVerificationWays {
+  emailOtp: boolean
+  phoneOtp: boolean
+  fingerPrint: boolean
+}
 
-const Obj2FASchema = new Schema(
-  {
-    waysVerify: {
-      type: [WaysVerifySchema],
-      default: []
-    }
-  },
-  { _id: false }
-);
+interface ISuperAccess {
+  role: 'admin' | 'context' | 'moderator'
+  createdAt: Date | null
+  expireAt: Date | null
+  verificationWays: IVerificationWays
+}
 
-// --- Interface ---
+interface IObj2FA {
+  waysVerify: Array<{
+    name: string
+  }>
+}
+
 export interface IUser extends Document {
   _id: string
   email: string
@@ -45,34 +43,19 @@ export interface IUser extends Document {
   botId?: string
   createdAt: Date
   updatedAt: Date
-  pinnedPostId: string
+  enable2FA?: boolean
+  obj2FA: IObj2FA
+  pinnedPostId?: string
   emailVerified?: Date
   resetPasswordToken?: string
   resetPasswordExpires?: Date
-  enable2FA?: boolean
-  obj2FA: {
-    waysVerify: {
-      name: string
-    }[]
-  }
-  superAccess?: {
-    role?: 'admin' | 'context' | 'moderator'
-    createdAt?: Date | null
-    expireAt?: Date | null
-    verificationWays?: {
-      emailOtp?: boolean
-      phoneOtp?: boolean
-      fingerPrint?: boolean
-    }
-  }
+  superAccess?: ISuperAccess
+  
+  // Methods
   comparePassword(candidatePassword: string): Promise<boolean>
   getEnabledVerificationWays(): string[]
-  addVerificationWay(name: string): Promise<void>
-  hasVerificationWay(name: string): boolean
-  removeVerificationWay(name: string): Promise<void>
 }
 
-// --- Main schema ---
 const userSchema = new Schema<IUser>(
   {
     email: {
@@ -80,7 +63,13 @@ const userSchema = new Schema<IUser>(
       required: true,
       unique: true,
       lowercase: true,
-      trim: true
+      trim: true,
+      validate: {
+        validator: function(email: string) {
+          return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+        },
+        message: 'Please provide a valid email address'
+      }
     },
     username: {
       type: String,
@@ -88,49 +77,104 @@ const userSchema = new Schema<IUser>(
       unique: true,
       lowercase: true,
       trim: true,
-      minlength: 3,
-      maxlength: 30
+      minlength: [3, 'Username must be at least 3 characters long'],
+      maxlength: [30, 'Username cannot exceed 30 characters'],
+      validate: {
+        validator: function(username: string) {
+          return /^[a-zA-Z0-9_]+$/.test(username)
+        },
+        message: 'Username can only contain letters, numbers, and underscores'
+      }
     },
     displayName: {
       type: String,
       required: true,
       trim: true,
-      maxlength: 50
+      maxlength: [50, 'Display name cannot exceed 50 characters'],
     },
     password: {
       type: String,
-      minlength: 8
+      minlength: [8, 'Password must be at least 8 characters long'],
+      validate: {
+        validator: function(password: string) {
+          // Only validate if password is being set
+          if (!password) return true
+          return /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/.test(password)
+        },
+        message: 'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character'
+      }
     },
     avatarUrl: {
       type: String,
-      default: null
+      default: null,
+      validate: {
+        validator: function(url: string) {
+          if (!url) return true
+          try {
+            new URL(url)
+            return true
+          } catch {
+            return false
+          }
+        },
+        message: 'Please provide a valid URL for avatar'
+      }
     },
     coverUrl: {
       type: String,
-      default: null
+      default: null,
+      validate: {
+        validator: function(url: string) {
+          if (!url) return true
+          try {
+            new URL(url)
+            return true
+          } catch {
+            return false
+          }
+        },
+        message: 'Please provide a valid URL for cover image'
+      }
     },
     bio: {
       type: String,
-      maxlength: 160,
-      default: ""
+      maxlength: [160, 'Bio cannot exceed 160 characters'],
+      default: "",
     },
     location: {
       type: String,
-      maxlength: 50,
-      default: ""
+      maxlength: [50, 'Location cannot exceed 50 characters'],
+      default: "",
     },
     website: {
       type: String,
-      maxlength: 100,
-      default: ""
+      maxlength: [100, 'Website URL cannot exceed 100 characters'],
+      default: "",
+      validate: {
+        validator: function(url: string) {
+          if (!url) return true
+          try {
+            new URL(url)
+            return true
+          } catch {
+            return false
+          }
+        },
+        message: 'Please provide a valid website URL'
+      }
     },
     enable2FA: {
       type: Boolean,
       default: false
     },
     obj2FA: {
-      type: Obj2FASchema,
-      default: () => ({ waysVerify: [] })
+      waysVerify: [{
+        name: {
+          type: String,
+          required: true
+        },
+      }],
+      default: { waysVerify: [] }
     },
     pinnedPostId: {
       type: Schema.Types.ObjectId,
@@ -139,12 +183,15 @@ const userSchema = new Schema<IUser>(
     },
     isVerified: {
       type: Boolean,
-      default: false
+      default: false,
     },
     superAccess: {
       role: {
         type: String,
-        enum: ['admin', 'context', 'moderator']
+        enum: {
+          values: ['admin', 'context', 'moderator'],
+          message: 'Role must be either admin, context, or moderator'
+        }
       },
       createdAt: {
         type: Date,
@@ -167,127 +214,175 @@ const userSchema = new Schema<IUser>(
           type: Boolean,
           default: false
         }
-      }
+      },
+      default: null
     },
     isPrivate: {
       type: Boolean,
-      default: false
+      default: false,
     },
     allowMessages: {
       type: Boolean,
-      default: true
+      default: true,
     },
     showEmail: {
       type: Boolean,
-      default: false
+      default: false,
     },
     followersCount: {
       type: Number,
-      default: 0
+      default: 0,
+      min: [0, 'Followers count cannot be negative']
     },
     followingCount: {
       type: Number,
-      default: 0
+      default: 0,
+      min: [0, 'Following count cannot be negative']
     },
     postsCount: {
       type: Number,
-      default: 0
+      default: 0,
+      min: [0, 'Posts count cannot be negative']
     },
     userType: {
       type: String,
-      enum: ['human', 'bot'],
-      default: 'human'
+      enum: {
+        values: ['human', 'bot'],
+        message: 'User type must be either human or bot'
+      },
+      default: 'human',
     },
     botId: {
       type: Schema.Types.ObjectId,
       ref: 'Bot',
-      default: null
+      default: null,
+      validate: {
+        validator: function(this: IUser, botId: string) {
+          // If userType is 'bot', botId should be provided
+          if (this.userType === 'bot' && !botId) {
+            return false
+          }
+          // If userType is 'human', botId should be null
+          if (this.userType === 'human' && botId) {
+            return false
+          }
+          return true
+        },
+        message: 'Bot users must have a botId, human users must not have a botId'
+      }
     },
     emailVerified: {
       type: Date,
-      default: null
+      default: null,
     },
     resetPasswordToken: {
       type: String,
-      default: null
+      default: null,
     },
     resetPasswordExpires: {
       type: Date,
-      default: null
-    }
+      default: null,
+    },
   },
   {
-    timestamps: true
+    timestamps: true,
   }
-);
+)
 
-// --- Indexes ---
-userSchema.index({ createdAt: -1 });
-userSchema.index({ userType: 1 });
-userSchema.index({ botId: 1 });
+// Compound indexes for better query performance
+userSchema.index({ email: 1, emailVerified: 1 })
+userSchema.index({ username: 1, userType: 1 })
+userSchema.index({ userType: 1, botId: 1 })
+userSchema.index({ createdAt: -1, userType: 1 })
+userSchema.index({ isVerified: 1, isPrivate: 1 })
+userSchema.index({ resetPasswordToken: 1, resetPasswordExpires: 1 }, { sparse: true })
 
-// --- Middleware: hash password ---
-userSchema.pre("save", async function (next) {
-  if (!this.isModified("password") || !this.password) return next();
+// Pre-save middleware for password hashing
+userSchema.pre("save", async function(next) {
+  if (!this.isModified("password") || !this.password) return next()
+  
   try {
-    const salt = await bcrypt.genSalt(12);
-    this.password = await bcrypt.hash(this.password, salt);
-    next();
+    const salt = await bcrypt.genSalt(12)
+    this.password = await bcrypt.hash(this.password, salt)
+    next()
   } catch (error: any) {
-    next(error);
+    next(error)
   }
-});
+})
 
-// --- Methods ---
-userSchema.methods.comparePassword = async function (candidatePassword: string): Promise<boolean> {
-  if (!this.password) return false;
-  return bcrypt.compare(candidatePassword, this.password);
-};
+// Pre-save middleware for validation
+userSchema.pre("save", function(next) {
+  // Ensure bot users have botId and human users don't
+  if (this.userType === 'bot' && !this.botId) {
+    return next(new Error('Bot users must have a botId'))
+  }
+  if (this.userType === 'human' && this.botId) {
+    return next(new Error('Human users cannot have a botId'))
+  }
+  
+  // Ensure superAccess expiration is in the future
+  if (this.superAccess?.expireAt && this.superAccess.expireAt <= new Date()) {
+    return next(new Error('Super access expiration date must be in the future'))
+  }
+  
+  next()
+})
 
-userSchema.methods.getEnabledVerificationWays = function (): string[] {
+// Instance methods
+userSchema.methods.comparePassword = async function(candidatePassword: string): Promise<boolean> {
+  if (!this.password) return false
+  return bcrypt.compare(candidatePassword, this.password)
+}
+
+userSchema.methods.getEnabledVerificationWays = function(): string[] {
   const verificationWays =
     this.superAccess &&
     typeof this.superAccess === 'object' &&
     !Array.isArray(this.superAccess) &&
     this.superAccess.verificationWays &&
-    typeof this.superAccess.verificationWays === 'object'
-      ? this.superAccess.verificationWays
-      : {};
+    typeof this.superAccess.verificationWays === 'object' ?
+    this.superAccess.verificationWays : {}
+  
+  return Object.keys(verificationWays).filter(key => verificationWays[key as keyof IVerificationWays])
+}
 
-  return Object.keys(verificationWays).filter(key => verificationWays[key]);
-};
+userSchema.methods.hasActiveSuperAccess = function(): boolean {
+  if (!this.superAccess) return false
+  if (!this.superAccess.expireAt) return true // No expiration means permanent access
+  return this.superAccess.expireAt > new Date()
+}
 
-userSchema.methods.addVerificationWay = async function (name: string): Promise<void> {
-  if (!this.obj2FA) {
-    this.obj2FA = { waysVerify: [] };
-  }
-  const exists = this.obj2FA.waysVerify.some((way: { name: string }) => way.name === name);
-  if (!exists) {
-    this.obj2FA.waysVerify.push({ name });
-    await this.save();
-  }
-};
+userSchema.methods.canResetPassword = function(): boolean {
+  if (!this.resetPasswordToken || !this.resetPasswordExpires) return false
+  return this.resetPasswordExpires > new Date()
+}
 
-userSchema.methods.hasVerificationWay = function (name: string): boolean {
-  if (!this.obj2FA || !Array.isArray(this.obj2FA.waysVerify)) return false;
-  return this.obj2FA.waysVerify.some((way: { name: string }) => way.name === name);
-};
+// Virtual for full name or display identifier
+userSchema.virtual('displayIdentifier').get(function() {
+  return this.displayName || this.username
+})
 
-userSchema.methods.removeVerificationWay = async function (name: string): Promise<void> {
-  if (!this.obj2FA || !Array.isArray(this.obj2FA.waysVerify)) return;
-  this.obj2FA.waysVerify = this.obj2FA.waysVerify.filter((way: { name: string }) => way.name !== name);
-  await this.save();
-};
-
-// --- Transform output ---
+// Transform output to remove sensitive fields
 userSchema.set("toJSON", {
   transform: (doc, ret) => {
-    delete ret.password;
-    delete ret.resetPasswordToken;
-    delete ret.resetPasswordExpires;
-    return ret;
-  }
-});
+    delete ret.password
+    delete ret.resetPasswordToken
+    delete ret.resetPasswordExpires
+    return ret
+  },
+})
 
-// --- Export model ---
-export const User = mongoose.models.User || mongoose.model<IUser>("User", userSchema);
+// Transform output for public profiles (additional security)
+userSchema.methods.toPublicJSON = function() {
+  const user = this.toJSON()
+  if (!this.showEmail) {
+    delete user.email
+  }
+  // Remove super access info from public view
+  delete user.superAccess
+  delete user.obj2FA
+  delete user.enable2FA
+  return user
+}
+
+export const User = mongoose.models.User || mongoose.model<IUser>("User", userSchema)
