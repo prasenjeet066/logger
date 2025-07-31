@@ -129,19 +129,19 @@ export function Sidebar({ isExpand = true, profile, onSignOut, newSidebar, conte
       {isMobile && (
         <div className="border-t w-auto pt-3 mt-3 flex flex-row items-center justify-between">
           <Link href="/create">
-            <Button className="w-full justify-center mt-4 py-3 flex-1">
+            <Button className="w-full justify-center mt-4 py-3 flex-1 bg-indigo-400 text-white">
               <Plus className="mr-2 h-5 w-5" />
-              <span>{safeT("createPost", "Create Post")}</span>
+              <span>{safeT("createPost", "New Post")}</span>
             </Button>
           </Link>
           
           <Button
             variant="ghost"
-            className="w-full justify-start mt-2 text-red-600 text-sm"
+            className="w-full py-3 justify-start mt-4 text-red-600 text-sm"
             onClick={onSignOut}
           >
             <LogOut className="mr-3 h-4 w-4" />
-            {safeT("signOut", "Sign Out")}
+            {safeT("signOut", "Log Out")}
           </Button>
         </div>
       )}

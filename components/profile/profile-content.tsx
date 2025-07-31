@@ -445,6 +445,9 @@ export function ProfileContent({ username }: ProfileContentProps) {
                 {profileType === 'bot' && <Bot className="h-5 w-5 text-blue-600" />}
                 <h2 className="text-xl font-semibold">
                   {profileType === 'user' ? profileData?.displayName : botData?.displayName}
+                  {profileType === 'user' && profileData?.isVerified && (
+                    <VerificationBadge verified={true} size={20} className="h-8 w-8 z-10 bg-white rounded-full" />
+                  )}
                 </h2>
               </div>
               <p className="text-sm text-gray-500">
