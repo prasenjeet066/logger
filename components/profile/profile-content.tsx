@@ -465,7 +465,7 @@ export function ProfileContent({ username }: ProfileContentProps) {
                 }`}
                 style={{
                   backgroundImage: profileType === 'user' 
-                    ? (profileData?.bannerUrl ? `url(${profileData.bannerUrl})` : undefined)
+                    ? (profileData?.coverUrl ? `url(${profileData.coverUrl})` : undefined)
                     : (botData?.coverUrl ? `url(${botData.coverUrl})` : undefined),
                   backgroundSize: "cover",
                   backgroundPosition: "center",

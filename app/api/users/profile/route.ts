@@ -30,6 +30,7 @@ export async function PUT(request: NextRequest) {
         location: location || "",
         website: website || "",
         isPrivate: isPrivate !== undefined ? isPrivate : user.isPrivate,
+        coverUrl : coverUrl !== undefined ? coverUrl : user.coverUrl,
         avatarUrl : avatarUrl!== undefined? avatarUrl: user.avatarUrl,
         allowMessages: allowMessages !== undefined ? allowMessages : user.allowMessages,
         showEmail: showEmail !== undefined ? showEmail : user.showEmail,
