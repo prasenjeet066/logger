@@ -473,7 +473,7 @@ const addUniqueMention = (newMention: string) =>
             {renderMedia(post.mediaUrls, post.mediaType)}
             
             {reviewResults && !reviewResults.isTrueInfo ? (
-              <div className='bg-gary-50 p-2 text-left flex flex-col'>
+              <div className='bg-gary-50 rounded-md p-2 text-left flex flex-col'>
                 {reviewResults.factCheck}
                 <small className='text-xs underline'>{reviewResults.writeReportWithSrc}</small>
               </div>
