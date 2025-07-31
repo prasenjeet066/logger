@@ -50,41 +50,41 @@ interface GiphyMedia {
 export default function CreatePostPage({ user }: CreatePostPageProps) {
   const { data: session } = useSession()
   const router = useRouter()
-  const contentEditableRef = useRef<HTMLDivElement>(null)
+  const contentEditableRef = useRef < HTMLDivElement > (null)
   const [content, setContent] = useState("")
-  const [uploadedFiles, setUploadedFiles] = useState<UploadResult[]>([])
-  const [giphyMedia, setGiphyMedia] = useState<GiphyMedia[]>([])
-  const [gifs, setGifs] = useState<any[]>([])
+  const [uploadedFiles, setUploadedFiles] = useState < UploadResult[] > ([])
+  const [giphyMedia, setGiphyMedia] = useState < GiphyMedia[] > ([])
+  const [gifs, setGifs] = useState < any[] > ([])
   const [isPosting, setIsPosting] = useState(false)
   const [error, setError] = useState("")
   const [showGiphyPicker, setShowGiphyPicker] = useState(false)
   const [showFileUpload, setShowFileUpload] = useState(false)
   const [isEnhancingText, setIsEnhancingText] = useState(false)
-  const [enhancedTextSuggestion, setEnhancedTextSuggestion] = useState<string | null>(null)
+  const [enhancedTextSuggestion, setEnhancedTextSuggestion] = useState < string | null > (null)
   const [showEnhanceModal, setShowEnhanceModal] = useState(false)
   const [isPosted, setIsPosted] = useState(false)
   const [showPollCreator, setShowPollCreator] = useState(false)
   const [pollQuestion, setPollQuestion] = useState("")
-  const [pollOptions, setPollOptions] = useState<string[]>(["", ""])
+  const [pollOptions, setPollOptions] = useState < string[] > (["", ""])
   const [pollDuration, setPollDuration] = useState("1 day")
   const [showAddOptions, setShowAddOptions] = useState(false)
-  const cursorPositionRef = useRef<{ node: Node | null; offset: number } | null>(null)
-
+  const cursorPositionRef = useRef < { node: Node | null;offset: number } | null > (null)
+  
   const characterCount = content.length
   const isOverLimit = characterCount > MAX_CHARACTERS
   const progressPercentage = (characterCount / MAX_CHARACTERS) * 100
   const totalMediaCount = uploadedFiles.length + giphyMedia.length
-
+  
   const getProgressColor = () => {
     if (progressPercentage < 70) return "bg-green-500"
     if (progressPercentage < 90) return "bg-yellow-500"
     return "bg-red-500"
   }
-
+  
   useEffect(() => {
     fetchTrending()
   }, [])
-
+  
   const fetchTrending = async () => {
     try {
       const gifsResponse = await fetch(`${GIPHY_BASE_URL}/gifs/trending?api_key=${GIPHY_API_KEY}&limit=20&rating=g`)
@@ -100,25 +100,25 @@ export default function CreatePostPage({ user }: CreatePostPageProps) {
       setError("Failed to load trending GIFs")
     }
   }
-
+  
   const handleAddPollOption = () => {
     if (pollOptions.length < MAX_POLL_OPTIONS) {
       setPollOptions([...pollOptions, ""])
     }
   }
-
+  
   const handleRemovePollOption = (index: number) => {
     if (pollOptions.length > MIN_POLL_OPTIONS) {
       setPollOptions(pollOptions.filter((_, i) => i !== index))
     }
   }
-
+  
   const handlePollOptionChange = (index: number, value: string) => {
     const newOptions = [...pollOptions]
     newOptions[index] = value
     setPollOptions(newOptions)
   }
-
+  
   const handleCancelPoll = () => {
     setShowPollCreator(false)
     setPollQuestion("")
@@ -126,37 +126,37 @@ export default function CreatePostPage({ user }: CreatePostPageProps) {
     setPollDuration("1 day")
     setError("")
   }
-
+  
   const handleFilesUploaded = useCallback((files: UploadResult[]) => {
     setUploadedFiles((prev) => [...prev, ...files])
     setShowFileUpload(false)
   }, [])
-
+  
   const removeUploadedFile = (urlToRemove: string) => {
     setUploadedFiles((prev) => prev.filter((file) => file.url !== urlToRemove))
   }
-
+  
   const handleGiphySelect = (gif: any, type: "gif" | "sticker") => {
     const giphyItem: GiphyMedia = {
       url: gif.url || "https://media.giphy.com/media/efg1234/giphy.gif",
       type,
       id: gif.id || Math.random().toString(36).substr(2, 9),
     }
-
+    
     if (totalMediaCount >= MAX_MEDIA_FILES) {
       setError("You can only add up to 4 media items")
       return
     }
-
+    
     setGiphyMedia((prev) => [...prev, giphyItem])
     setShowGiphyPicker(false)
     setError("")
   }
-
+  
   const removeGiphyMedia = (index: number) => {
     setGiphyMedia((prev) => prev.filter((_, i) => i !== index))
   }
-
+  
   const insertText = (text: string) => {
     if (contentEditableRef.current) {
       const selection = window.getSelection()
@@ -176,18 +176,18 @@ export default function CreatePostPage({ user }: CreatePostPageProps) {
       setContent(contentEditableRef.current.textContent || "")
     }
   }
-
+  
   const handlePost = async () => {
     if (!content.trim() && totalMediaCount === 0 && !showPollCreator) {
       setError("Please add some content, media, or a poll to your post.")
       return
     }
-
+    
     if (isOverLimit) {
       setError(`Please keep your post under ${MAX_CHARACTERS} characters.`)
       return
     }
-
+    
     if (showPollCreator) {
       if (!pollQuestion.trim()) {
         setError("Poll question cannot be empty.")
@@ -203,18 +203,18 @@ export default function CreatePostPage({ user }: CreatePostPageProps) {
         return
       }
     }
-
+    
     setIsPosting(true)
     setError("")
-
+    
     try {
       const validatedData = createPostSchema.parse({ content })
-
+      
       // Combine uploaded files and Giphy media URLs
       const uploadedMediaUrls = uploadedFiles.map((file) => file.url)
       const giphyUrls = giphyMedia.map((gif) => gif.url)
       const allMediaUrls = [...uploadedMediaUrls, ...giphyUrls]
-
+      
       let mediaType = null
       if (allMediaUrls.length > 0) {
         // Check if any uploaded files are videos
@@ -227,47 +227,77 @@ export default function CreatePostPage({ user }: CreatePostPageProps) {
           mediaType = "image"
         }
       }
-
-      const response = await fetch("/api/posts", {
+      // check with ai 
+      const response = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          content: validatedData.content,
-          mediaUrls: allMediaUrls.length > 0 ? allMediaUrls : [],
-          mediaType: mediaType,
-        }),
-      })
-
-      if (!response.ok) {
-        const errorData = await response.json()
-        setError(errorData.error || "Failed to create post")
-        return
+          messages: [
+            { role: "user", content: validatedData.content }
+          ]
+        })
+      });
+      
+      const data = await response.json();
+      /**
+       * {
+  "factCheck": "No, Bangladesh is not a city. Bangladesh is a country located in South Asia. It is a sovereign nation with its capital city being Dhaka. Bangladesh is bordered by India to the west, north, and east, and by Myanmar to the southeast. It has a population of over 160 million people and is one of the most densely populated countries in the world.",
+  "isTrueInfo": false,
+  "isharmful ": false,
+  "isAdultContent": false,
+  "newProperty6": "value6",
+  "writeReportWithSrc": "Bangladesh is a country, not a city. Source: World Atlas, Britannica"
+}
+       */
+      if (response.ok && data.factCheck && data.isTrueInfo && data.isharmful && data.isAdultContent && data.writeReportWithSrc) {
+        if (data.isTrueInfo && !data.isharmful) {
+          
+          
+          
+          const response = await fetch("/api/posts", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              content: validatedData.content,
+              mediaUrls: allMediaUrls.length > 0 ? allMediaUrls : [],
+              mediaType: mediaType,
+            }),
+          })
+          
+          if (!response.ok) {
+            const errorData = await response.json()
+            setError(errorData.error || "Failed to create post")
+            return
+          }
+          
+          const postData = await response.json()
+          
+          // Reset form
+          setUploadedFiles([])
+          setGiphyMedia([])
+          setContent("")
+          setShowPollCreator(false)
+          setPollQuestion("")
+          setPollOptions(["", ""])
+          setPollDuration("1 day")
+          if (contentEditableRef.current) {
+            contentEditableRef.current.textContent = ""
+            contentEditableRef.current.classList.add("placeholder-shown")
+          }
+          
+          toast("Post has been created", {
+            action: {
+              label: "View",
+              onClick: () => router.push("/dashboard"),
+            },
+          })
+          setIsPosted(true)
+router.push("/dashboard")
+        }else{
+          setContent(JSON.stringify(data))
+        }
       }
-
-      const postData = await response.json()
-
-      // Reset form
-      setUploadedFiles([])
-      setGiphyMedia([])
-      setContent("")
-      setShowPollCreator(false)
-      setPollQuestion("")
-      setPollOptions(["", ""])
-      setPollDuration("1 day")
-      if (contentEditableRef.current) {
-        contentEditableRef.current.textContent = ""
-        contentEditableRef.current.classList.add("placeholder-shown")
-      }
-
-      toast("Post has been created", {
-        action: {
-          label: "View",
-          onClick: () => router.push("/dashboard"),
-        },
-      })
-
-      setIsPosted(true)
-      router.push("/dashboard")
+      
     } catch (err: any) {
       console.error("Post submission error:", err)
       setError(err.message || "An error occurred while submitting the post.")
@@ -275,17 +305,17 @@ export default function CreatePostPage({ user }: CreatePostPageProps) {
       setIsPosting(false)
     }
   }
-
+  
   const handleEnhanceText = async () => {
     if (!content.trim()) {
       setError("Please write some text to enhance first.")
       return
     }
-
+    
     setIsEnhancingText(true)
     setError("")
     setEnhancedTextSuggestion(null)
-
+    
     try {
       const prompt = `Enhance the following text to be more engaging and descriptive for a social media post. Keep it concise and within 280 characters if possible. Here's the text: "${content}"`
       const chatHistory = []
@@ -293,15 +323,15 @@ export default function CreatePostPage({ user }: CreatePostPageProps) {
       const payload = { contents: chatHistory }
       const apiKey = ""
       const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`
-
+      
       const response = await fetch(apiUrl, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       })
-
+      
       const result = await response.json()
-
+      
       if (
         result.candidates &&
         result.candidates.length > 0 &&
@@ -322,7 +352,7 @@ export default function CreatePostPage({ user }: CreatePostPageProps) {
       setIsEnhancingText(false)
     }
   }
-
+  
   const useEnhancedSuggestion = () => {
     if (enhancedTextSuggestion) {
       setContent(enhancedTextSuggestion)
@@ -339,14 +369,14 @@ export default function CreatePostPage({ user }: CreatePostPageProps) {
       setEnhancedTextSuggestion(null)
     }
   }
-
+  
   const remainingChars = MAX_CHARACTERS - characterCount
-
+  
   const highlightContent = (text: string) => {
     const div = document.createElement("div")
     div.textContent = text
     let escapedText = div.innerHTML
-
+    
     escapedText = escapedText.replace(
       /#([a-zA-Z0-9_\u0980-\u09FF]+)/g,
       '<span style="color: #1DA1F2; font-weight: bold;">#$1</span>',
@@ -361,7 +391,7 @@ export default function CreatePostPage({ user }: CreatePostPageProps) {
     )
     return escapedText
   }
-
+  
   const featureOptions = [
     {
       icon: ImageIcon,
@@ -397,7 +427,7 @@ export default function CreatePostPage({ user }: CreatePostPageProps) {
     { icon: FileWarning, label: "Lost Notice", onClick: () => console.log("Lost Notice clicked") },
     { icon: Calendar, label: "Event", onClick: () => console.log("Event clicked") },
   ]
-
+  
   const getCaretCharacterOffset = useCallback((element: HTMLElement) => {
     let caretOffset = 0
     const doc = element.ownerDocument
@@ -412,15 +442,15 @@ export default function CreatePostPage({ user }: CreatePostPageProps) {
     }
     return caretOffset
   }, [])
-
+  
   const setCaretPosition = useCallback((element: HTMLElement, offset: number) => {
     const range = document.createRange()
     const selection = window.getSelection()
-
+    
     let currentNode: Node | null = element
     let currentOffset = 0
     let found = false
-
+    
     const walk = document.createTreeWalker(element, NodeFilter.SHOW_TEXT, null)
     while ((currentNode = walk.nextNode())) {
       const nodeTextLength = currentNode.textContent?.length || 0
@@ -432,16 +462,16 @@ export default function CreatePostPage({ user }: CreatePostPageProps) {
       }
       currentOffset += nodeTextLength
     }
-
+    
     if (!found) {
       range.selectNodeContents(element)
       range.collapse(false)
     }
-
+    
     selection?.removeAllRanges()
     selection?.addRange(range)
   }, [])
-
+  
   useEffect(() => {
     if (contentEditableRef.current && cursorPositionRef.current) {
       const { offset } = cursorPositionRef.current
@@ -449,14 +479,14 @@ export default function CreatePostPage({ user }: CreatePostPageProps) {
       cursorPositionRef.current = null
     }
   }, [content, setCaretPosition])
-
+  
   useEffect(() => {
     if (contentEditableRef.current && !content.trim()) {
       contentEditableRef.current.textContent = contentEditableRef.current.dataset.placeholder || ""
       contentEditableRef.current.classList.add("placeholder-shown")
     }
   }, [])
-
+  
   return (
     <div className="min-h-screen bg-white">
       <div className="sticky top-0 z-50 bg-white border-b border-gray-200">
