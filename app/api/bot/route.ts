@@ -1,7 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server"
 
 import connectDB from "@/lib/mongodb/connection"
-import Bot from "@/lib/mongodb/models/Bot"
+import { Bot } from "@/lib/mongodb/models/Bot"
 
 
 export async function GET(request: NextRequest) {

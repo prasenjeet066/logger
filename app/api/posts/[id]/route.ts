@@ -5,7 +5,7 @@ import { connectDB } from "@/lib/mongodb/connection"
 import { Post } from "@/lib/mongodb/models/Post"
 import { User } from "@/lib/mongodb/models/User"
 import { Like } from "@/lib/mongodb/models/Like"
-import Bot from "@/lib/mongodb/models/Bot";
+import { Bot } from "@/lib/mongodb/models/Bot";
 
 export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
   try {
