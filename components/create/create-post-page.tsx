@@ -228,7 +228,7 @@ export default function CreatePostPage({ user }: CreatePostPageProps) {
         }
       }
       // check with ai 
-      const response = await fetch("/api/context/ai/factCheck/", {
+      const __response = await fetch("/api/context/ai/factCheck/", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -238,7 +238,7 @@ export default function CreatePostPage({ user }: CreatePostPageProps) {
         })
       });
       
-      const data = await response.json();
+      const data = await __response.json();
 
       const response = await fetch("/api/posts", {
         method: "POST",
@@ -247,7 +247,7 @@ export default function CreatePostPage({ user }: CreatePostPageProps) {
           content: validatedData.content,
           mediaUrls: allMediaUrls.length > 0 ? allMediaUrls : [],
           mediaType: mediaType,
-          reviewResults: JSON.stringify(data)
+          reviewResults: JSON.stringify(data) || null
         }),
       })
       
