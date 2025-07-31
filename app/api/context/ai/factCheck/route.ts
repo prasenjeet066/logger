@@ -29,7 +29,7 @@ export async function POST(req: NextRequest) {
               isTrueInfo: { type: "boolean" },
               "isharmful ": { type: "boolean" },
               isAdultContent: { type: "boolean" },
-              newProperty6: { type: "string" },
+              oneLineAboutThisText: { type: "string" },
               writeReportWithSrc: { type: "string" }
             },
             required: [
@@ -37,7 +37,7 @@ export async function POST(req: NextRequest) {
               "isTrueInfo",
               "isharmful ",
               "isAdultContent",
-              "newProperty6",
+              "oneLineAboutThisText",
               "writeReportWithSrc"
             ],
             additionalProperties: true
