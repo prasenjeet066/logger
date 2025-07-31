@@ -3,7 +3,7 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth/auth-config"
 import { connectDB } from "@/lib/mongodb/connection"
 import Notification from "@/lib/mongodb/models/Notification"
-import User from "@/lib/mongodb/models/User" // Assuming User model is needed for population
+import {User} from "@/lib/mongodb/models/User" // Assuming User model is needed for population
 
 export async function GET() {
   try {

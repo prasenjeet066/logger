@@ -93,7 +93,7 @@ const postSchema = new Schema<IPost>(
       required: true
     },
     reviewResults: {
-      type: object,
+      type: Object,
       default : null
     },
     watchedBy:[
