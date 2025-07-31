@@ -128,7 +128,7 @@ const addUniqueMention = (newMention: string) =>
       throw new Error("Translation service unavailable")
     }
   }, [])
-  const reviewResults = post?.reviewResults || null
+  const reviewResults = JSON.parse(post?.reviewResults.content) || null
   const checkTrueMentions = async (username) => {
   try {
     const res = await fetch('/api/users/' + encodeURIComponent(username));
