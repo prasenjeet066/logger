@@ -292,8 +292,8 @@ export default function CreatePostPage({ user }: CreatePostPageProps) {
             },
           })
           setIsPosted(true)
-router.push("/dashboard")
-        }else{
+          router.push("/dashboard")
+        } else {
           setContent(JSON.stringify(data))
         }
       }
