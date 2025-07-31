@@ -75,7 +75,7 @@
     "i18next": "^23.0.0",
     "react-i18next": "^13.0.0",
     "i18next-http-backend": "^2.0.0",
-    "@huggingface/inference": "^2.6.4", 
+    "@huggingface/inference": "latest", 
     "i18next-browser-languagedetector": "^7.0.0"
   },
   "devDependencies": {
