@@ -443,7 +443,7 @@ export function ProfileContent({ username }: ProfileContentProps) {
             <div className="sticky top-0 bg-white/50 z-30 backdrop-blur-md  px-4 py-3">
               <div className="flex items-center gap-2">
                 {profileType === 'bot' && <Bot className="h-5 w-5 text-blue-600" />}
-                <h2 className="text-xl font-semibold">
+                <h2 className="text-xl font-semibold flex flex-row items-center">
                   {profileType === 'user' ? profileData?.displayName : botData?.displayName}
                   {profileType === 'user' && profileData?.isVerified && (
                     <VerificationBadge verified={true} size={20} className="h-8 w-8 z-10 bg-white rounded-full" />
@@ -493,7 +493,9 @@ export function ProfileContent({ username }: ProfileContentProps) {
                       }
                     </AvatarFallback>
                   </Avatar>
-                  
+                  {profileType === 'user' && profileData?.isVerified && (
+                    <VerificationBadge verified={true} size={20} className="h-8 w-8 z-10 -mt-4 bg-white rounded-full" />
+                  )}
                   {profileType === 'bot' && (
                     <div className="h-8 w-8 z-10 -mt-4 bg-blue-600 rounded-full flex items-center justify-center">
                       <Bot className="h-4 w-4 text-white" />
@@ -545,9 +547,7 @@ export function ProfileContent({ username }: ProfileContentProps) {
               <div className="space-y-3 mb-2">
                 <h1 className="text-xl font-semibold flex flex-col items-start justify-center gap-2">
                   {profileType === 'user' ? profileData?.displayName : botData?.displayName}
-                  {profileType === 'user' && profileData?.isVerified && (
-                    <VerificationBadge verified={true} size={20} className="h-6 w-6 z-10 bg-white rounded-full" />
-                  )}
+                  
                   <p className="text-gray-500   text-sm font-normal">
                     @{profileType === 'user' ? profileData?.username : botData?.username}
                   </p>
