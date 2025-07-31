@@ -142,6 +142,7 @@ const addUniqueMention = (newMention: string) =>
     return false;
   }
 };
+ const reviewResults = JSON.parse(post?.reviewResults || [])
   // Enhanced content formatting with better security
   const formatContent = useCallback((content: string) => {
     const urlRegex = /(https?:\/\/[^\s]+)/g
@@ -468,9 +469,10 @@ const addUniqueMention = (newMention: string) =>
             {/* Media */}
             {renderMedia(post.mediaUrls, post.mediaType)}
             
-            {post.reviewResults && post.reviewResults ? (
-              <div>
-                {post.reviewResults.factCheck}
+            {reviewResults && reviewResults.isTrueInfo? (
+              <div className='bg-gary-50 p-2 text-left flex flex-col'>
+                {reviewResults.factCheck}
+                <small className='text-xs underline'>{reviewResults.writeReportWithSrc}</small>
               </div>
             ):<></>}
             
