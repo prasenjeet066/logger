@@ -128,6 +128,7 @@ const addUniqueMention = (newMention: string) =>
       throw new Error("Translation service unavailable")
     }
   }, [])
+  const reviewResults = post?.reviewResults || null
   const checkTrueMentions = async (username) => {
   try {
     const res = await fetch('/api/users/' + encodeURIComponent(username));
@@ -142,7 +143,7 @@ const addUniqueMention = (newMention: string) =>
     return false;
   }
 };
- const reviewResults = JSON.parse(post.reviewResults) || null
+ 
   // Enhanced content formatting with better security
   const formatContent = useCallback((content: string) => {
     const urlRegex = /(https?:\/\/[^\s]+)/g

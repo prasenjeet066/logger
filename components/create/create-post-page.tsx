@@ -247,7 +247,7 @@ export default function CreatePostPage({ user }: CreatePostPageProps) {
           content: validatedData.content,
           mediaUrls: allMediaUrls.length > 0 ? allMediaUrls : [],
           mediaType: mediaType,
-          reviewResults: JSON.stringify(data) || null
+          reviewResults: data || null
         }),
       })
       
