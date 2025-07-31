@@ -1,5 +1,7 @@
 "use client"
-
+import { GetStaticProps } from 'next'
+import { useTranslation } from 'react-i18next'
+import { serverSideTranslations } from 'next-i18next/serverSideTranslations'
 import Link from "next/link"
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
@@ -15,6 +17,7 @@ interface SidebarProps {
 }
 
 export function Sidebar({ isExpand = true, profile, onSignOut, newSidebar ,  contextChangeTabs}: SidebarProps) {
+  const {t} = useTranslation("lang");
   const isMobile = useMobile()
   const [isSA, setIsSA] = useState(null)
   useEffect(() => {
@@ -25,7 +28,7 @@ export function Sidebar({ isExpand = true, profile, onSignOut, newSidebar ,  con
     }
   }, [profile])
   const menuItems = [
-    { icon: Home, label: "Home", href: "/dashboard" },
+    { icon: Home, label: t("home"), href: "/dashboard" },
     { icon: Search, label: "Explore", href: "/explore" },
     { icon: Bell, label: "Notifications", href: "/notifications" },
     
