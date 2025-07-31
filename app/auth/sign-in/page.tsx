@@ -111,6 +111,7 @@ export default function SignInPage() {
         <CardContent>
           
           <form onSubmit={handleSubmit} className="space-y-4">
+            {state == 0 ? (
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <Input
@@ -125,7 +126,7 @@ export default function SignInPage() {
               {errors.email && <Alert>
                 <AlertDescription>{errors.email}</AlertDescription>
               </Alert>}
-            </div>
+            </div>):<></>}
             {state == 1 ? (
             <>
               <div className="space-y-2">
