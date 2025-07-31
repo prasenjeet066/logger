@@ -69,8 +69,13 @@
     "tailwindcss-animate": "^1.0.7",
     "vaul": "latest",
     "zod": "^3.24.1",
-    "react-advanced-cropper" : "latest",
-    "cld3-asm" : "latest"
+    "react-advanced-cropper": "latest",
+    "cld3-asm": "latest",
+    "next-i18next ": "latest",
+    "i18next": "^23.0.0",
+    "react-i18next": "^13.0.0",
+    "i18next-http-backend": "^2.0.0",
+    "i18next-browser-languagedetector": "^7.0.0"
   },
   "devDependencies": {
     "@types/node": "^22",
