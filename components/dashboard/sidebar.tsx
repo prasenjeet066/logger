@@ -127,9 +127,9 @@ export function Sidebar({ isExpand = true, profile, onSignOut, newSidebar, conte
       </nav>
 
       {isMobile && (
-        <div className="border-t w-auto pt-3 mt-3">
+        <div className="border-t w-auto pt-3 mt-3 flex flex-row items-center justify-between">
           <Link href="/create">
-            <Button className="w-full justify-center mt-4 py-3 lg:py-6">
+            <Button className="w-full justify-center mt-4 py-3 flex-1">
               <Plus className="mr-2 h-5 w-5" />
               <span>{safeT("createPost", "Create Post")}</span>
             </Button>

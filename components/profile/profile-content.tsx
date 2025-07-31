@@ -544,7 +544,7 @@ export function ProfileContent({ username }: ProfileContentProps) {
               <div className="space-y-3 mb-2">
                 <h1 className="text-xl font-semibold flex flex-col items-start justify-center gap-2">
                   {profileType === 'user' ? profileData?.displayName : botData?.displayName}
-                  <p className="text-gray-500 font-[TikTokSans] text-sm">
+                  <p className="text-gray-500   text-sm font-normal">
                     @{profileType === 'user' ? profileData?.username : botData?.username}
                   </p>
                 </h1>
