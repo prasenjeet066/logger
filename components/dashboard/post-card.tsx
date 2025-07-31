@@ -467,11 +467,11 @@ const addUniqueMention = (newMention: string) =>
 
             {/* Media */}
             {renderMedia(post.mediaUrls, post.mediaType)}
-            {post.watch && (
+            {post.watch ?  (
               <span className='text-xs text-gray-600'>
                 {post.watch} watched
               </span>
-            )}
+            ): <></>}
             {/* Action buttons */}
             <div className="flex items-center justify-between max-w-sm lg:max-w-md mt-3">
               <Button
