@@ -467,6 +467,13 @@ const addUniqueMention = (newMention: string) =>
 
             {/* Media */}
             {renderMedia(post.mediaUrls, post.mediaType)}
+            
+            {post.reviewResults && post.reviewResults ? (
+              <div>
+                {post.reviewResults.factCheck}
+              </div>
+            ):<></>}
+            
             {post.watch ?  (
               <span className='text-xs text-gray-600'>
                 {post.watch} watched
