@@ -344,7 +344,9 @@ const addUniqueMention = (newMention: string) =>
       </div>
     )
   }, [])
-  const reviewResults = JSON.parse(post.reviewResults.content)
+  const reviewResults = post?.reviewResults?.content ?
+  JSON.parse(post.reviewResults.content) :
+  [];
   // Enhanced post click handler
   const handlePostClick = useCallback(() => {
     const pathParts = pathname.split("/")
