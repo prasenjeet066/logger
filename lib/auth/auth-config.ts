@@ -115,16 +115,7 @@ export const authOptions: NextAuthOptions = {
   },
   session: {
     strategy: "jwt",
-    maxAge: (token) => {
-      // Check if user wants to be remembered
-      // For server-side, we'll need to check localStorage on client-side or use a different approach
-      // This is a simplified version, you might want to handle this differently
-      const defaultMaxAge = 24 * 60 * 60 // 1 day
-      const extendedMaxAge = 30 * 24 * 60 * 60 // 30 days
-      
-      // You can also check token.rememberMe if available
-      return defaultMaxAge // Default to 1 day, extend on client-side if needed
-    },
+    maxAge: 30 * 24 * 60, // 30 days
   },
   secret: process.env.NEXTAUTH_SECRET,
   debug: process.env.NODE_ENV === "development",
