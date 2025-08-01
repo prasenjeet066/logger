@@ -284,7 +284,7 @@ const addUniqueMention = (newMention: string) =>
     }
   },[isReplise])
   // Enhanced media rendering with loading states
-  const renderMedia = useCallback((mediaUrls: string[] | null, mediaType: string | null , nsfw = false) => {
+  const renderMedia = useCallback((mediaUrls: string[] | null, mediaType: string | null ) => {
     if (!mediaUrls || mediaUrls.length === 0) return null
     
     const handleMediaClick = (url: string, e: React.MouseEvent) => {
@@ -333,7 +333,7 @@ const addUniqueMention = (newMention: string) =>
         </div>
       )
     }
-    
+    let nsfw = post.imageNSFW!== null && post.imageNSFW.label!== "normal" 
     // Default: images
     return (
       <div className={`mt-3 grid gap-2 ${mediaUrls.length === 1 ? "grid-cols-1" : "grid-cols-2"}`}>
@@ -496,13 +496,11 @@ const addUniqueMention = (newMention: string) =>
             )}
 
             {/* Media */}
-            {post.imageNSFW!==null && post.imageNSFW.label !== 'normal' ? (<>
+          
             {renderMedia(post.mediaUrls, post.mediaType)}
-           </> ):(
-             <>
-               {renderMedia(post.mediaUrls, post.mediaType , true)}
-             </>
-           )}
+           
+
+           
             {reviewResults && reviewResults.isTrueInfo===false ? (
               <div className='bg-gary-50 rounded-md p-2 text-left flex flex-row items-center justify-between border text-xs'>
                 <small className='flex-1 pr-2 text-gray-600'>{reviewResults?.oneLineAboutThisText || "This Post is not correct!"}</small>
