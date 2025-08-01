@@ -69,7 +69,7 @@ export default function CreatePostPage({ user }: CreatePostPageProps) {
   const [pollDuration, setPollDuration] = useState("1 day")
   const [showAddOptions, setShowAddOptions] = useState(false)
   const cursorPositionRef = useRef < { node: Node | null;offset: number } | null > (null)
-  const [imageReview,setInageReview] = useState(null)
+  const [imageReview, setInageReview] = useState(null)
   const characterCount = content.length
   const isOverLimit = characterCount > MAX_CHARACTERS
   const progressPercentage = (characterCount / MAX_CHARACTERS) * 100
@@ -242,17 +242,21 @@ export default function CreatePostPage({ user }: CreatePostPageProps) {
       });
       
       let data = await __response.json();
-      if (mediaType == 'image') {
+      if (mediaType == 'image' && uploadedFiles.length > 0) {
         const formdata = new FormData()
-        formdata.append("image", uploadedFiles[0])
+        const fileBlob = await fetch(uploadedFiles[0].url).then(r => r.blob())
+        formdata.append("image", fileBlob, uploadedFiles[0].name || "image.jpg")
+        
         const __xfile = await fetch('/api/context/ai/factCheck/nsfw', {
           method: 'POST',
           body: formdata
         })
+        
         if (__xfile.ok) {
-          const __fileScan = await __xfile.json();
-          
+          const __fileScan = await __xfile.json()
           setInageReview(__fileScan.result)
+        } else {
+          console.error("NSFW API failed")
         }
       }
       
@@ -264,7 +268,7 @@ export default function CreatePostPage({ user }: CreatePostPageProps) {
           mediaUrls: allMediaUrls.length > 0 ? allMediaUrls : [],
           mediaType: mediaType,
           reviewResults: data || null,
-          imageNSFW : imageReview || null
+          imageNSFW: imageReview || null
           
           
         }),
