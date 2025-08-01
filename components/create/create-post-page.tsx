@@ -268,7 +268,7 @@ export default function CreatePostPage({ user }: CreatePostPageProps) {
           mediaUrls: allMediaUrls.length > 0 ? allMediaUrls : [],
           mediaType: mediaType,
           reviewResults: data || null,
-          imageNSFW: imageReview || null
+          imageNSFW: imageReview.result|| null
           
           
         }),
