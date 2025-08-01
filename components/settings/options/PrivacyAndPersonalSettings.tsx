@@ -142,7 +142,7 @@ export default function PrivacyAndPersonalSettings() {
   );
 }
   return (
-    <form onSubmit={handleSubmit} className="p-2 flex flex-col gap-6">
+    <form onSubmit={handleSubmit} className="pt-4 flex flex-col gap-6">
       {settingsSections.map((section) => (
         <div key={section.title} className="flex flex-col gap-4 border-b pb-4">
           <h3 className="text-lg font-medium">{section.title}</h3>

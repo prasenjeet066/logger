@@ -19,13 +19,13 @@ export async function PUT(request: NextRequest) {
     }
     
     const body = await request.json()
-    const { displayName, bio, location, website, isPrivate, allowMessages, showEmail, superAccess, avatarUrl, pinnedPostId } = body
+    const {...config, displayName, bio, location, website, isPrivate, allowMessages, showEmail, superAccess, avatarUrl, pinnedPostId } = body
     
     // Update user profile
     const updatedUser = await User.findByIdAndUpdate(
       user._id,
       {
-        ...body,
+        ...config,
         displayName: displayName || user.displayName,
         bio: bio || "",
         location: location || "",
