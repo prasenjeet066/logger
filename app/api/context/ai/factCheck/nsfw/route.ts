@@ -33,7 +33,7 @@ export async function POST(req: Request) {
     const top = result.reduce((a: any, b: any) => (a.score > b.score ? a : b));
     
     // Send back
-    return NextResponse.json({ result: top });
+    return NextResponse.json(top);
   } catch (error) {
     console.error("NSFW detection error:", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });

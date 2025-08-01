@@ -252,12 +252,10 @@ export default function CreatePostPage({ user }: CreatePostPageProps) {
           body: formdata
         })
         
-        if (__xfile.ok) {
-          const __fileScan = await __xfile.json()
-          setInageReview(__fileScan)
-        } else {
-          console.error("NSFW API failed")
-        }
+        
+        const __fileScan = await __xfile.json()
+        setInageReview(__fileScan)
+        
       }
       
       const response = await fetch("/api/posts", {
@@ -268,7 +266,7 @@ export default function CreatePostPage({ user }: CreatePostPageProps) {
           mediaUrls: allMediaUrls.length > 0 ? allMediaUrls : [],
           mediaType: mediaType,
           reviewResults: data || null,
-          imageNSFW: imageReview.result|| null
+          imageNSFW: imageReview || null
           
           
         }),
