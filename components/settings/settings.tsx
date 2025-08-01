@@ -57,10 +57,11 @@ export const SettingsContent = ({ user, t }) => {
         setCurrentSection(foundSetting._component)
         setCurrentSectionLb(foundSetting.name)
       } else {
-        
+        setCurrentSectionLb(null)
         setCurrentSection(null)
       }
     } else {
+      setCurrentSectionLb(null)
       setCurrentSection(null)
     }
   }, [t]) // Remove SettingsMenusList from dependencies to avoid infinite re-renders
@@ -111,7 +112,7 @@ export const SettingsContent = ({ user, t }) => {
     </BreadcrumbItem>
     <BreadcrumbSeparator />
     <BreadcrumbItem>
-      <BreadcrumbLink href={"/settings?t=" + encodeURIComponent(currentSectionLb) }>{currentSectionLb}</BreadcrumbLink>
+      {currentSectionLb}
     </BreadcrumbItem>
     <BreadcrumbSeparator />
   </BreadcrumbList>
