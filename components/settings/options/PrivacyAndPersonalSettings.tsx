@@ -77,12 +77,11 @@ export default function PrivacyAndPersonalSettings() {
           const user = await res.json();
           setCurrentUser(user);
           
-          // Build initial settings: { id: ..., default: value }
           const initial = settingsSections.reduce((acc, section) => {
             section.items.forEach((item) => {
               acc[item.id] = {
                 id: item.id,
-                default: user[item.id] !== undefined ? user[item.id] : item.default
+                default: user[item.id] !== undefined ? user[item.id] : false
               };
             });
             return acc;
@@ -98,8 +97,7 @@ export default function PrivacyAndPersonalSettings() {
     };
     
     fetchCurrentUser();
-  }, []); // run only once
-  
+  }, []);
   
   
   // Toggle switch handler
