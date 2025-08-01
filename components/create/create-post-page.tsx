@@ -244,7 +244,7 @@ export default function CreatePostPage({ user }: CreatePostPageProps) {
       let data = await __response.json();
       if (mediaType == 'image') {
         const formdata = new FormData()
-        formdata.append("images", uploadedFiles[0])
+        formdata.append("image", uploadedFiles[0])
         const __xfile = await fetch('/app/api/context/ai/factCheck/nsfw', {
           method: 'POST',
           
