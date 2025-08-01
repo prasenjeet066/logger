@@ -2,7 +2,7 @@
 import type React from "react"
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { PostCard } from "./post-card"
+import { PostCard } from "@/components/dashboard/post-card"
 import Link from "next/link"
 import { Spinner } from "@/components/loader/spinner"
 import { PostSection } from "@/components/post/post-section"
