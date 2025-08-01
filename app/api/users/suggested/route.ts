@@ -11,27 +11,28 @@ export async function GET(request: NextRequest) {
     if (!session?.user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
-
+    
     await connectDB()
-
+    
     const currentUser = await User.findOne({ email: session.user.email })
     if (!currentUser) {
       return NextResponse.json({ error: "User not found" }, { status: 404 })
     }
-
+    
     // Get users that the current user is not following
     const followingIds = await Follow.find({ followerId: currentUser._id.toString() }).select("followingId").lean()
-
+    
     const followingIdStrings = followingIds.map((f) => f.followingId)
     followingIdStrings.push(currentUser._id.toString()) // Exclude self
-
+    
     const suggestedUsers = await User.find({
-      _id: { $nin: followingIdStrings },
-    })
+        _id: { $nin: followingIdStrings },
+        show_in_search: { $ne: false },
+      })
       .sort({ followersCount: -1 })
       .limit(6)
-      .lean()
-
+      .lean();
+    
     // Check if current user is following any of these users
     const usersWithFollowStatus = suggestedUsers.map((user) => ({
       _id: user._id.toString(),
@@ -43,7 +44,7 @@ export async function GET(request: NextRequest) {
       isFollowing: false,
       isVerified: user.isVerified,
     }))
-
+    
     return NextResponse.json(usersWithFollowStatus)
   } catch (error) {
     console.error("Error fetching suggested users:", error)
