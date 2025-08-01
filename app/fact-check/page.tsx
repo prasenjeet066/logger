@@ -23,7 +23,7 @@ export default function FactCheck({ searchParams }: Props) {
   
   const fetch_post = async () => {
     try {
-      const _post = await fetch('/api/posts/' + postId)
+      const _post = await fetch('/api/posts/' + postId ,{method:"GET"})
       if (_post.ok) {
         const post = await _post.json();
         SetPost(post)

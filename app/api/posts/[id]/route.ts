@@ -60,6 +60,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
 
     // Format the response
     const formattedPost = {
+      ...post,
       _id: post._id.toString(),
       content: post.content,
       authorId: post.authorId,
