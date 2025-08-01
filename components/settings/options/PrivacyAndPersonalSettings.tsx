@@ -10,7 +10,7 @@ export default function PrivacyAndPersonalSettings() {
   const [currentUser, setCurrentUser] = useState < object > (null)
   const [Errors, setErrors] = useState()
   const [formValues, setFormValues] = useState < Record < string, boolean > | null > (null)
-  const [submiting , setSubmiting] = useState(false)
+  const [submiting, setSubmiting] = useState(false)
   // Define all settings with sections
   const settingsSections = [
   {
@@ -135,11 +135,12 @@ export default function PrivacyAndPersonalSettings() {
     }
   };
   if (!formValues) {
+  return (
     <div className="min-h-screen flex items-center justify-center">
-        <Spinner />
-      </div>
-    
-  };
+      <Spinner />
+    </div>
+  );
+}
   return (
     <form onSubmit={handleSubmit} className="p-2 flex flex-col gap-6">
       {settingsSections.map((section) => (
