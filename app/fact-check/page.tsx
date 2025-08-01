@@ -23,7 +23,7 @@ export default function FactCheck({ searchParams }: Props) {
   
   const fetch_post = async () => {
     try {
-      const _post = await fetch('/api/posts/' + postId ,{method:"GET"})
+      const _post = await fetch('/api/posts/' + postId, { method: "GET" })
       if (_post.ok) {
         const post = await _post.json();
         SetPost(post)
@@ -70,9 +70,9 @@ export default function FactCheck({ searchParams }: Props) {
             </p>
           </div>
         )}
-
+<div className='p-2'>
         {Post && (
-  <div style={{ pointerEvents: "none" }} className='p-2 border rounded-md'>
+  <div style={{ pointerEvents: "none" }} className='border rounded-md'>
     <PostCard
       key={Post._id}
       post={Post}
@@ -80,7 +80,7 @@ export default function FactCheck({ searchParams }: Props) {
       onRepost={handleRepost}
     />
   </div>
-)}
+)}</div>
       </div>
     </div>
   )
