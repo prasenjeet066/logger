@@ -472,8 +472,8 @@ const addUniqueMention = (newMention: string) =>
             {/* Media */}
             {renderMedia(post.mediaUrls, post.mediaType)}
             
-            {reviewResults && !reviewResults.isTrueInfo ? (
-              <div className='bg-gary-50 rounded-md p-2 text-left flex flex-row items-center justify-between border'>
+            {reviewResults && reviewResults.isTrueInfo===false ? (
+              <div className='bg-gary-50 rounded-md p-2 text-left flex flex-col border text-xs'>
                 {reviewResults?.oneLineAboutThisText || "This Post is not correct!"}
                 <Button className='bg-gray-800 text-white rounded-full px-2 text-xs'>{"Fact Check"}</Button>
               </div>
