@@ -333,7 +333,7 @@ const addUniqueMention = (newMention: string) =>
         </div>
       )
     }
-    let nsfw = post.imageNSFW!== null && post.imageNSFW.label!== "normal" 
+    let nsfw = post.imageNSFW?.label && post.imageNSFW.label !== "normal";
     // Default: images
     return (
       <div className={`mt-3 grid gap-2 ${mediaUrls.length === 1 ? "grid-cols-1" : "grid-cols-2"}`}>
