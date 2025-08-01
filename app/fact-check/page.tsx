@@ -44,7 +44,7 @@ export default function FactCheck({ searchParams }: Props) {
   const handleRepost = () => {}
   const handleLike = () => {}
   
-  const reviewResults = Post ? JSON.parse(Post.content) : null
+  const reviewResults = Post ? JSON.parse(Post.reviewResults.content) : null
   
   return (
     <div className="min-h-screen bg-white">
