@@ -5,7 +5,7 @@ import { SettingsContent } from "@/components/settings/settings.tsx"
 
 export default async function SettingsPage({searchParams}) {
   const session = await getServerSession(authOptions)
-  const s = searchParams.s || null;
+  const t = searchParams.t || null;
   
   
   if (!session?.user) {
@@ -26,5 +26,5 @@ export default async function SettingsPage({searchParams}) {
     createdAt: session.user.createdAt,
   }
 
-  return <SettingsContent user={user} s = {s}/>
+  return <SettingsContent user={user} t = {t}/>
 }

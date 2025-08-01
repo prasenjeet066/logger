@@ -27,7 +27,7 @@ import { AccountSettings, PrivacyAndPersonalSettings, PasswordAndSecuritySetting
 // Placeholder components - replace with your actual components
 
 
-export const SettingsContent = ({ user, s }) => {
+export const SettingsContent = ({ user, t }) => {
   const router = useRouter()
   
   const SettingsMenusList = [
@@ -50,8 +50,9 @@ export const SettingsContent = ({ user, s }) => {
   const [currentSection, setCurrentSection] = useState(null)
   const [currentSectionLb , setCurrentSectionLb] = useState(null)
   useEffect(() => {
-    if (s !== null && s.length > 2) {
-      const foundSetting = SettingsMenusList.find(item => item.name === s)
+    t = decodeURIComponent(t)
+    if (t !== null && t.length > 2) {
+      const foundSetting = SettingsMenusList.find(item => item.name === t)
       if (foundSetting) {
         setCurrentSection(foundSetting._component)
         setCurrentSectionLb(foundSetting.name)
