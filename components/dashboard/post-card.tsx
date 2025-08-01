@@ -377,7 +377,7 @@ const addUniqueMention = (newMention: string) =>
   return (
     <article
       className={isMobile==true ? "border-b hover:bg-gray-50 transition-colors h-auto cursor-pointer":"space-y-2 hover:bg-gray-50 transition-colors cursor-pointer h-auto rounded-md border-2 border-gray-50 "}
-      onClick={handlePostClick}
+      
       aria-label={`Post by ${post.author.displayName}`}
     >
       <div className="p-4">
@@ -453,7 +453,7 @@ const addUniqueMention = (newMention: string) =>
             {/* Post content */}
            </div>
            {post.content && (
-              <div className="mt-2">
+              <div className="mt-2" onClick={handlePostClick}>
                 <div
                   className="text-gray-900 whitespace-pre-wrap text-sm lg:text-base leading-relaxed"
                   dangerouslySetInnerHTML={{ __html: formatContent(contentToDisplay) }}
@@ -488,9 +488,10 @@ const addUniqueMention = (newMention: string) =>
             {renderMedia(post.mediaUrls, post.mediaType)}
             
             {reviewResults && reviewResults.isTrueInfo===false ? (
-              <div className='bg-gary-50 rounded-md p-2 text-left flex flex-col border text-xs'>
-                {reviewResults?.oneLineAboutThisText || "This Post is not correct!"}
-                <Button className='bg-gray-800 text-white rounded-full px-2 text-xs'>{"Fact Check"}</Button>
+              <div className='bg-gary-50 rounded-md p-2 text-left flex flex-row items-center justify-between border text-xs h-4'>
+                <small className='flex-1 border-r pr-2'>{reviewResults?.oneLineAboutThisText || "This Post is not correct!"}</small>
+                
+                <Button className='bg-gray-800 text-white rounded-full px-2 text-xs' onClick = {()=>{router.push('fact-check?post=' + post._id)}}>{"Fact Check"}</Button>
               </div>
             ):<></>}
             
