@@ -458,6 +458,11 @@ const addUniqueMention = (newMention: string) =>
                 <time className="text-gray-500 text-[10px]" dateTime={post.createdAt}>
                   {formatDistanceToNow(new Date(post.createdAt), { addSuffix: true })}
                 </time>
+                <span className="text-gray-500 text-[10px]">·</span>
+                {post.visibility ? ( <span className='text-[10px] text-gray-500 uppercase'>
+                  {post.visibility}
+                </span>):(<></>)}
+               
               </div>
             </div>
 </div>

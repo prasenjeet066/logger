@@ -57,7 +57,10 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
         }
       }
     }
-
+    if(post.authorId !== currentUser._id.toString()){
+    if (post.visibility=='public' || typeof post.visibility === undefined) {
+      
+    
     // Format the response
     const formattedPost = {
       ...post,
@@ -89,6 +92,39 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
     }
 
     return NextResponse.json(formattedPost)
+    };
+    }else{
+      const formattedPost = {
+      ...post,
+      _id: post._id.toString(),
+      content: post.content,
+      authorId: post.authorId,
+      author: {
+        _id: author._id.toString(),
+        username: author.username,
+        displayName: author.displayName,
+        avatarUrl: author.avatarUrl,
+        isVerified: author.isVerified || false,
+      },
+      mediaUrls: post.mediaUrls || [],
+      mediaType: post.mediaType,
+      likesCount: post.likesCount || 0,
+      repostsCount: post.repostsCount || 0,
+      repliesCount: post.repliesCount || 0,
+      isRepost: post.isRepost || false,
+      originalPostId: post.originalPostId,
+      originalPost: originalPost,
+      parentPostId: post.parentPostId,
+      hashtags: post.hashtags || [],
+      mentions: post.mentions || [],
+      isPinned: post.isPinned || false,
+      createdAt: post.createdAt,
+      updatedAt: post.updatedAt,
+      isLiked: !!isLiked,
+    }
+
+    return NextResponse.json(formattedPost)
+    }
   } catch (error) {
     console.error("Error fetching post:", error)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
