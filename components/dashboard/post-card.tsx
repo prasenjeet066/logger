@@ -488,7 +488,7 @@ const addUniqueMention = (newMention: string) =>
             {renderMedia(post.mediaUrls, post.mediaType)}
             
             {reviewResults && reviewResults.isTrueInfo===false ? (
-              <div className='bg-gary-50 rounded-md p-2 text-left flex flex-row items-center justify-between border text-xs h-4'>
+              <div className='bg-gary-50 rounded-md p-2 text-left flex flex-row items-center justify-between border text-xs'>
                 <small className='flex-1 border-r pr-2 text-gray-600'>{reviewResults?.oneLineAboutThisText || "This Post is not correct!"}</small>
                 
                 <span className='bg-gray-800 text-white rounded-full text-gray-800 font-semibold' onClick = {()=>{router.push('fact-check?post=' + post._id)}}>{"Fact Check"}</span>
