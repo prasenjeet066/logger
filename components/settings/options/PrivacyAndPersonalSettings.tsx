@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { Label } from "@/components/ui/label"
+import { Spinner } from "@/components/loader/spinner"
 import { Switch } from "@/components/ui/switch"
 import { Button } from "@/components/ui/button"
 
@@ -9,6 +10,7 @@ export default function PrivacyAndPersonalSettings() {
   const [currentUser, setCurrentUser] = useState < object > (null)
   const [Errors, setErrors] = useState()
   const [formValues, setFormValues] = useState < Record < string, boolean > | null > (null)
+  const [submiting , setSubmiting] = useState(false)
   // Define all settings with sections
   const settingsSections = [
   {
@@ -114,7 +116,7 @@ export default function PrivacyAndPersonalSettings() {
   // Form submit handler
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+    setSubmiting(true)
     // Convert to flat object: { lock_profile: true, ... }
     const payload = Object.fromEntries(
       Object.entries(formValues).map(([key, value]) => [key, value.default])
@@ -126,10 +128,16 @@ export default function PrivacyAndPersonalSettings() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
-    } catch (e) {}
+      setSubmiting(false)
+    } catch (e) {
+      setSubmiting(alse)
+      setErrors(e)
+    }
   };
-  if (!formValues){ 
-    return <div>Loading...</div>
+  if (!formValues) {
+    <div className="min-h-screen flex items-center justify-center">
+        <Spinner />
+      </div>
     
   };
   return (
@@ -155,7 +163,7 @@ export default function PrivacyAndPersonalSettings() {
       ))}
 
       <div className="flex justify-end pt-2">
-        <Button type="submit">Save changes</Button>
+        <Button type="submit">{submiting ? "Loading.." : "Save Change"}</Button>
       </div>
     </form>
   )
