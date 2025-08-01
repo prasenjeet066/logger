@@ -225,9 +225,24 @@ export default function CreatePostPage({ user }: CreatePostPageProps) {
           mediaType = "gif"
         } else {
           mediaType = "image"
+          
+        }
+      }
+      if (mediaType == 'image') {
+        const formdata = new FormData()
+        formdata.append("images",uploadedFiles)
+        const __xfile = await fetch('/app/api/context/ai/factCheck/nsfw',{
+          method:'POST',
+          
+          body: formdata
+        })
+        if (__xfile.ok) {
+          const __fileScan =await __xfile.json();
+          console.log(__fileScan);
         }
       }
       // check with ai 
+      
       const __response = await fetch("/api/context/ai/factCheck/", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
