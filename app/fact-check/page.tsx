@@ -72,13 +72,15 @@ export default function FactCheck({ searchParams }: Props) {
         )}
 
         {Post && (
-          <PostCard
-            key={Post._id}
-            post={Post}
-            onLike={handleLike}
-            onRepost={handleRepost}
-          />
-        )}
+  <div style={{ pointerEvents: "none" }} className='p-2 border rounded-md'>
+    <PostCard
+      key={Post._id}
+      post={Post}
+      onLike={handleLike}
+      onRepost={handleRepost}
+    />
+  </div>
+)}
       </div>
     </div>
   )
