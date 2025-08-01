@@ -48,7 +48,7 @@ export const SettingsContent = ({ user, t }) => {
   }]
   
   const [currentSection, setCurrentSection] = useState(null)
-  const [currentSectionLb , setCurrentSectionLb] = useState(null)
+  const [currentSectionLb, setCurrentSectionLb] = useState(null)
   useEffect(() => {
     t = decodeURIComponent(t)
     if (t !== null && t.length > 2) {
@@ -63,7 +63,7 @@ export const SettingsContent = ({ user, t }) => {
     } else {
       setCurrentSection(null)
     }
-  }, [s]) // Remove SettingsMenusList from dependencies to avoid infinite re-renders
+  }, [t]) // Remove SettingsMenusList from dependencies to avoid infinite re-renders
   
   const handleSettingClick = (component) => {
     setCurrentSection(component)
@@ -103,18 +103,20 @@ export const SettingsContent = ({ user, t }) => {
           </div>
         ) : (
           <div>
-            <Breadcrumb>
+            <div>
+              <Breadcrumb>
   <BreadcrumbList>
     <BreadcrumbItem>
       <BreadcrumbLink href="/settings">Settings</BreadcrumbLink>
     </BreadcrumbItem>
     <BreadcrumbSeparator />
     <BreadcrumbItem>
-      <BreadcrumbLink href={"/settings?t=" + encodeURIComponent(currentSectionLb) }>{ccurrentSectionLb}</BreadcrumbLink>
+      <BreadcrumbLink href={"/settings?t=" + encodeURIComponent(currentSectionLb) }>{currentSectionLb}</BreadcrumbLink>
     </BreadcrumbItem>
     <BreadcrumbSeparator />
   </BreadcrumbList>
 </Breadcrumb>
+            </div>
             {currentSection}
           </div>
         )}
