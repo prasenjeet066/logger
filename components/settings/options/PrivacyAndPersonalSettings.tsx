@@ -1,7 +1,12 @@
+"use client"
+
+import { useState } from "react"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
+import { Button } from "@/components/ui/button"
 
 export default function PrivacyAndPersonalSettings() {
+  // Define all settings with sections
   const settingsSections = [
     {
       title: "Privacy",
@@ -61,8 +66,31 @@ export default function PrivacyAndPersonalSettings() {
     },
   ]
 
+  // Initialize state for each setting using IDs
+  const initialSettings = settingsSections.reduce((acc, section) => {
+    section.items.forEach((item) => {
+      acc[item.id] = item.default
+    })
+    return acc
+  }, {} as Record<string, boolean>)
+
+  const [formValues, setFormValues] = useState(initialSettings)
+
+  // Toggle switch handler
+  const handleToggle = (id: string) => {
+    setFormValues((prev) => ({ ...prev, [id]: !prev[id] }))
+  }
+
+  // Form submit handler
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    console.log("Saving settings:", formValues)
+    // Replace with your API call or toast
+    alert("Settings saved successfully!")
+  }
+
   return (
-    <div className="p-4 flex flex-col gap-6">
+    <form onSubmit={handleSubmit} className="p-4 flex flex-col gap-6">
       {settingsSections.map((section) => (
         <div key={section.title} className="flex flex-col gap-4 border-b pb-4">
           <h3 className="text-lg font-medium">{section.title}</h3>
@@ -72,11 +100,19 @@ export default function PrivacyAndPersonalSettings() {
                 <Label htmlFor={item.id}>{item.label}</Label>
                 <span className="text-sm text-muted-foreground">{item.description}</span>
               </div>
-              <Switch id={item.id} defaultChecked={item.default} />
+              <Switch
+                id={item.id}
+                checked={formValues[item.id]}
+                onCheckedChange={() => handleToggle(item.id)}
+              />
             </div>
           ))}
         </div>
       ))}
-    </div>
+
+      <div className="flex justify-end pt-2">
+        <Button type="submit">Save changes</Button>
+      </div>
+    </form>
   )
 }
