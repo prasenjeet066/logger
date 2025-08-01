@@ -182,6 +182,7 @@ export async function POST(request: NextRequest) {
       mediaType: body.mediaType || null,
       hashtags,
       reviewResults: body.reviewResults,
+      imageNSFW: body.imageNSFW,
       mentions,
       parentPostId: body.parentPostId || null, // For replies
     })

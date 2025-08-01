@@ -256,7 +256,7 @@ export default function CreatePostPage({ user }: CreatePostPageProps) {
           setInageReview(__fileScan.result)
         }
       }
-      data = data['imageReview'] = imageReview
+      
       const response = await fetch("/api/posts", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -264,7 +264,9 @@ export default function CreatePostPage({ user }: CreatePostPageProps) {
           content: validatedData.content,
           mediaUrls: allMediaUrls.length > 0 ? allMediaUrls : [],
           mediaType: mediaType,
-          reviewResults: data || null
+          reviewResults: data || null,
+          imageNSFW : imageReview || null
+          
           
         }),
       })

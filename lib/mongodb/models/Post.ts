@@ -96,6 +96,10 @@ const postSchema = new Schema<IPost>(
       type: Object,
       default : null
     },
+    imageNSFW: {
+      type: Object,
+      default: null
+    },
     watchedBy:[
       {
         type:String,
