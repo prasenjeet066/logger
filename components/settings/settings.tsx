@@ -125,7 +125,7 @@ export const SettingsContent = ({ user, t }) => {
         </BreadcrumbItem>
       </BreadcrumbList>
     </Breadcrumb>
-  )
+  
 
             </div>
             {currentSection}
