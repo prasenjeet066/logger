@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState, useCallback, useMemo } from "react"
+import { useState, useCallback, useMemo,useEffect } from "react"
 import { formatDistanceToNow } from "date-fns"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { useMobile } from "@/hooks/use-mobile"
@@ -82,7 +82,7 @@ export function PostCard({ post, onLike, onRepost, onReply }: PostCardProps) {
   const router = useRouter()
   const pathname = usePathname()
   const [mentionsPeoples, setMentions] = useState < string[] | null > (null);
-
+const isReplise = post.originalPostId!==null ? true : false
 const addUniqueMention = (newMention: string) =>
   setMentions(prev =>
     prev?.includes(newMention) ?
@@ -93,11 +93,19 @@ const addUniqueMention = (newMention: string) =>
   const postUrl = useMemo(() => extractFirstUrl(post.content), [post.content])
   const hasMedia = useMemo(() => post.mediaUrls && post.mediaUrls.length > 0, [post.mediaUrls])
   const isPostPage = useMemo(() => pathname.startsWith("/post"), [pathname])
-  
+  const [repliesTo , setRepliesTo ]=  useState(null)
   const MAX_LENGTH = 100
   const shouldTrim = !isPostPage && post.content.length > MAX_LENGTH
   const displayContent = shouldTrim ? smartTruncate(post.content, MAX_LENGTH) : post.content
-  
+  const repliesOf = async function(){
+    try {
+      const __user = await fetch('/api/posts/'+ post.originalPostId);
+      const __data = await __user.json()
+      setRepliesTo(__data.author.username)
+    } catch (e) {
+      setRepliesTo(null)
+    }
+  }
   // Translation function with better error handling
   const translateText = useCallback(async (text: string, targetLang = "bn"): Promise < string > => {
     try {
@@ -146,6 +154,9 @@ const addUniqueMention = (newMention: string) =>
  
   // Enhanced content formatting with better security
   const formatContent = useCallback((content: string) => {
+    if (repliesTo!==null) {
+      content = '@'+repliesTo + ' ' + content
+    }
     const urlRegex = /(https?:\/\/[^\s]+)/g
     
     // Sanitize content first
@@ -261,7 +272,11 @@ const addUniqueMention = (newMention: string) =>
       console.error("Error pinning post:", error)
     }
   }, [post._id, currentUserId, onReply])
-  
+  useEffect(()=>{
+    if(isReplise){
+    repliesOf()
+    }
+  },[isReplise])
   // Enhanced media rendering with loading states
   const renderMedia = useCallback((mediaUrls: string[] | null, mediaType: string | null) => {
     if (!mediaUrls || mediaUrls.length === 0) return null
