@@ -69,7 +69,7 @@ export default function CreatePostPage({ user }: CreatePostPageProps) {
   const [pollDuration, setPollDuration] = useState("1 day")
   const [showAddOptions, setShowAddOptions] = useState(false)
   const cursorPositionRef = useRef < { node: Node | null;offset: number } | null > (null)
-  
+  const [imageReview,setInageReview] = useState(null)
   const characterCount = content.length
   const isOverLimit = characterCount > MAX_CHARACTERS
   const progressPercentage = (characterCount / MAX_CHARACTERS) * 100
@@ -252,10 +252,11 @@ export default function CreatePostPage({ user }: CreatePostPageProps) {
         })
         if (__xfile.ok) {
           const __fileScan = await __xfile.json();
-          data.imageReview = __fileScan.result || []
           
+          setInageReview(__fileScan.result)
         }
       }
+      data = data['imageReview'] = imageReview
       const response = await fetch("/api/posts", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -264,6 +265,7 @@ export default function CreatePostPage({ user }: CreatePostPageProps) {
           mediaUrls: allMediaUrls.length > 0 ? allMediaUrls : [],
           mediaType: mediaType,
           reviewResults: data || null
+          
         }),
       })
       
