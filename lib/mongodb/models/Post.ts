@@ -96,6 +96,15 @@ const postSchema = new Schema<IPost>(
       type: Object,
       default : null
     },
+    visibility:{
+      type: String,
+      enum: ["public","private","f-private"],
+      default: "public"
+    },
+    restrictions:{
+      type : Object,
+      default : null
+    },
     imageNSFW: {
       type: Object,
       default: null

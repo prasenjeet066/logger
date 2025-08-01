@@ -254,7 +254,7 @@ export default function CreatePostPage({ user }: CreatePostPageProps) {
         
         if (__xfile.ok) {
           const __fileScan = await __xfile.json()
-          setInageReview(__fileScan.result)
+          setInageReview(__fileScan)
         } else {
           console.error("NSFW API failed")
         }

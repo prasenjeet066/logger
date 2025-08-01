@@ -180,13 +180,14 @@ export async function POST(request: NextRequest) {
       authorId: user._id.toString(),
       mediaUrls: body.mediaUrls || [],
       mediaType: body.mediaType || null,
+      
       hashtags,
       reviewResults: body.reviewResults,
       imageNSFW: body.imageNSFW,
       mentions,
       parentPostId: body.parentPostId || null, // For replies
     })
-    
+    post.visibility  = JSON.parse(body.reviewResults.content).isharmful ? "f-private" : body.visibility || "public";
     await post.save()
     
     // If it's a reply, increment repliesCount on the parent post
