@@ -128,7 +128,10 @@ export default function PrivacyAndPersonalSettings() {
       });
     } catch (e) {}
   };
-  
+  if (!formValues){ 
+    return <div>Loading...</div>
+    
+  };
   return (
     <form onSubmit={handleSubmit} className="p-4 flex flex-col gap-6">
       {settingsSections.map((section) => (
