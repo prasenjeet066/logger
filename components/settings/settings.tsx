@@ -1,5 +1,12 @@
 "use client"
-
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb"
 import { useEffect, useState, useCallback } from "react"
 import { useSession } from "next-auth/react"
 import { Button } from "@/components/ui/button"
@@ -13,7 +20,7 @@ import { debounce } from "lodash"
 import { signOut } from "next-auth/react"
 import { Spinner } from "@/components/loader/spinner"
 import { PostCard } from "@/components/dashboard/post-card"
-import {AccountSettings , PrivacyAndPersonalSettings,PasswordAndSecuritySettings} from '@/components/settings/options'
+import { AccountSettings, PrivacyAndPersonalSettings, PasswordAndSecuritySettings } from '@/components/settings/options'
 // Import or define your Settings components
 // import { Settings } from "@/components/settings" // Uncomment and adjust path as needed
 
@@ -24,31 +31,32 @@ export const SettingsContent = ({ user, s }) => {
   const router = useRouter()
   
   const SettingsMenusList = [
-    {
-      name: 'Account',
-      icon: User,
-      _component: <AccountSettings/> // Use the placeholder component
-    },
-    {
-      name: 'Privacy and Personal',
-      icon: Lock,
-      _component: <PrivacyAndPersonalSettings/> // Use the placeholder component
-    },
-    {
-      name: 'Password and Security',
-      icon: Key,
-      _component: <PasswordAndSecuritySettings/> // Use the placeholder component
-    }
-  ]
+  {
+    name: 'Account',
+    icon: User,
+    _component: <AccountSettings/> // Use the placeholder component
+  },
+  {
+    name: 'Privacy and Personal',
+    icon: Lock,
+    _component: <PrivacyAndPersonalSettings/> // Use the placeholder component
+  },
+  {
+    name: 'Password and Security',
+    icon: Key,
+    _component: <PasswordAndSecuritySettings/> // Use the placeholder component
+  }]
   
   const [currentSection, setCurrentSection] = useState(null)
-  
+  const [currentSectionLb , setCurrentSectionLb] = useState(null)
   useEffect(() => {
     if (s !== null && s.length > 2) {
       const foundSetting = SettingsMenusList.find(item => item.name === s)
       if (foundSetting) {
         setCurrentSection(foundSetting._component)
+        setCurrentSectionLb(foundSetting.name)
       } else {
+        
         setCurrentSection(null)
       }
     } else {
@@ -77,6 +85,7 @@ export const SettingsContent = ({ user, s }) => {
       </header>
       
       <div className="p-4">
+        
         {currentSection === null ? (
           <div className="space-y-2">
             {SettingsMenusList.map((Setting, index) => (
@@ -87,12 +96,24 @@ export const SettingsContent = ({ user, s }) => {
                 onClick={() => handleSettingClick(Setting._component)}
               >
                 <Setting.icon className="h-5 w-5 mr-3" />
-                <span>{Setting.name}</span>
+                <span className='font-semibold'>{Setting.name}</span>
               </Button>
             ))}
           </div>
         ) : (
           <div>
+            <Breadcrumb>
+  <BreadcrumbList>
+    <BreadcrumbItem>
+      <BreadcrumbLink href="/settings">Settings</BreadcrumbLink>
+    </BreadcrumbItem>
+    <BreadcrumbSeparator />
+    <BreadcrumbItem>
+      <BreadcrumbLink href={"/settings?t=" + encodeURIComponent(currentSectionLb) }>{ccurrentSectionLb}</BreadcrumbLink>
+    </BreadcrumbItem>
+    <BreadcrumbSeparator />
+  </BreadcrumbList>
+</Breadcrumb>
             {currentSection}
           </div>
         )}
