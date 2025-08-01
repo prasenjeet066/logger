@@ -95,7 +95,9 @@ export const SettingsContent = ({ user, t }) => {
                 key={index}
                 variant="ghost" 
                 className="w-full justify-start bg-none text-gray-800 hover:bg-gray-100 p-4 h-auto"
-                onClick={() => handleSettingClick(Setting._component)}
+                onClick={() =>{
+               setCurrentSectionLb(Setting.name)
+                handleSettingClick(Setting._component)}}
               >
                 <Setting.icon className="h-5 w-5 mr-3" />
                 <span className='font-semibold'>{Setting.name}</span>
@@ -105,18 +107,26 @@ export const SettingsContent = ({ user, t }) => {
         ) : (
           <div>
             <div>
-              <Breadcrumb>
-  <BreadcrumbList>
-    <BreadcrumbItem>
-      <BreadcrumbLink href="/settings">Settings</BreadcrumbLink>
-    </BreadcrumbItem>
-    <BreadcrumbSeparator />
-    <BreadcrumbItem>
-      {currentSectionLb}
-    </BreadcrumbItem>
-    <BreadcrumbSeparator />
-  </BreadcrumbList>
-</Breadcrumb>
+              
+
+
+    <Breadcrumb>
+      <BreadcrumbList>
+        <BreadcrumbItem>
+          <BreadcrumbLink asChild>
+            <Link href="/settings">Settings</Link>
+          </BreadcrumbLink>
+        </BreadcrumbItem>
+        <BreadcrumbSeparator />
+        <BreadcrumbItem>
+          <BreadcrumbLink asChild>
+            <Link href={"/settings?t="+ encodeURIComponent(currentSectionLb)}>{currentSectionLb}</Link>
+          </BreadcrumbLink>
+        </BreadcrumbItem>
+      </BreadcrumbList>
+    </Breadcrumb>
+  )
+
             </div>
             {currentSection}
           </div>
