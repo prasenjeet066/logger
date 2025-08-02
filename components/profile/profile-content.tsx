@@ -509,7 +509,7 @@ export function ProfileContent({ username }: ProfileContentProps) {
                     onClick={() => setEditDialogOpen(true)}>
                       Edit Profile
                     </Button>
-                  ) : profileType === 'user' && session?.user && profileData.public_send_message ? (
+                  ) : profileType === 'user' && session?.user && profileData?.public_send_message ? (
                     <>
                       
                       <Button className='rounded-full' variant="outline">Message</Button>
