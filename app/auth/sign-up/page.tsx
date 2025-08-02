@@ -28,11 +28,16 @@ import {
   Lock,
   FileText,
 } from "lucide-react"
-
+import profile_categories from '@/lib/profile-categorys'
 type Step = 1 | 2 | 3 | 4
 
 export default function SignUpPage() {
   const [currentStep, setCurrentStep] = useState < Step > (1)
+  const [query, setQuery] = useState(''); // User's typed text
+  const [suggestion, setSuggestion] = useState(''); // Current suggestion
+  const [showSuggestion, setShowSuggestion] = useState(false); // Show/hide
+  const [isFocused, setIsFocused] = useState(false); // Focus state
+  const [hasCompleted, setHasCompleted] = useState(false); // Success animation
   const [formData, setFormData] = useState <
     SignUpData & {
       confirmPassword: string
@@ -44,6 +49,7 @@ export default function SignUpPage() {
       confirmPassword: "",
       username: "",
       displayName: "",
+      category: "",
       acceptTerms: false,
     })
   const [errors, setErrors] = useState <
@@ -69,10 +75,31 @@ export default function SignUpPage() {
     { number: 2, title: "Profile", icon: User, description: "User information" },
     { number: 3, title: "Password", icon: Lock, description: "Security setup" },
     { number: 4, title: "Terms", icon: FileText, description: "Finalize" },
+    { number: 5, title: "Terms", icon: FileText, description: "Finalize" },
   ]
-  
+  const Names = profile_categories.map(item => item.name);
   const progress = (currentStep / steps.length) * 100
-  
+  useEffect(() => {
+    if (query.length > 0) {
+      // Find first match that starts with user's input
+      const match = sampleData.find(item =>
+        item.toLowerCase().startsWith(query.toLowerCase())
+      );
+      
+      // Only show if it's not an exact match
+      if (match && match.toLowerCase() !== query.toLowerCase()) {
+        setSuggestion(match);
+        setShowSuggestion(true);
+      } else {
+        setSuggestion('');
+        setShowSuggestion(false);
+      }
+    } else {
+      // Clear everything if input is empty
+      setSuggestion('');
+      setShowSuggestion(false);
+    }
+  }, [query]);
   // Removed Supabase specific checkUsernameAvailability
   // If you need username availability check, you'll need to implement a new API route for it.
   const checkUsernameAvailability = async (usernameVal: string) => {
@@ -148,7 +175,7 @@ export default function SignUpPage() {
         }
         break
         
-      case 4:
+      case 5:
         if (!formData.acceptTerms) {
           stepErrors.acceptTerms = "You must accept the terms and conditions"
         }
@@ -161,7 +188,7 @@ export default function SignUpPage() {
   
   const nextStep = () => {
     if (validateStep(currentStep)) {
-      if (currentStep < 4) {
+      if (currentStep < 5) {
         setCurrentStep((prev) => (prev + 1) as Step)
       }
     }
@@ -259,6 +286,9 @@ export default function SignUpPage() {
         checkUsernameAvailability(value); // Call this if you implement a new API for it
       }, 500)
       return () => clearTimeout(timeoutId)
+    }
+    if (field === 'category') {
+      
     }
   }
   
@@ -464,8 +494,46 @@ export default function SignUpPage() {
             </div>
           </div>
         )
-        
       case 4:
+        return (
+          <div className="space-y-4">
+            <div className="text-center mb-6">
+
+              <h3 className="text-lg font-semibold">Choice Account Category</h3>
+              <p className="text-sm text-gray-600">Select a account type or category from this list</p>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="category">Category</Label>
+              <div className="relative">
+                <Input
+                  id="category"
+                  type="text"
+                  value={formData.category}
+                  onChange={()=>{
+                  
+                  handleChange("category")
+                  setQuery(formData.category)
+                    
+                  }}
+                  
+                  placeholder="Choose a category"
+                  
+                  className={` rounded-full pr-10`}
+                />
+                <div className="absolute inset-y-0 right-0 flex items-center pr-3">
+                  <div className="absolute inset-0 pl-16 pr-16 py-5 pointer-events-none">
+  <span className="text-slate-300">
+    <span className="invisible">{query}</span>  {/* Invisible typed text */}
+    <span>{suggestion.slice(query.length)}</span> {/* Visible gray completion */}
+  </span>
+</div>
+                </div>
+              </div>
+          </div>
+          </div>
+        )
+      case 5:
         return (
           <div className="space-y-4">
             <div className="text-center mb-6">
@@ -568,7 +636,7 @@ export default function SignUpPage() {
                 Previous
               </Button>
 )}
-              {currentStep < 4 ? (
+              {currentStep < 5 ? (
                 <Button type="button" onClick={nextStep} disabled={isLoading} className="flex items-center rounded-full w-full">
                   Continue
                   <ArrowRight className="h-4 w-4 ml-1" />

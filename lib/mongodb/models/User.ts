@@ -1,6 +1,6 @@
 import mongoose, { type Document, Schema } from 'mongoose';
 import bcrypt from 'bcryptjs';
-
+import profile_categories from '@/lib/profile-categorys'
 export interface IUser extends Document {
   _id: string;
   email: string;
@@ -42,6 +42,7 @@ export interface IUser extends Document {
   comparePassword(candidatePassword: string): Promise < boolean > ;
 }
 
+const Names = profile_categories.map(item => item.name);
 const userSchema = new Schema < IUser > (
 {
   email: {
@@ -209,6 +210,12 @@ const userSchema = new Schema < IUser > (
     type: Boolean,
     default: false
   },
+  category: {
+    type: String,
+    enum: Names,
+    default: "Activist"
+  },
+  
   personalized_ads: {
     type: Boolean,
     default: false
