@@ -28,7 +28,11 @@ export async function GET(request: NextRequest) {
 
     // Search users by username or display name
     const users = await User.find({
-      $or: [{ username: { $regex: query, $options: "i" } }, { displayName: { $regex: query, $options: "i" } }],
+      $or: [
+        {
+          show_in_search : { $ne: false }
+        },
+        { username: { $regex: query, $options: "i" } }, { displayName: { $regex: query, $options: "i" } }],
     })
       .limit(20)
       .lean()
