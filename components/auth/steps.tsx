@@ -18,17 +18,9 @@ import {
   TermsStep,
   validateTermsStep
 } from '@/components/auth/steps/TermsStep'
+
 export {
   EmailStep,
-  validateEmailStep,
-  ProfileStep,
-  validateProfileStep,
-  PasswordStep,
-  validatePasswordStep,
-  CategoryStep,
-  validateCategoryStep,
-  TermsStep,
-  validateTermsStepEmailStep,
   validateEmailStep,
   ProfileStep,
   validateProfileStep,
