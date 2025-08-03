@@ -46,7 +46,7 @@ export function StepNavigation({
           type="button" 
           onClick={onNext} 
           disabled={isLoading} 
-          className="flex items-center rounded-full w-full"
+          className="flex flex-1 items-center rounded-full w-full"
         >
           Continue
           <ArrowRight className="h-4 w-4 ml-1" />
@@ -56,7 +56,7 @@ export function StepNavigation({
           type="submit" 
           onClick={onSubmit}
           disabled={isLoading || !canProceed} 
-          className="flex items-center rounded-full"
+          className="flex flex-1 items-center rounded-full"
         >
           {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
           Create Account
