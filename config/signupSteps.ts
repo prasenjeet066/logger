@@ -26,14 +26,6 @@ export const signupSteps: StepConfig[] = [
   validate: validateEmailStep,
 },
 {
-  id: "username",
-  title: "Username",
-  description: "Choose a unique username",
-  icon: User,
-  component: ProfileStep,
-  validate: validateProfileStep,
-},
-{
   
   id: "name",
   title: "Profile Name",
@@ -42,6 +34,14 @@ export const signupSteps: StepConfig[] = [
   component: NameStep,
   validate: validateNameStep,
   
+},
+{
+  id: "username",
+  title: "Username",
+  description: "Choose a unique username",
+  icon: User,
+  component: ProfileStep,
+  validate: validateProfileStep,
 },
 {
   id: "password",
