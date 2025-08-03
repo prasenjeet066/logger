@@ -170,8 +170,8 @@ export default function PrivacyAndPersonalSettings() {
           ))}
         </div>
       ))}
-
-      <div className="flex justify-end pt-2">
+      
+      <div className="flex justify-end p-2 sticky bottom-0">
         <Button type="submit" disabled={submitting}>
           {submitting ? "Saving..." : "Save Changes"}
         </Button>

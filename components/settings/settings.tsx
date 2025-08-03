@@ -34,7 +34,7 @@ export const SettingsContent = ({ user, t }) => {
   {
     name: 'Account',
     icon: User,
-    _component: <AccountSettings/> // Use the placeholder component
+    _component: <AccountSettings userData={user}/> // Use the placeholder component
   },
   {
     name: 'Privacy and Personal',
