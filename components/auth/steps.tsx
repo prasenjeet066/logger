@@ -18,7 +18,7 @@ import {
   TermsStep,
   validateTermsStep
 } from '@/components/auth/steps/TermsStep'
-
+import {NameStep , validateNameStep} from '@/components/auth/steps/Name'
 export {
   EmailStep,
   validateEmailStep,
@@ -29,5 +29,7 @@ export {
   CategoryStep,
   validateCategoryStep,
   TermsStep,
-  validateTermsStep
+  validateTermsStep,
+  NameStep,
+  validateNameStep
 }

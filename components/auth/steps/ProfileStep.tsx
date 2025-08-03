@@ -69,20 +69,6 @@ export const ProfileStep: React.FC<StepProps> = ({
           <p className="text-sm text-green-600">Username is available</p>
         )}
       </div>
-
-      <div className="space-y-2">
-        <Label htmlFor="displayName">Display Name</Label>
-        <Input
-          id="displayName"
-          type="text"
-          value={formData.displayName || ""}
-          onChange={(e) => onFieldChange("displayName", e.target.value)}
-          placeholder="Your display name"
-          disabled={isLoading}
-          className={errors.displayName ? "border-red-500" : ""}
-        />
-        {errors.displayName && <p className="text-sm text-red-600">{errors.displayName}</p>}
-      </div>
     </div>
   )
 }
@@ -98,11 +84,7 @@ export const validateProfileStep = (formData: any): Record<string, string> => {
     errors.username = "Username can only contain letters, numbers, and underscores"
   }
   
-  if (!formData.displayName) {
-    errors.displayName = "Display name is required"
-  } else if (formData.displayName.length > 50) {
-    errors.displayName = "Display name must be less than 50 characters"
-  }
+  
   
   return errors
 }
