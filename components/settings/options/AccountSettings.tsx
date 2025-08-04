@@ -1,12 +1,21 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-
+import {EditProfile} from '@/components/settings/options/EditProfile'
+import { Search, Settings, MoreHorizontal, UserPlus, ArrowLeft, User, Lock, Key,Pen } from "lucide-react"
 export default function AccountSettings({
   userData,
-  onEditClick = () => console.log("Edit clicked")
+  sendPathLink
 }) {
+  
+  const onEditClick = () => {
+    sendPathLink({
+      name : ['Account','Edit Profile'],
+      _conponent : <EditProfile user = {userData}/>,
+      icon: Pen
+    })
+  }
   return (
     <div>
-      <div className="w-full max-w-md mx-auto rounded-lg bg-indigo-100 flex items-center p-6 gap-4 shadow-sm">
+      <div className="w-full max-w-md mx-auto rounded-lg bg-indigo-50 flex items-center p-6 gap-4">
         <Avatar className="w-20 h-20 border-4 border-white cursor-pointer flex-shrink-0">
           <AvatarImage src={userData.avatarUrl} alt={userData.displayName} />
           <AvatarFallback className="text-xl bg-indigo-200 text-indigo-800">
@@ -18,12 +27,12 @@ export default function AccountSettings({
             {userData.displayName}
           </span>
           <span className="text-sm text-gray-600 mt-1 mb-3 truncate">
-            {userData.email || "No email provided"}
+            @{userData.username || "No email provided"}
           </span>
           <button
             onClick={onEditClick}
             className="
-              flex items-center justify-center w-full bg-indigo-600 text-white rounded-lg px-4 py-2
+              flex items-center justify-center w-full bg-indigo-600 text-white rounded-full px-4 py-2
               hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2
               transition-all duration-200 font-medium text-sm
             "

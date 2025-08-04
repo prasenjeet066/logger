@@ -1,4 +1,4 @@
-export default function PasswordAndSecuritySettings() {
+export default function EditProfile() {
   return (
     <></>
   )

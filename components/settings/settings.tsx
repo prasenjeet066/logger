@@ -29,12 +29,25 @@ import { AccountSettings, PrivacyAndPersonalSettings, PasswordAndSecuritySetting
 
 export const SettingsContent = ({ user, t }) => {
   const router = useRouter()
-  
+  const [additionalObj, setAdditionlObj] = useState()
+  const [currentSection, setCurrentSection] = useState(null)
+  const [currentSectionLb, setCurrentSectionLb] = useState<null | string | string[]>(null);
+  const sendPathLink = (_obj: {
+    name: string
+    icon: any
+    _component: any
+  }) => {
+    if (Object.keys(_obj).length) {
+      setCurrentSection(_obj._component);
+      setCurrentSectionLb(_obj.name);
+      setAdditionlObj(_obj)
+    }
+  }
   const SettingsMenusList = [
   {
     name: 'Account',
     icon: User,
-    _component: <AccountSettings userData={user}/> // Use the placeholder component
+    _component: <AccountSettings userData={user} sendPathLink = {sendPathLink}/> // Use the placeholder component
   },
   {
     name: 'Privacy and Personal',
@@ -47,8 +60,7 @@ export const SettingsContent = ({ user, t }) => {
     _component: <PasswordAndSecuritySettings/> // Use the placeholder component
   }]
   
-  const [currentSection, setCurrentSection] = useState(null)
-  const [currentSectionLb, setCurrentSectionLb] = useState(null)
+  
   useEffect(() => {
     t = decodeURIComponent(t)
     if (t !== null && t.length > 2) {
@@ -94,7 +106,7 @@ export const SettingsContent = ({ user, t }) => {
         <BreadcrumbSeparator />
         <BreadcrumbItem>
           <BreadcrumbLink asChild>
-            <Link href={"/settings?t="+ encodeURIComponent(currentSectionLb)}>{currentSectionLb}</Link>
+            <Link href={"/settings?t="+ encodeURIComponent(currentSectionLb)}>{typeof currentSectionLb=== 'string' ?  currentSectionLb :currentSectionLb[currentSectionLb.length]}</Link>
           </BreadcrumbLink>
         </BreadcrumbItem>
       </BreadcrumbList>
