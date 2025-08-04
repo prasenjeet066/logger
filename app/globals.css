@@ -4,6 +4,7 @@
 @import url("/fonts/WEB/css/pally.css");
 @import url("/fonts/Nippo_Complete/Fonts/WEB/css/nippo.css");
 @import url("/fonts/main/main.css");
+@import url("/fonts/static/main.css");
 @layer base {
   :root {
     --background: 0 0% 100%;
@@ -85,7 +86,7 @@
   
   body {
     @apply bg-background text-foreground;
-    font-family: 'UbuntS' !important;
+    font-family: MozillaHeadlineMedium !important;
   }
   
   /* Apply TikTok Sans to all common text elements */
@@ -94,7 +95,7 @@
 
 /* Language-specific fonts */
 .font-english {
-  font-family: 'UbuntS'
+  font-family:MozillaHeadlineMedium
 }
 
 .font-bengali {
