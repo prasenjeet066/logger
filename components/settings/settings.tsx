@@ -84,7 +84,7 @@ export const SettingsContent = ({ user, t }) => {
           </Button>
           <div className='flex flex-col justify-start'>
           <h1 className="text-lg font-semibold">Settings and Privacy</h1>
-          <Breadcrumb>
+          <Breadcrumb className='text-sm'>
       <BreadcrumbList>
         <BreadcrumbItem>
           <BreadcrumbLink asChild>
