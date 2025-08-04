@@ -131,7 +131,7 @@ export function Sidebar({ isExpand = true, profile, onSignOut, newSidebar, conte
           
           <Button
             variant="ghost"
-            className="w-full bg-none py-3 justify-start mt-4 text-sm"
+            className="w-full bg-none justify-start mt-4 text-sm"
             onClick={onSignOut}
           >
             <LogOut className=" h-4 w-4" />
