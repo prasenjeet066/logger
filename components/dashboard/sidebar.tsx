@@ -65,13 +65,7 @@ export function Sidebar({ isExpand = true, profile, onSignOut, newSidebar, conte
     { icon: Settings, label: safeT("settings", "Settings"), href: "/settings" },
   ]
 
-  if (isSA !== null) {
-    menuItems.push({
-      icon: Key,
-      label: safeT("superAccess", "Super Access"),
-      href: "/super-access"
-    })
-  }
+  
 
   let finalMenuItems = menuItems
   if (newSidebar !== undefined && Array.isArray(newSidebar) && newSidebar.length > 0) {
@@ -114,7 +108,7 @@ export function Sidebar({ isExpand = true, profile, onSignOut, newSidebar, conte
               </Button>
             ) : (
               <Link href={item.href}>
-                <Button variant="ghost" className="w-full justify-start text-base lg:text-lg py-3 lg:py-6 px-3">
+                <Button variant="ghost" className="w-full justify-start text-base lg:text-lg py-3 px-3">
                   <item.icon className="mr-3 h-5 w-5 lg:h-6 lg:w-6" />
                   {(isExpand === true || isMobile) && (
                     <span className="truncate">{item.label}</span>
