@@ -24,7 +24,7 @@ export default function RootLayout({
        >
       <head>
         
-        <link href = '/fonts/main/main.css' rel = 'stylesheet'/>
+        <link href = '/fonts/static/main.css' rel = 'stylesheet'/>
         <link href = '/fonts/Nippo_Complete/Fonts/WEB/css/nippo.css' rel = 'stylesheet'/>
         <link href='/fonts/WEB/css/pally.css' rel='stylesheet'/>
       </head>
