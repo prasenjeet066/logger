@@ -5,7 +5,7 @@ export default function AccountSettings({
   onEditClick = () => console.log("Edit clicked")
 }) {
   return (
-    <div className="p-4">
+    <div>
       <div className="w-full max-w-md mx-auto rounded-lg bg-indigo-100 flex items-center p-6 gap-4 shadow-sm">
         <Avatar className="w-20 h-20 border-4 border-white cursor-pointer flex-shrink-0">
           <AvatarImage src={userData.avatarUrl} alt={userData.displayName} />
