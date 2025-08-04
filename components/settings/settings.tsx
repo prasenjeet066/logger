@@ -72,7 +72,7 @@ export const SettingsContent = ({ user, t }) => {
   
   return (
     <div className='w-screen'>
-      <header className="sticky top-0 bg-white/80 backdrop-blur-md border-b border-gray-200 z-50">
+      <header className="sticky top-0 bg-white/80 backdrop-blur-md z-50">
         <div className="flex items-center px-4 py-3">
           <Button 
             variant="ghost" 
@@ -82,7 +82,25 @@ export const SettingsContent = ({ user, t }) => {
           >
             <ArrowLeft className="w-5 h-5" />
           </Button>
+          <div className='flex flex-col justify-start'>
           <h1 className="text-lg font-semibold">Settings and Privacy</h1>
+          <Breadcrumb>
+      <BreadcrumbList>
+        <BreadcrumbItem>
+          <BreadcrumbLink asChild>
+            <Link href="/settings">Settings</Link>
+          </BreadcrumbLink>
+        </BreadcrumbItem>
+        <BreadcrumbSeparator />
+        <BreadcrumbItem>
+          <BreadcrumbLink asChild>
+            <Link href={"/settings?t="+ encodeURIComponent(currentSectionLb)}>{currentSectionLb}</Link>
+          </BreadcrumbLink>
+        </BreadcrumbItem>
+      </BreadcrumbList>
+    </Breadcrumb>
+  
+          </div>
         </div>
       </header>
       
@@ -110,22 +128,7 @@ export const SettingsContent = ({ user, t }) => {
               
 
 
-    <Breadcrumb>
-      <BreadcrumbList>
-        <BreadcrumbItem>
-          <BreadcrumbLink asChild>
-            <Link href="/settings">Settings</Link>
-          </BreadcrumbLink>
-        </BreadcrumbItem>
-        <BreadcrumbSeparator />
-        <BreadcrumbItem>
-          <BreadcrumbLink asChild>
-            <Link href={"/settings?t="+ encodeURIComponent(currentSectionLb)}>{currentSectionLb}</Link>
-          </BreadcrumbLink>
-        </BreadcrumbItem>
-      </BreadcrumbList>
-    </Breadcrumb>
-  
+    
 
             </div>
             {currentSection}
