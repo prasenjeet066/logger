@@ -1,20 +1,64 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import {EditProfile} from '@/components/settings/options/EditProfile'
-import { Search, Settings, MoreHorizontal, UserPlus, ArrowLeft, User, Lock, Key,Pen } from "lucide-react"
+import { EditProfile } from '@/components/settings/options/EditProfile'
+import { Search, Settings, MoreHorizontal, UserPlus, ArrowLeft, User, Lock, Key, Pen, Shield, Bell, CreditCard, HelpCircle } from "lucide-react"
+
+interface AccountSettingsProps {
+  userData: any
+  sendPathLink: (config: {
+    name: string | string[]
+    _component: React.ReactNode
+    icon: any
+  }) => void
+}
+
 export default function AccountSettings({
   userData,
   sendPathLink
-}) {
+}: AccountSettingsProps) {
   
-const onEditClick = () => {
+  const onEditClick = () => {
     sendPathLink({
-      name : ['Account','Edit Profile'],
-      _conponent : <EditProfile user = {userData}/>,
+      name: ['Account', 'Edit Profile'],
+      _component: <EditProfile user={userData} />,
       icon: Pen
     })
   }
+  
+  const onPrivacyClick = () => {
+    sendPathLink({
+      name: ['Account', 'Privacy Settings'],
+      _component: <div>Privacy Settings Component</div>, // You can create this component
+      icon: Shield
+    })
+  }
+  
+  const onNotificationsClick = () => {
+    sendPathLink({
+      name: ['Account', 'Notifications'],
+      _component: <div>Notifications Component</div>, // You can create this component
+      icon: Bell
+    })
+  }
+  
+  const onBillingClick = () => {
+    sendPathLink({
+      name: ['Account', 'Billing & Payments'],
+      _component: <div>Billing Component</div>, // You can create this component
+      icon: CreditCard
+    })
+  }
+  
+  const onHelpClick = () => {
+    sendPathLink({
+      name: ['Account', 'Help & Support'],
+      _component: <div>Help & Support Component</div>, // You can create this component
+      icon: HelpCircle
+    })
+  }
+  
   return (
-    <div>
+    <div className="space-y-6">
+      {/* Profile Summary Card */}
       <div className="w-full max-w-md mx-auto rounded-lg bg-indigo-50 flex items-center p-6 gap-4">
         <Avatar className="w-20 h-20 border-4 border-white cursor-pointer flex-shrink-0">
           <AvatarImage src={userData.avatarUrl} alt={userData.displayName} />
@@ -27,7 +71,7 @@ const onEditClick = () => {
             {userData.displayName}
           </span>
           <span className="text-sm text-gray-600 mt-1 mb-3 truncate">
-            @{userData.username || "No email provided"}
+            @{userData.username || "No username"}
           </span>
           <button
             onClick={onEditClick}
@@ -37,22 +81,24 @@ const onEditClick = () => {
               transition-all duration-200 font-medium text-sm
             "
           >
+            <Pen className="w-4 h-4 mr-2" />
             Edit Profile
           </button>
         </div>
       </div>
       
       {/* Menu Items */}
-      <div className="w-full max-w-md mx-auto mt-4 bg-white rounded-lg shadow-sm overflow-hidden">
+      <div className="w-full max-w-md mx-auto bg-white rounded-lg shadow-sm overflow-hidden">
         <div className="divide-y divide-gray-100">
-          <button className="w-full flex items-center justify-between p-4 hover:bg-gray-50 transition-colors duration-150 text-left">
+          <button 
+            onClick={onEditClick}
+            className="w-full flex items-center justify-between p-4 hover:bg-gray-50 transition-colors duration-150 text-left"
+          >
             <div className="flex items-center gap-3">
-              <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-              </svg>
+              <Pen className="w-5 h-5 text-gray-600" />
               <div>
-                <p className="font-medium text-gray-900">Profile Settings</p>
-                <p className="text-sm text-gray-500">Manage your personal information</p>
+                <p className="font-medium text-gray-900">Edit Profile</p>
+                <p className="text-sm text-gray-500">Update your personal information and photos</p>
               </div>
             </div>
             <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -60,14 +106,15 @@ const onEditClick = () => {
             </svg>
           </button>
 
-          <button className="w-full flex items-center justify-between p-4 hover:bg-gray-50 transition-colors duration-150 text-left">
+          <button 
+            onClick={onPrivacyClick}
+            className="w-full flex items-center justify-between p-4 hover:bg-gray-50 transition-colors duration-150 text-left"
+          >
             <div className="flex items-center gap-3">
-              <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-              </svg>
+              <Shield className="w-5 h-5 text-gray-600" />
               <div>
-                <p className="font-medium text-gray-900">Privacy & Security</p>
-                <p className="text-sm text-gray-500">Control your privacy settings</p>
+                <p className="font-medium text-gray-900">Privacy Settings</p>
+                <p className="text-sm text-gray-500">Control who can see your profile and content</p>
               </div>
             </div>
             <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -75,11 +122,12 @@ const onEditClick = () => {
             </svg>
           </button>
 
-          <button className="w-full flex items-center justify-between p-4 hover:bg-gray-50 transition-colors duration-150 text-left">
+          <button 
+            onClick={onNotificationsClick}
+            className="w-full flex items-center justify-between p-4 hover:bg-gray-50 transition-colors duration-150 text-left"
+          >
             <div className="flex items-center gap-3">
-              <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-5 5v-5zM8 17v5l-5-5h5zM18 7V2l-5 5h5zM9 7H4l5-5v5z" />
-              </svg>
+              <Bell className="w-5 h-5 text-gray-600" />
               <div>
                 <p className="font-medium text-gray-900">Notifications</p>
                 <p className="text-sm text-gray-500">Manage your notification preferences</p>
@@ -90,11 +138,12 @@ const onEditClick = () => {
             </svg>
           </button>
 
-          <button className="w-full flex items-center justify-between p-4 hover:bg-gray-50 transition-colors duration-150 text-left">
+          <button 
+            onClick={onBillingClick}
+            className="w-full flex items-center justify-between p-4 hover:bg-gray-50 transition-colors duration-150 text-left"
+          >
             <div className="flex items-center gap-3">
-              <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
-              </svg>
+              <CreditCard className="w-5 h-5 text-gray-600" />
               <div>
                 <p className="font-medium text-gray-900">Billing & Payments</p>
                 <p className="text-sm text-gray-500">Manage your subscription and billing</p>
@@ -105,11 +154,12 @@ const onEditClick = () => {
             </svg>
           </button>
 
-          <button className="w-full flex items-center justify-between p-4 hover:bg-gray-50 transition-colors duration-150 text-left">
+          <button 
+            onClick={onHelpClick}
+            className="w-full flex items-center justify-between p-4 hover:bg-gray-50 transition-colors duration-150 text-left"
+          >
             <div className="flex items-center gap-3">
-              <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
+              <HelpCircle className="w-5 h-5 text-gray-600" />
               <div>
                 <p className="font-medium text-gray-900">Help & Support</p>
                 <p className="text-sm text-gray-500">Get help and contact support</p>
