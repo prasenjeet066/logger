@@ -6,7 +6,7 @@ import postsReducer from './slices/postsSlice'
 import authReducer from './slices/authSlice'
 
 export const store = configureStore({
-  reducer: {
+  reducers: {
     profile: profileReducer,
     posts: postsReducer,
     auth: authReducer,
