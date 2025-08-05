@@ -18,7 +18,7 @@ interface EditProfileProps {
   user: any
 }
 
-export default function EditProfile({ user }: EditProfileProps) {
+export function EditProfile({ user }: EditProfileProps) {
   const dispatch = useAppDispatch()
   const { isUpdating, uploadingAvatar, uploadingCover, error } = useAppSelector((state) => state.profile)
   
