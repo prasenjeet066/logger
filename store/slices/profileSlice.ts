@@ -1,4 +1,3 @@
-// store/slices/profileSlice.ts
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit'
 
 export interface ProfileData {
@@ -24,7 +23,7 @@ export interface ProfileData {
 export interface BotData {
   _id: string
   displayName: string
-  dio: string
+  bio: string
   username: string
   email: string
   script: string
@@ -77,21 +76,16 @@ const initialState: ProfileState = {
   uploadingCover: false,
 }
 
-// Async thunks
 export const fetchProfile = createAsyncThunk(
   'profile/fetchProfile',
   async (username: string, { rejectWithValue }) => {
     try {
-      // First try to fetch as a regular user
       const userResponse = await fetch(`/api/users/${username}`)
-      
       if (userResponse.ok) {
         const data = await userResponse.json()
         return { type: 'user' as const, data }
       } else {
-        // Try to fetch as a bot
         const botResponse = await fetch(`/api/bots/${username}`)
-        
         if (botResponse.ok) {
           const data = await botResponse.json()
           return { type: 'bot' as const, data }
@@ -109,16 +103,9 @@ export const followUser = createAsyncThunk(
   'profile/followUser',
   async (username: string, { rejectWithValue }) => {
     try {
-      const response = await fetch(`/api/users/${username}/follow`, {
-        method: 'POST',
-      })
-      
-      if (!response.ok) {
-        throw new Error('Failed to follow/unfollow user')
-      }
-      
-      const result = await response.json()
-      return result
+      const response = await fetch(`/api/users/${username}/follow`, { method: 'POST' })
+      if (!response.ok) throw new Error('Failed to follow/unfollow user')
+      return await response.json()
     } catch (error) {
       return rejectWithValue(error instanceof Error ? error.message : 'Failed to follow user')
     }
@@ -131,19 +118,14 @@ export const updateProfile = createAsyncThunk(
     try {
       const response = await fetch('/api/users/profile', {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(updateData),
       })
-      
       if (!response.ok) {
         const errorData = await response.json()
         throw new Error(errorData.error || 'Failed to update profile')
       }
-      
-      const updatedProfile = await response.json()
-      return updatedProfile
+      return await response.json()
     } catch (error) {
       return rejectWithValue(error instanceof Error ? error.message : 'Failed to update profile')
     }
@@ -157,17 +139,15 @@ export const uploadImage = createAsyncThunk(
       const formData = new FormData()
       formData.append('files', file)
 
-      const uploadResponse = await fetch('/api/upload', {
+      const res = await fetch('/api/upload', {
         method: 'POST',
         body: formData,
       })
 
-      if (!uploadResponse.ok) {
-        throw new Error('Upload failed')
-      }
+      if (!res.ok) throw new Error('Upload failed')
 
-      const responseData = await uploadResponse.json()
-      return { type, url: responseData.files[0].url }
+      const data = await res.json()
+      return { type, url: data.files[0].url }
     } catch (error) {
       return rejectWithValue(error instanceof Error ? error.message : 'Failed to upload image')
     }
@@ -178,14 +158,9 @@ export const fetchMutualFollowers = createAsyncThunk(
   'profile/fetchMutualFollowers',
   async (username: string, { rejectWithValue }) => {
     try {
-      const response = await fetch(`/api/users/${username}/mutual-followers`)
-      
-      if (!response.ok) {
-        throw new Error('Failed to fetch mutual followers')
-      }
-      
-      const data = await response.json()
-      return data
+      const res = await fetch(`/api/users/${username}/mutual-followers`)
+      if (!res.ok) throw new Error('Failed to fetch mutual followers')
+      return await res.json()
     } catch (error) {
       return rejectWithValue(error instanceof Error ? error.message : 'Failed to fetch mutual followers')
     }
@@ -217,7 +192,6 @@ const profileSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      // Fetch profile
       .addCase(fetchProfile.pending, (state) => {
         state.isLoading = true
         state.error = null
@@ -225,7 +199,6 @@ const profileSlice = createSlice({
       .addCase(fetchProfile.fulfilled, (state, action) => {
         state.isLoading = false
         state.profileType = action.payload.type
-        
         if (action.payload.type === 'user') {
           state.profileData = action.payload.data.user
           state.botData = null
@@ -240,8 +213,6 @@ const profileSlice = createSlice({
         state.profileData = null
         state.botData = null
       })
-      
-      // Follow user
       .addCase(followUser.pending, (state) => {
         state.isUpdating = true
       })
@@ -256,8 +227,6 @@ const profileSlice = createSlice({
         state.isUpdating = false
         state.error = action.payload as string
       })
-      
-      // Update profile
       .addCase(updateProfile.pending, (state) => {
         state.isUpdating = true
         state.error = null
@@ -272,8 +241,6 @@ const profileSlice = createSlice({
         state.isUpdating = false
         state.error = action.payload as string
       })
-      
-      // Upload image
       .addCase(uploadImage.pending, (state, action) => {
         if (action.meta.arg.type === 'avatar') {
           state.uploadingAvatar = true
@@ -283,17 +250,12 @@ const profileSlice = createSlice({
       })
       .addCase(uploadImage.fulfilled, (state, action) => {
         const { type, url } = action.payload
-        
         if (type === 'avatar') {
           state.uploadingAvatar = false
-          if (state.profileData) {
-            state.profileData.avatarUrl = url
-          }
+          if (state.profileData) state.profileData.avatarUrl = url
         } else {
           state.uploadingCover = false
-          if (state.profileData) {
-            state.profileData.coverUrl = url
-          }
+          if (state.profileData) state.profileData.coverUrl = url
         }
       })
       .addCase(uploadImage.rejected, (state, action) => {
@@ -301,8 +263,6 @@ const profileSlice = createSlice({
         state.uploadingCover = false
         state.error = action.payload as string
       })
-      
-      // Fetch mutual followers
       .addCase(fetchMutualFollowers.fulfilled, (state, action) => {
         state.mutualFollowers = action.payload.followers || []
         state.mutualFollowersCount = action.payload.totalCount || 0
@@ -310,11 +270,11 @@ const profileSlice = createSlice({
   },
 })
 
-export const { 
-  clearProfile, 
-  setUploadingAvatar, 
-  setUploadingCover, 
-  updateProfileField 
+export const {
+  clearProfile,
+  setUploadingAvatar,
+  setUploadingCover,
+  updateProfileField,
 } = profileSlice.actions
 
 export default profileSlice.reducer
