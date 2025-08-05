@@ -11,7 +11,7 @@ import { updateProfileSchema, type UpdateProfileData } from "@/lib/validations/p
 import { Loader2, Camera } from "lucide-react"
 
 // Redux imports
-import { useAppDispatch, useAppSelector } from "@/store"
+import { useAppDispatch, useAppSelector } from "@/store/main"
 import { updateProfile, uploadImage } from "@/store/slices/profileSlice"
 
 interface EditProfileProps {

@@ -22,7 +22,7 @@ import { VerificationBadge } from "@/components/badge/verification-badge"
 import { signOut } from "next-auth/react"
 
 // Redux imports
-import { useAppDispatch, useAppSelector } from "@/store"
+import { useAppDispatch, useAppSelector } from "@/store/main"
 import {
   fetchProfile,
   followUser,
