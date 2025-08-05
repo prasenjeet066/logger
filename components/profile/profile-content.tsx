@@ -1,5 +1,4 @@
 // Fixed profile-content.tsx
-// components/profile/profile-content-redux.tsx
 "use client"
 
 import { useEffect, useState } from "react"
@@ -77,7 +76,7 @@ export function ProfileContent({ username }: ProfileContentProps) {
   const isMobile = useMobile()
   const [editDialogOpen, setEditDialogOpen] = useState(false)
   const [activeTab, setActiveTab] = useState("posts")
-  const [imageViewerOpen, setImageViewerOpen] = useState < string | null > (null)
+  const [imageViewerOpen, setImageViewerOpen] = useState<string | null>(null)
   
   // Fetch data on component mount
   useEffect(() => {
@@ -506,13 +505,8 @@ export function ProfileContent({ username }: ProfileContentProps) {
           onOpenChange={setEditDialogOpen}
           profile={profileData!}
           onProfileUpdate={(updatedProfile) => {
-            setProfileData((prevProfile) => {
-              if (!prevProfile) return null
-              return { ...prevProfile, ...updatedProfile }
-            })
-            if (currentUser) {
-              setCurrentUser((prevUser: any) => ({ ...prevUser, ...updatedProfile }))
-            }
+            // The Redux store will be updated automatically via the updateProfile action
+            // No need for manual state updates here
           }}
         />
       )}

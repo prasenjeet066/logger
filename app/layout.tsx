@@ -6,6 +6,7 @@ import { ThemeProvider } from "@/components/theme-provider"
 import { Toaster } from "@/components/ui/sonner"
 import { AuthProvider } from "@/components/providers/auth-provider"
 import { LanguageProvider } from "@/lib/contexts/language-context"
+import { ReduxProvider } from "@/components/providers/redux-provider"
 
 export const metadata: Metadata = {
   title: "Microblog - Share Your Thoughts",
@@ -29,12 +30,14 @@ export default function RootLayout({
         <link href='/fonts/WEB/css/pally.css' rel='stylesheet'/>
       </head>
       <body>
-        <AuthProvider>
-          <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
-            <LanguageProvider>{children}</LanguageProvider>
-            <Toaster />
-          </ThemeProvider>
-        </AuthProvider>
+        <ReduxProvider>
+          <AuthProvider>
+            <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
+              <LanguageProvider>{children}</LanguageProvider>
+              <Toaster />
+            </ThemeProvider>
+          </AuthProvider>
+        </ReduxProvider>
       </body>
     </html>
   )
