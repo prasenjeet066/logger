@@ -71,12 +71,12 @@ export function ProfileContent({ username }: ProfileContentProps) {
   
   const { currentUser } = useAppSelector((state) => state.auth)
   
-  // Local state
+  // Local state - FIXED: Corrected TypeScript syntax
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const isMobile = useMobile()
   const [editDialogOpen, setEditDialogOpen] = useState(false)
   const [activeTab, setActiveTab] = useState("posts")
-  const [imageViewerOpen, setImageViewerOpen] = useState < string | null > (null)
+  const [imageViewerOpen, setImageViewerOpen] = useState<string | null>(null)
   
   // Fetch data on component mount
   useEffect(() => {
