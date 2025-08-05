@@ -48,84 +48,125 @@ export function ProfileContent({ username }: ProfileContentProps) {
   const dispatch = useAppDispatch()
   const router = useRouter()
   
-  // Redux selectors
+  // Redux selectors with null safety
+  const profileState = useAppSelector((state) => state.profile)
+  const postsState = useAppSelector((state) => state.posts)
+  const authState = useAppSelector((state) => state.auth)
+  
+  // Destructure with defaults to prevent undefined errors
   const {
-    profileData,
-    botData,
-    profileType,
-    mutualFollowers,
-    mutualFollowersCount,
-    isLoading: profileLoading,
-    error: profileError,
-    isUpdating
-  } = useAppSelector((state) => state.profile)
+    profileData = null,
+    botData = null,
+    profileType = 'user',
+    mutualFollowers = [],
+    mutualFollowersCount = 0,
+    isLoading: profileLoading = false,
+    error: profileError = null,
+    isUpdating = false
+  } = profileState || {}
   
   const {
-    posts,
-    replies,
-    reposts,
-    media,
-    pinnedPost,
-    isLoading: postsLoading
-  } = useAppSelector((state) => state.posts)
+    posts = [],
+    replies = [],
+    reposts = [],
+    media = [],
+    pinnedPost = null,
+    isLoading: postsLoading = false
+  } = postsState || {}
   
-  const { currentUser } = useAppSelector((state) => state.auth)
+  const { currentUser = null } = authState || {}
   
-  // Local state - FIXED: Corrected TypeScript syntax
+  // Local state
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const isMobile = useMobile()
   const [editDialogOpen, setEditDialogOpen] = useState(false)
   const [activeTab, setActiveTab] = useState("posts")
   const [imageViewerOpen, setImageViewerOpen] = useState<string | null>(null)
   
-  // Fetch data on component mount
+  // Fetch data on component mount with error handling
   useEffect(() => {
-    if (session?.user) {
-      dispatch(fetchCurrentUser())
+    const fetchData = async () => {
+      try {
+        if (session?.user) {
+          dispatch(fetchCurrentUser())
+        }
+        
+        dispatch(clearProfile())
+        dispatch(clearPosts())
+        dispatch(fetchProfile(username))
+      } catch (error) {
+        console.error('Error fetching initial data:', error)
+      }
     }
     
-    dispatch(clearProfile())
-    dispatch(clearPosts())
-    dispatch(fetchProfile(username))
+    fetchData()
   }, [dispatch, username, session?.user])
   
-  // Fetch posts when profile is loaded
+  // Fetch posts when profile is loaded with error handling
   useEffect(() => {
-    if (profileData || botData) {
-      dispatch(fetchUserPosts(username))
-      dispatch(fetchUserReposts(username))
-      
-      // Fetch pinned post for users only
-      if (profileData?.pinnedPostId) {
-        dispatch(fetchPinnedPost(profileData.pinnedPostId))
-      }
-      
-      // Fetch mutual followers for users only
-      if (profileData) {
-        dispatch(fetchMutualFollowers(username))
+    const fetchPostsData = async () => {
+      try {
+        if (profileData || botData) {
+          await Promise.all([
+            dispatch(fetchUserPosts(username)),
+            dispatch(fetchUserReposts(username))
+          ])
+          
+          // Fetch pinned post for users only
+          if (profileData?.pinnedPostId) {
+            dispatch(fetchPinnedPost(profileData.pinnedPostId))
+          }
+          
+          // Fetch mutual followers for users only
+          if (profileData) {
+            dispatch(fetchMutualFollowers(username))
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching posts data:', error)
       }
     }
+    
+    fetchPostsData()
   }, [dispatch, username, profileData, botData])
   
   const handleFollow = async () => {
     if (profileType === 'bot' || !session?.user || !profileData) return
     
-    dispatch(followUser(profileData.username))
+    try {
+      await dispatch(followUser(profileData.username)).unwrap()
+    } catch (error) {
+      console.error('Error following user:', error)
+    }
   }
   
   const handleLike = async (postId: string, isLiked: boolean) => {
     if (!session?.user) return
-    dispatch(likePost(postId))
+    
+    try {
+      await dispatch(likePost(postId)).unwrap()
+    } catch (error) {
+      console.error('Error liking post:', error)
+    }
   }
   
   const handleRepost = async (postId: string, isReposted: boolean) => {
     if (!session?.user) return
-    dispatch(repostPost(postId))
+    
+    try {
+      await dispatch(repostPost(postId)).unwrap()
+    } catch (error) {
+      console.error('Error reposting:', error)
+    }
   }
   
   const handleSignOut = async () => {
-    await signOut()
-    router.push("/")
+    try {
+      await signOut()
+      router.push("/")
+    } catch (error) {
+      console.error('Error signing out:', error)
+    }
   }
   
   const isLoading = profileLoading || postsLoading
@@ -151,12 +192,15 @@ export function ProfileContent({ username }: ProfileContentProps) {
     )
   }
   
-  // Get current profile data based on type
+  // Get current profile data based on type with null safety
   const currentProfile = profileType === 'user' ? profileData : botData
-  const isOwnProfile = profileType === 'user' && profileData?._id === currentUser?._id
+  const isOwnProfile = profileType === 'user' && profileData && currentUser && profileData._id === currentUser._id
   
   const renderTabContent = (tabPosts: any[], emptyMessage: string) => {
-    if (tabPosts.length === 0 && !pinnedPost) {
+    // Ensure tabPosts is an array
+    const safePosts = Array.isArray(tabPosts) ? tabPosts : []
+    
+    if (safePosts.length === 0 && !pinnedPost) {
       return (
         <div className="text-center py-8 text-gray-500">
           <p>{emptyMessage}</p>
@@ -184,12 +228,12 @@ export function ProfileContent({ username }: ProfileContentProps) {
           </div>
         )}
 
-        {tabPosts.length === 0 ? (
+        {safePosts.length === 0 ? (
           <div className="text-center py-8 text-gray-500">
             <p>{emptyMessage}</p>
           </div>
         ) : (
-          tabPosts.map((post) => (
+          safePosts.map((post) => (
             <PostCard
               key={post._id}
               post={post}
@@ -203,7 +247,7 @@ export function ProfileContent({ username }: ProfileContentProps) {
     );
   };
   
-  // Bot-specific render method
+  // Bot-specific render method with null safety
   const renderBotInfo = () => {
     if (!botData) return null
     
@@ -259,6 +303,15 @@ export function ProfileContent({ username }: ProfileContentProps) {
     )
   }
   
+  // Early return if no profile data is available
+  if (!currentProfile) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Spinner />
+      </div>
+    )
+  }
+  
   return (
     <div className="min-h-screen bg-gray-50 font-english">
       <Header profile={currentProfile} handleSignOut={handleSignOut}/>
@@ -267,18 +320,18 @@ export function ProfileContent({ username }: ProfileContentProps) {
         {/* Main content */}
         <div className="flex-1 max-w-2xl mx-auto">
           <div className="border-x bg-white min-h-screen">
-            <div className="sticky top-0 bg-white/50 z-30 backdrop-blur-md  px-4 py-3">
+            <div className="sticky top-0 bg-white/50 z-30 backdrop-blur-md px-4 py-3">
               <div className="flex items-center gap-2">
                 {profileType === 'bot' && <Bot className="h-5 w-5 text-blue-600" />}
                 <h2 className="text-xl font-semibold flex flex-row gap-2 items-center">
-                  {profileType === 'user' ? profileData?.displayName : botData?.displayName}
+                  {currentProfile?.displayName}
                   {profileType === 'user' && profileData?.isVerified && (
                     <VerificationBadge verified={true} size={20} className="h-8 w-8 z-10 bg-white rounded-full" />
                   )}
                 </h2>
               </div>
               <p className="text-sm text-gray-500">
-                {profileType === 'user' ? profileData?.postsCount : botData?.postsCount} posts
+                {currentProfile?.postsCount || 0} posts
               </p>
             </div>
 
@@ -291,9 +344,7 @@ export function ProfileContent({ username }: ProfileContentProps) {
                     : 'bg-gray-100'
                 }`}
                 style={{
-                  backgroundImage: profileType === 'user' 
-                    ? (profileData?.coverUrl ? `url(${profileData.coverUrl})` : undefined)
-                    : (botData?.coverUrl ? `url(${botData.coverUrl})` : undefined),
+                  backgroundImage: currentProfile?.coverUrl ? `url(${currentProfile.coverUrl})` : undefined,
                   backgroundSize: "cover",
                   backgroundPosition: "center",
                 }}
@@ -305,19 +356,12 @@ export function ProfileContent({ username }: ProfileContentProps) {
               <div className="flex items-start justify-between mb-4">
                 <div className="flex flex-col items-center justify-center">
                   <Avatar className="w-24 h-24 -mt-12 border-4 border-white cursor-pointer" onClick={() => {
-                    const avatarUrl = profileType === 'user' ? profileData?.avatarUrl : botData?.avatarUrl
+                    const avatarUrl = currentProfile?.avatarUrl
                     if (avatarUrl) setImageViewerOpen(avatarUrl)
                   }}>
-                    <AvatarImage src={
-                      profileType === 'user' 
-                        ? (profileData?.avatarUrl || undefined) 
-                        : (botData?.avatarUrl || undefined)
-                    } />
+                    <AvatarImage src={currentProfile?.avatarUrl || undefined} />
                     <AvatarFallback className="text-2xl">
-                      {profileType === 'user' 
-                        ? (profileData?.displayName?.charAt(0)?.toUpperCase() || "U")
-                        : (botData?.displayName?.charAt(0)?.toUpperCase() || "B")
-                      }
+                      {currentProfile?.displayName?.charAt(0)?.toUpperCase() || (profileType === 'bot' ? "B" : "U")}
                     </AvatarFallback>
                   </Avatar>
                   {profileType === 'user' && profileData?.isVerified && (
@@ -338,7 +382,6 @@ export function ProfileContent({ username }: ProfileContentProps) {
                     </Button>
                   ) : profileType === 'user' && session?.user && profileData?.public_send_message ? (
                     <>
-                      
                       <Button className='rounded-full' variant="outline">Message</Button>
                       <Button
                       className='rounded-full'
@@ -374,17 +417,17 @@ export function ProfileContent({ username }: ProfileContentProps) {
 
               <div className="space-y-3 mb-2">
                 <h1 className="text-xl font-semibold flex flex-col items-start justify-center">
-                  {profileType === 'user' ? profileData?.displayName : botData?.displayName}
+                  {currentProfile?.displayName}
                   
-                  <p className="text-gray-500   text-sm font-normal">
-                    @{profileType === 'user' ? profileData?.username : botData?.username}
+                  <p className="text-gray-500 text-sm font-normal">
+                    @{currentProfile?.username}
                   </p>
                 </h1>
                 
                 {/* Bio/Description */}
-                {((profileType === 'user' && profileData?.bio) || (profileType === 'bot' && botData?.bio)) && (
+                {currentProfile?.bio && (
                   <p className="text-gray-900">
-                    {profileType === 'user' ? profileData?.bio : botData?.bio}
+                    {currentProfile.bio}
                   </p>
                 )}
 
@@ -412,29 +455,29 @@ export function ProfileContent({ username }: ProfileContentProps) {
                     </div>
                   )}
                   
-                 {currentProfile?.createdAt && (
-  <div className="flex items-center gap-1">
-    <Calendar className="h-4 w-4" />
-    {formatDistanceToNow(new Date(currentProfile.createdAt), { addSuffix: true })} joined
-  </div>
-)}
-</div>
+                  {currentProfile?.createdAt && (
+                    <div className="flex items-center gap-1">
+                      <Calendar className="h-4 w-4" />
+                      {formatDistanceToNow(new Date(currentProfile.createdAt), { addSuffix: true })} joined
+                    </div>
+                  )}
+                </div>
 
                 <div className="flex gap-4 text-sm">
                   <span>
                     <strong>
-                      {profileType === 'user' ? profileData?.followingCount : botData?.followingCount}
+                      {currentProfile?.followingCount || 0}
                     </strong> following
                   </span>
                   <span>
                     <strong>
-                      {profileType === 'user' ? profileData?.followersCount : botData?.followersCount}
+                      {currentProfile?.followersCount || 0}
                     </strong> followers
                   </span>
                 </div>
               </div>
-              {profileType === 'user' && (
-                <MutualFollowers targetUsername={profileData!.username}/>
+              {profileType === 'user' && profileData && (
+                <MutualFollowers targetUsername={profileData.username}/>
               )}
             </div>
 
@@ -501,11 +544,11 @@ export function ProfileContent({ username }: ProfileContentProps) {
       )}
       
       {/* Edit Profile Dialog - only for users */}
-      {isOwnProfile && profileType === 'user' && (
+      {isOwnProfile && profileType === 'user' && profileData && (
         <EditProfileDialog
           open={editDialogOpen}
           onOpenChange={setEditDialogOpen}
-          profile={profileData!}
+          profile={profileData}
           onProfileUpdate={(updatedProfile) => {
             // The Redux store will be updated automatically via the updateProfile action
             // No need for manual state updates here
