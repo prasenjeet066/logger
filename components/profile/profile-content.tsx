@@ -1,8 +1,8 @@
 // Fixed profile-content.tsx
-
+// components/profile/profile-content-redux.tsx
 "use client"
 
-import { useEffect, useState, useCallback } from "react"
+import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { useSession } from "next-auth/react"
 import { useMobile } from "@/hooks/use-mobile"
@@ -14,286 +14,114 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Sidebar } from "@/components/dashboard/sidebar"
 import { MutualFollowers } from "@/components/profile/mutual-follow"
 import { PostCard } from "@/components/dashboard/post-card"
-import { EditProfileDialog } from "./edit-profile-dialog"
+import { EditProfileDialog } from "./edit-profile-dialog-redux"
 import { Menu, X, UserPlus, UserCheck, Calendar, MapPin, LinkIcon, Plus, Search, Bot, Code, Terminal, User } from "lucide-react"
 import { formatDistanceToNow } from "date-fns"
 import Link from "next/link"
 import { ImageViewer } from "@/components/media/image-viewer"
 import { VerificationBadge } from "@/components/badge/verification-badge"
 import { signOut } from "next-auth/react"
-import type { Post } from "@/types/post"
+
+// Redux imports
+import { useAppDispatch, useAppSelector } from "@/store"
+import {
+  fetchProfile,
+  followUser,
+  clearProfile,
+  fetchMutualFollowers
+} from "@/store/slices/profileSlice"
+import {
+  fetchUserPosts,
+  fetchUserReposts,
+  fetchPinnedPost,
+  likePost,
+  repostPost,
+  clearPosts
+} from "@/store/slices/postsSlice"
+import { fetchCurrentUser } from "@/store/slices/authSlice"
 
 interface ProfileContentProps {
   username: string
 }
 
-interface ProfileData {
-  _id: string
-  username: string
-  displayName: string
-  bio: string | null
-  avatarUrl: string | null
-  bannerUrl: string | null
-  website: string | null
-  location: string | null
-  createdAt: string
-  postsCount: number
-  isVerified: boolean
-  followersCount: number
-  followingCount: number
-  isFollowing: boolean
-  pinnedPostId?: string | null
-}
-
-interface BotData {
-  _id: string
-  displayName: string
-  dio: string
-  username: string
-  email: string
-  script: string
-  shell: string
-  type: string
-  avatarUrl: string | null
-  coverUrl: string | null
-  followersCount: number
-  followingCount: number
-  postsCount: number
-  ownerId: {
-    _id: string
-    name?: string
-    email?: string
-    username?: string
-  }
-  createdAt: string
-}
-
-type ProfileType = 'user' | 'bot'
-
 export function ProfileContent({ username }: ProfileContentProps) {
   const { data: session, status } = useSession()
-  const [currentUser, setCurrentUser] = useState<any>(null)
-  const [profileData, setProfileData] = useState<ProfileData | null>(null)
-  const [botData, setBotData] = useState<BotData | null>(null)
-  const [profileType, setProfileType] = useState<ProfileType>('user')
-  const [posts, setPosts] = useState<Post[]>([])
-  const [replies, setReplies] = useState<Post[]>([])
-  const [reposts, setReposts] = useState<Post[]>([])
-  const [media, setMedia] = useState<Post[]>([])
-  const [isLoading, setIsLoading] = useState(true)
+  const dispatch = useAppDispatch()
+  const router = useRouter()
+  
+  // Redux selectors
+  const {
+    profileData,
+    botData,
+    profileType,
+    mutualFollowers,
+    mutualFollowersCount,
+    isLoading: profileLoading,
+    error: profileError,
+    isUpdating
+  } = useAppSelector((state) => state.profile)
+  
+  const {
+    posts,
+    replies,
+    reposts,
+    media,
+    pinnedPost,
+    isLoading: postsLoading
+  } = useAppSelector((state) => state.posts)
+  
+  const { currentUser } = useAppSelector((state) => state.auth)
+  
+  // Local state
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const isMobile = useMobile()
   const [editDialogOpen, setEditDialogOpen] = useState(false)
-  const [pinnedPost, setPinnedPost] = useState<Post | null>(null)
   const [activeTab, setActiveTab] = useState("posts")
-  const [imageViewerOpen, setImageViewerOpen] = useState<string | null>(null)
-  const router = useRouter()
+  const [imageViewerOpen, setImageViewerOpen] = useState < string | null > (null)
   
-  const fetchProfileData = useCallback(async () => {
-    try {
-      setIsLoading(true)
-      
-      // Get current user profile if logged in
-      if (session?.user) {
-        const currentUserResponse = await fetch("/api/users/current")
-        if (currentUserResponse.ok) {
-          const currentUserData = await currentUserResponse.json()
-          setCurrentUser(currentUserData)
-        }
-      }
-      
-      // First try to fetch as a regular user
-      const userResponse = await fetch(`/api/users/${username}`)
-      
-      if (userResponse.ok) {
-        // It's a regular user
-        const { user: profile, posts: userPosts } = await userResponse.json()
-        setProfileData(profile)
-        setBotData(null)
-        setProfileType('user')
-        
-        // Separate posts by type
-        const regularPosts = userPosts.filter((post: Post) => !post.parentPostId && !post.isRepost)
-        const replyPosts = userPosts.filter((post: Post) => post.parentPostId)
-        const mediaPosts = userPosts.filter((post: Post) => post.mediaUrls && post.mediaUrls.length > 0)
-        
-        setPosts(regularPosts)
-        setReplies(replyPosts)
-        setMedia(mediaPosts)
-        
-        // Get reposts separately
-        try {
-          const repostsResponse = await fetch(`/api/users/${username}/reposts`)
-          if (repostsResponse.ok) {
-            const repostsData = await repostsResponse.json()
-            setReposts(repostsData)
-          } else {
-            setReposts([])
-          }
-        } catch {
-          setReposts([])
-        }
-
-        // Fetch pinned post if exists
-        if (profile.pinnedPostId) {
-          try {
-            const pinnedResponse = await fetch('/api/post/' + profile.pinnedPostId);
-            if (pinnedResponse.ok) {
-              const pinnedPostData = await pinnedResponse.json();
-              setPinnedPost(pinnedPostData)
-            } else {
-              setPinnedPost(null)
-            }
-          } catch (error) {
-            console.error("Error fetching pinned post:", error)
-            setPinnedPost(null)
-          }
-        } else {
-          setPinnedPost(null)
-        }
-      } else {
-        // Try to fetch as a bot
-        const botResponse = await fetch(`/api/bots/${username}`)
-        
-        if (botResponse.ok) {
-          const { bot: botProfile, posts: botPosts } = await botResponse.json()
-          setBotData(botProfile)
-          setProfileData(null)
-          setProfileType('bot')
-          setPinnedPost(null) // Bots don't have pinned posts
-          
-          // For bots, set posts similarly
-          const regularPosts = botPosts?.filter((post: Post) => !post.parentPostId && !post.isRepost) || []
-          const replyPosts = botPosts?.filter((post: Post) => post.parentPostId) || []
-          const mediaPosts = botPosts?.filter((post: Post) => post.mediaUrls && post.mediaUrls.length > 0) || []
-          
-          setPosts(regularPosts)
-          setReplies(replyPosts)
-          setMedia(mediaPosts)
-          setReposts([]) // Bots might not have reposts
-        } else {
-          // Profile not found
-          setProfileData(null)
-          setBotData(null)
-          setPinnedPost(null)
-        }
-      }
-      
-    } catch (error) {
-      console.error("Error fetching profile data:", error)
-      setProfileData(null)
-      setBotData(null)
-      setPinnedPost(null)
-    } finally {
-      setIsLoading(false)
-    }
-  }, [username, session?.user?.id]) // Only depend on username and user ID
-
+  // Fetch data on component mount
   useEffect(() => {
-    fetchProfileData()
-  }, [username, session?.user?.id]) // Direct dependencies instead of callback
+    if (session?.user) {
+      dispatch(fetchCurrentUser())
+    }
+    
+    dispatch(clearProfile())
+    dispatch(clearPosts())
+    dispatch(fetchProfile(username))
+  }, [dispatch, username, session?.user])
+  
+  // Fetch posts when profile is loaded
+  useEffect(() => {
+    if (profileData || botData) {
+      dispatch(fetchUserPosts(username))
+      dispatch(fetchUserReposts(username))
+      
+      // Fetch pinned post for users only
+      if (profileData?.pinnedPostId) {
+        dispatch(fetchPinnedPost(profileData.pinnedPostId))
+      }
+      
+      // Fetch mutual followers for users only
+      if (profileData) {
+        dispatch(fetchMutualFollowers(username))
+      }
+    }
+  }, [dispatch, username, profileData, botData])
   
   const handleFollow = async () => {
-    if (profileType === 'bot' || !session?.user) return
+    if (profileType === 'bot' || !session?.user || !profileData) return
     
-    if (!profileData) return
-    
-    try {
-      const response = await fetch(`/api/users/${profileData.username}/follow`, {
-        method: "POST",
-      })
-      
-      if (response.ok) {
-        const result = await response.json()
-        setProfileData((prevProfile) => {
-          if (!prevProfile) return null
-          return {
-            ...prevProfile,
-            isFollowing: result.following,
-            followersCount: prevProfile.followersCount + (result.following ? 1 : -1),
-          }
-        })
-      }
-    } catch (error) {
-      console.error("Error toggling follow:", error)
-    }
+    dispatch(followUser(profileData.username))
   }
   
   const handleLike = async (postId: string, isLiked: boolean) => {
     if (!session?.user) return
-    
-    try {
-      const response = await fetch(`/api/posts/${postId}/like`, {
-        method: "POST",
-      })
-      
-      if (response.ok) {
-        const result = await response.json()
-        const updatePosts = (postsList: Post[]) =>
-          postsList.map((post) =>
-            post._id === postId ? { ...post, isLiked: result.liked, likesCount: post.likesCount + (result.liked ? 1 : -1) } :
-            post,
-          )
-        
-        setPosts(updatePosts)
-        setReplies(updatePosts)
-        setReposts(updatePosts)
-        setMedia(updatePosts)
-        
-        // Update pinned post if it's the one being liked
-        if (pinnedPost && pinnedPost._id === postId) {
-          setPinnedPost(prev => prev ? {
-            ...prev,
-            isLiked: result.liked,
-            likesCount: prev.likesCount + (result.liked ? 1 : -1)
-          } : null)
-        }
-      }
-    } catch (error) {
-      console.error("Error toggling like:", error)
-    }
+    dispatch(likePost(postId))
   }
   
   const handleRepost = async (postId: string, isReposted: boolean) => {
     if (!session?.user) return
-    
-    try {
-      const response = await fetch(`/api/posts/${postId}/repost`, {
-        method: "POST",
-      })
-      
-      if (response.ok) {
-        const result = await response.json()
-        // Only refetch if necessary, or update state directly
-        // fetchProfileData()
-        
-        // Update reposts count in current data instead of full refetch
-        const updatePosts = (postsList: Post[]) =>
-          postsList.map((post) =>
-            post._id === postId ? { 
-              ...post, 
-              isReposted: result.reposted, 
-              repostsCount: post.repostsCount + (result.reposted ? 1 : -1) 
-            } : post,
-          )
-        
-        setPosts(updatePosts(posts))
-        setReplies(updatePosts(replies))
-        setReposts(updatePosts(reposts))
-        setMedia(updatePosts(media))
-        
-        // Update pinned post if it's the one being reposted
-        if (pinnedPost && pinnedPost._id === postId) {
-          setPinnedPost(prev => prev ? {
-            ...prev,
-            isReposted: result.reposted,
-            repostsCount: prev.repostsCount + (result.reposted ? 1 : -1)
-          } : null)
-        }
-      }
-    } catch (error) {
-      console.error("Error toggling repost:", error)
-    }
+    dispatch(repostPost(postId))
   }
   
   const handleSignOut = async () => {
@@ -301,7 +129,9 @@ export function ProfileContent({ username }: ProfileContentProps) {
     router.push("/")
   }
   
-  if (isLoading) {
+  const isLoading = profileLoading || postsLoading
+  
+  if (isLoading && !profileData && !botData) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <Spinner />
@@ -309,7 +139,7 @@ export function ProfileContent({ username }: ProfileContentProps) {
     )
   }
   
-  if (!profileData && !botData) {
+  if (profileError && !profileData && !botData) {
     return (
       <div className="min-h-screen flex items-center justify-center font-english">
         <div className="text-center">
@@ -326,8 +156,7 @@ export function ProfileContent({ username }: ProfileContentProps) {
   const currentProfile = profileType === 'user' ? profileData : botData
   const isOwnProfile = profileType === 'user' && profileData?._id === currentUser?._id
   
-  
-  const renderTabContent = (tabPosts: Post[], emptyMessage: string) => {
+  const renderTabContent = (tabPosts: any[], emptyMessage: string) => {
     if (tabPosts.length === 0 && !pinnedPost) {
       return (
         <div className="text-center py-8 text-gray-500">
@@ -350,8 +179,7 @@ export function ProfileContent({ username }: ProfileContentProps) {
               onLike={handleLike}
               onRepost={handleRepost}
               onReply={() => {
-                // Optional: Add a more targeted update instead of full refetch
-                console.log('Reply action triggered')
+                dispatch(fetchUserPosts(username))
               }}
             />
           </div>
@@ -368,7 +196,7 @@ export function ProfileContent({ username }: ProfileContentProps) {
               post={post}
               onLike={handleLike}
               onRepost={handleRepost}
-              onReply={fetchProfileData}
+              onReply={() => dispatch(fetchUserPosts(username))}
             />
           ))
         )}
