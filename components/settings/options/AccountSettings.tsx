@@ -6,7 +6,7 @@ export default function AccountSettings({
   sendPathLink
 }) {
   
-  const onEditClick = () => {
+const onEditClick = () => {
     sendPathLink({
       name : ['Account','Edit Profile'],
       _conponent : <EditProfile user = {userData}/>,

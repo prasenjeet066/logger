@@ -76,7 +76,9 @@
     "react-i18next": "^13.0.0",
     "i18next-http-backend": "^2.0.0",
     "@huggingface/inference": "latest", 
-    "i18next-browser-languagedetector": "^7.0.0"
+    "i18next-browser-languagedetector": "^7.0.0",
+    "@reduxjs/toolkit": "latest",
+    "react-redux" : "latest"
   },
   "devDependencies": {
     "@types/node": "^22",
