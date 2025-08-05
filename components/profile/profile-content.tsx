@@ -76,7 +76,7 @@ export function ProfileContent({ username }: ProfileContentProps) {
   const isMobile = useMobile()
   const [editDialogOpen, setEditDialogOpen] = useState(false)
   const [activeTab, setActiveTab] = useState("posts")
-  const [imageViewerOpen, setImageViewerOpen] = useState<string | null>(null)
+  const [imageViewerOpen, setImageViewerOpen] = useState < string | null > (null)
   
   // Fetch data on component mount
   useEffect(() => {
@@ -382,9 +382,9 @@ export function ProfileContent({ username }: ProfileContentProps) {
                 </h1>
                 
                 {/* Bio/Description */}
-                {((profileType === 'user' && profileData?.bio) || (profileType === 'bot' && botData?.dio)) && (
+                {((profileType === 'user' && profileData?.bio) || (profileType === 'bot' && botData?.bio)) && (
                   <p className="text-gray-900">
-                    {profileType === 'user' ? profileData?.bio : botData?.dio}
+                    {profileType === 'user' ? profileData?.bio : botData?.bio}
                   </p>
                 )}
 
@@ -412,11 +412,13 @@ export function ProfileContent({ username }: ProfileContentProps) {
                     </div>
                   )}
                   
-                  <div className="flex items-center gap-1">
-                    <Calendar className="h-4 w-4" />
-                    {formatDistanceToNow(new Date(currentProfile!.createdAt), { addSuffix: true })} joined
-                  </div>
-                </div>
+                 {currentProfile?.createdAt && (
+  <div className="flex items-center gap-1">
+    <Calendar className="h-4 w-4" />
+    {formatDistanceToNow(new Date(currentProfile.createdAt), { addSuffix: true })} joined
+  </div>
+)}
+</div>
 
                 <div className="flex gap-4 text-sm">
                   <span>
