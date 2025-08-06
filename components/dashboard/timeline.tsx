@@ -168,7 +168,7 @@ export function Timeline(userId: string, typesOfAlg: string) {
         {algorithmLevels.map((lavel) => (
   <Button
     key={lavel.alg}
-    className={currentAlg === lavel.alg ? 'bg-gray-800 text-white max-h-8 rounded-full px-4 text-xs' : 'bg-gray-100 text-gray-800 rounded-full max-h-8 text-xs'}
+    className={currentAlg === lavel.alg ? 'bg-indigo-600 text-white max-h-8 rounded-full px-4 text-xs' : 'border text-gray-800 rounded-full max-h-8 text-xs'}
     onClick={() => {
       if (currentAlg !== lavel.alg) {
         setCurrentAlg(lavel.alg)
