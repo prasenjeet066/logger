@@ -366,10 +366,10 @@ useEffect(() => {
         <div key={index} className={`relative group ${isNsfw ? "backdrop-blur-lg flex flex-col items-center justify-center" : ""}`}>
           {isNsfw && (
             <>
-              <div className="absolute inset-0 bg-black/50 flex flex-col items-center justify-center rounded z-10">
-                <span className="font-semibold text-white text-center mb-2">NSFW Content</span>
+              <div className="absolute inset-0 bg-black/20 flex flex-col items-center justify-center rounded z-10">
+                <span className="font-semibold text-white text-center mb-2 text-md">NSFW Content</span>
                 <button 
-                  className="px-4 py-2 bg-white/20 text-white rounded hover:bg-white/30 transition-colors"
+                  className="px-4 py-2 bg-gray-800 text-white rounded-full text-sm transition-colors"
                   onClick={(e) => {
                     e.stopPropagation()
                     // Add logic to show image or remove blur
