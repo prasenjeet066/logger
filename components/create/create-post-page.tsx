@@ -420,9 +420,9 @@ export default function CreatePostPage({ user }: CreatePostPageProps) {
           <Button
             onClick={handlePost}
             disabled={isPosting || (!content.trim() && totalMediaCount === 0 && !showPollCreator) || isOverLimit}
-            className="bg-blue-500 text-white px-4 py-2 rounded-full hover:bg-blue-600 font-semibold"
+            className="text-white px-4 py-2 rounded-full border font-semibold"
           >
-            {isPosting ? <Spinner className="h-5 w-5 animate-spin" /> : "Post"}
+            {isPosting ? <Spinner className="h-5 w-5" /> : "Post"}
           </Button>
         </div>
       </div>
