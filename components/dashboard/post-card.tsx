@@ -126,14 +126,14 @@ const addUniqueMention = (newMention: string) =>
       setRepliesTo(null)
     }
   }
-  const nsfwResults = useAppSelector((state) => state.posts.nsfwResults)
-
+  const nsfwResults = post?.imageNSFW
+/**
 useEffect(() => {
   // Fixed condition: > 0 instead of > 1
   if (post.mediaUrls.length > 0 && post.mediaType === 'image') {
     dispatch(nsfwMedia({ postId: post._id, mediaUrls: post.mediaUrls }))
   }
-}, [post._id, post.mediaUrls, post.mediaType, dispatch])
+}, [post._id, post.mediaUrls, post.mediaType, dispatch])**/
   // Translation function with better error handling
   const translateText = useCallback(async (text: string, targetLang = "bn"): Promise < string > => {
     try {

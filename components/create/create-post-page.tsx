@@ -13,6 +13,10 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import { FileUpload } from "@/components/upload/file-upload"
+import { useAppDispatch, useAppSelector } from "@/store/main"
+import {
+  nsfwMedia
+} from "@/store/slices/postsSlice"
 import type { UploadResult } from "@/lib/blob/client"
 import {
   ImageIcon,
@@ -73,7 +77,7 @@ export default function CreatePostPage({ user }: CreatePostPageProps) {
   const isOverLimit = characterCount > MAX_CHARACTERS
   const progressPercentage = (characterCount / MAX_CHARACTERS) * 100
   const totalMediaCount = uploadedFiles.length + giphyMedia.length
-  
+  const nsfwResults = useAppSelector((state) => state.posts.nsfwResults)
   const getProgressColor = () => {
     if (progressPercentage < 70) return "bg-green-500"
     if (progressPercentage < 90) return "bg-yellow-500"
@@ -241,21 +245,7 @@ export default function CreatePostPage({ user }: CreatePostPageProps) {
       });
       
       let data = await __response.json();
-      if (mediaType == 'image' && uploadedFiles.length > 0) {
-        const formdata = new FormData()
-        const fileBlob = await fetch(uploadedFiles[0].url).then(r => r.blob())
-        formdata.append("image", fileBlob, uploadedFiles[0].name || "image.jpg")
-        
-        const __xfile = await fetch('/api/context/ai/factCheck/nsfw', {
-          method: 'POST',
-          body: formdata
-        })
-        
-        
-        const __fileScan = await __xfile.json()
-        setInageReview(__fileScan)
-        
-      }
+      
       console.log(imageReview);
       const response = await fetch("/api/posts", {
         method: "POST",
@@ -265,7 +255,7 @@ export default function CreatePostPage({ user }: CreatePostPageProps) {
           mediaUrls: allMediaUrls.length > 0 ? allMediaUrls : [],
           mediaType: mediaType,
           reviewResults: data || null,
-          imageNSFW: imageReview || null
+          imageNSFW: nsfwResults
         }),
       })
       
@@ -345,7 +335,7 @@ export default function CreatePostPage({ user }: CreatePostPageProps) {
       onClick: () => setShowGiphyPicker(true),
       disabled: totalMediaCount >= MAX_MEDIA_FILES,
     },
-  
+    
     { icon: FileWarning, label: "Lost Notice", onClick: () => console.log("Lost Notice clicked") },
     { icon: Calendar, label: "Event", onClick: () => console.log("Event clicked") },
   ]
@@ -409,6 +399,20 @@ export default function CreatePostPage({ user }: CreatePostPageProps) {
     }
   }, [])
   
+  useEffect(() => {
+    // Fixed condition: > 0 instead of > 1
+    if (uploadedFiles.length) {
+      uploadedFiles.map((files) => {
+        const isImage = file.contentType.startsWith("image/")
+        
+        if (isImage) {
+          dispatch(nsfwMedia({
+            postId: null,
+            mediaUrls: [files.url] }))
+        }
+      })
+    }
+  }, [uploadedFiles, dispatch])
   return (
     <div className="min-h-screen bg-white">
       <div className="sticky top-0 z-50 bg-white border-b border-gray-200">
