@@ -27,7 +27,8 @@ export default function AccountSettings({
   const onVerify = () => {
     sendPathLink({
       name : ['Account','Verification'],
-      _component: <VerificationRequest userId = {userData._id}/>
+      _component: <VerificationRequest userId = {userData._id}/>,
+      icon : Shield
     })
   }
   const onPrivacyClick = () => {
