@@ -87,7 +87,7 @@ export default function CreatePostPage({ user }: CreatePostPageProps) {
   useEffect(() => {
     fetchTrending()
   }, [])
-  
+  const dispatch = useAppDispatch()
   const fetchTrending = async () => {
     try {
       const gifsResponse = await fetch(`${GIPHY_BASE_URL}/gifs/trending?api_key=${GIPHY_API_KEY}&limit=20&rating=g`)
@@ -402,13 +402,13 @@ export default function CreatePostPage({ user }: CreatePostPageProps) {
   useEffect(() => {
     // Fixed condition: > 0 instead of > 1
     if (uploadedFiles.length) {
-      uploadedFiles.map((files) => {
+      uploadedFiles.forEach((file) => {
         const isImage = file.contentType.startsWith("image/")
-        
         if (isImage) {
           dispatch(nsfwMedia({
             postId: null,
-            mediaUrls: [files.url] }))
+            mediaUrls: [file.url]
+          }))
         }
       })
     }
