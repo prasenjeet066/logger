@@ -444,7 +444,7 @@ useEffect(() => {
         )}
 
 
-        <div className="flex flex-col gap-3">
+        <div className="flex flex-col gap-2">
           <div className = 'flex flex gap-3'>
           <Link
             href={`/profile/${post.author.username}`}
