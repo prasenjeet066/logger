@@ -5,10 +5,9 @@ import {
   BreadcrumbItem,
   BreadcrumbLink,
   BreadcrumbList,
-  BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb"
-import { useEffect, useState } from "react"
+import { useEffect, useState, Fragment } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { ArrowLeft, User, Lock, Key } from "lucide-react"
@@ -24,29 +23,16 @@ interface SettingsContentProps {
   t: string
 }
 
+interface BreadcrumbItemType {
+  label: string
+  component: JSX.Element
+}
+
 export const SettingsContent: React.FC<SettingsContentProps> = ({ user, t }) => {
   const router = useRouter()
-  const [additionalObj, setAdditionalObj] = useState<any>(null)
-  const [currentSection, setCurrentSection] = useState<JSX.Element | null>(null)
-  const [currentSectionLb, setCurrentSectionLb] = useState<string | null>(null)
 
-  const sendPathLink = (_obj: {
-    name: string | string[]
-    icon: any
-    _component: JSX.Element
-  }) => {
-    if (_obj && Object.keys(_obj).length) {
-      setCurrentSection(_obj._component)
-      const label =
-        typeof _obj.name === "string"
-          ? _obj.name
-          : Array.isArray(_obj.name)
-          ? _obj.name.join(" / ")
-          : ""
-      setCurrentSectionLb(label)
-      setAdditionalObj(_obj)
-    }
-  }
+  const [breadcrumbTrail, setBreadcrumbTrail] = useState<BreadcrumbItemType[]>([])
+  const [currentSection, setCurrentSection] = useState<JSX.Element | null>(null)
 
   const SettingsMenusList = [
     {
@@ -66,56 +52,89 @@ export const SettingsContent: React.FC<SettingsContentProps> = ({ user, t }) => 
     },
   ]
 
+  // Dynamic navigation for nested links
+  function sendPathLink(_obj: {
+    name: string | string[]
+    icon: any
+    _component: JSX.Element
+  }) {
+    if (!_obj || !Object.keys(_obj).length) return
+
+    const label =
+      typeof _obj.name === "string"
+        ? _obj.name
+        : Array.isArray(_obj.name)
+        ? _obj.name.join(" / ")
+        : "Unknown"
+    const matchedItem = SettingsMenusList.find(item => item.name === _obj.name);
+    if (matchedItem) {
+      setCurrentSection(matchedItem._component)
+      setBreadcrumbTrail(matchedItem.name)
+    }else{
+    const newCrumb:BreadcrumbItemType = {
+      label,
+      component: _obj._component,
+    }
+
+    setBreadcrumbTrail((prev) => [...prev, newCrumb])
+    setCurrentSection(_obj._component)
+  }
+  }
+
+  // Initialize based on query param
   useEffect(() => {
     const decoded = decodeURIComponent(t)
     if (decoded && decoded.length > 2) {
       const foundSetting = SettingsMenusList.find((item) => item.name === decoded)
       if (foundSetting) {
         setCurrentSection(foundSetting._component)
-        setCurrentSectionLb(foundSetting.name)
+        setBreadcrumbTrail([{ label: "Settings" }, { label: foundSetting.name, component: foundSetting._component }])
       } else {
         setCurrentSection(null)
-        setCurrentSectionLb(null)
+        setBreadcrumbTrail([{ label: "Settings" }])
       }
     } else {
       setCurrentSection(null)
-      setCurrentSectionLb(null)
+      setBreadcrumbTrail([{ label: "Settings" }])
     }
   }, [t])
+
+  const handleBack = () => {
+    if (breadcrumbTrail.length > 2) {
+      const newTrail = [...breadcrumbTrail]
+      newTrail.pop()
+      const last = newTrail[newTrail.length - 1]
+      setBreadcrumbTrail(newTrail)
+      setCurrentSection(last.component)
+    } else {
+      setCurrentSection(null)
+      setBreadcrumbTrail([{ label: "Settings" }])
+    }
+  }
 
   return (
     <div className="w-screen">
       <header className="sticky top-0 bg-white/80 backdrop-blur-md z-50">
         <div className="flex items-center px-4 py-3">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => (currentSection !== null ? setCurrentSection(null) : router.back())}
-            className="mr-8"
-          >
+          <Button variant="ghost" size="icon" onClick={handleBack} className="mr-8">
             <ArrowLeft className="w-5 h-5" />
           </Button>
           <div className="flex flex-col justify-start">
             <h1 className="text-lg font-semibold">Settings and Privacy</h1>
             <Breadcrumb className="text-sm">
               <BreadcrumbList>
-                <BreadcrumbItem>
-                  <BreadcrumbLink asChild>
-                    <Link href="/settings">Settings</Link>
-                  </BreadcrumbLink>
-                </BreadcrumbItem>
-                {currentSectionLb && (
-                  <>
-                    <BreadcrumbSeparator />
+                {breadcrumbTrail.map((crumb, index) => (
+                  <Fragment key={index}>
+                    {index > 0 && <BreadcrumbSeparator />}
                     <BreadcrumbItem>
                       <BreadcrumbLink asChild>
-                        <Link href={`/settings?t=${encodeURIComponent(currentSectionLb)}`}>
-                          {currentSectionLb}
+                        <Link href={`/settings?t=${encodeURIComponent(crumb.label)}`}>
+                          {crumb.label}
                         </Link>
                       </BreadcrumbLink>
                     </BreadcrumbItem>
-                  </>
-                )}
+                  </Fragment>
+                ))}
               </BreadcrumbList>
             </Breadcrumb>
           </div>
@@ -131,7 +150,10 @@ export const SettingsContent: React.FC<SettingsContentProps> = ({ user, t }) => 
                 variant="ghost"
                 className="w-full justify-start text-gray-800 hover:bg-gray-100 p-4 h-auto"
                 onClick={() => {
-                  setCurrentSectionLb(Setting.name)
+                  setBreadcrumbTrail([
+                    { label: "Settings" },
+                    { label: Setting.name, component: Setting._component },
+                  ])
                   setCurrentSection(Setting._component)
                 }}
               >

@@ -1,7 +1,7 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { EditProfile } from '@/components/settings/options/EditProfile'
 import { Search, Settings, MoreHorizontal, UserPlus, ArrowLeft, User, Lock, Key, Pen, Shield, Bell, CreditCard, HelpCircle } from "lucide-react"
-
+import PrivacyAndPersonalSettings from '@/components/settings/options/PrivacyAndPersonalSettings'
 interface AccountSettingsProps {
   userData: any
   sendPathLink: (config: {
@@ -27,7 +27,7 @@ export default function AccountSettings({
   const onPrivacyClick = () => {
     sendPathLink({
       name: ['Account', 'Privacy Settings'],
-      _component: <div>Privacy Settings Component</div>, // You can create this component
+      _component: <PrivacyAndPersonalSettings/>, // You can create this component
       icon: Shield
     })
   }
