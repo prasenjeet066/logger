@@ -1,6 +1,7 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { EditProfile } from '@/components/settings/options/EditProfile'
 import { Search, Settings, MoreHorizontal, UserPlus, ArrowLeft, User, Lock, Key, Pen, Shield, Bell, CreditCard, HelpCircle } from "lucide-react"
+import VerificationRequest from "@/components/settings/options/VerificationRequest"
 import PrivacyAndPersonalSettings from '@/components/settings/options/PrivacyAndPersonalSettings'
 interface AccountSettingsProps {
   userData: any
@@ -23,7 +24,12 @@ export default function AccountSettings({
       icon: Pen
     })
   }
-  
+  const onVerify = () => {
+    sendPathLink({
+      name : ['Account','Verification'],
+      _component: <VerificationRequest userId = {userData._id}/>
+    })
+  }
   const onPrivacyClick = () => {
     sendPathLink({
       name: ['Account', 'Privacy Settings'],
@@ -91,14 +97,14 @@ export default function AccountSettings({
       <div className="w-full max-w-md mx-auto bg-white rounded-lg shadow-sm overflow-hidden">
         <div className="divide-y divide-gray-100">
           <button 
-            onClick={onEditClick}
+            onClick={onVerify}
             className="w-full flex items-center justify-between p-4 hover:bg-gray-50 transition-colors duration-150 text-left"
           >
             <div className="flex items-center gap-3">
               <Pen className="w-5 h-5 text-gray-600" />
               <div>
-                <p className="font-medium text-gray-900">Edit Profile</p>
-                <p className="text-sm text-gray-500">Update your personal information and photos</p>
+                <p className="font-medium text-gray-900">Verify Your Profile</p>
+                <p className="text-sm text-gray-500">Verify your account and get a blue badge in your profile</p>
               </div>
             </div>
             <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
