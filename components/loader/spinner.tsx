@@ -1,8 +1,8 @@
 "use client"
 
-const Spinner = () => {
+const Spinner = ({className = ''}) => {
   return (
-    <div className="spinner-wrapper">
+    <div className={"spinner-wrapper " +className }>
       <div className="spinner center">
         <div className="spinner-blade" />
         <div className="spinner-blade" />
@@ -42,7 +42,6 @@ const Spinner = () => {
           bottom: 0;
           width: 0.074em;
           height: 0.2777em;
-          border-radius: 0.0555em;
           background-color: transparent;
           transform-origin: center -0.2222em;
           animation: spinner-fade9234 1s infinite linear;

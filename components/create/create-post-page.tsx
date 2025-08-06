@@ -2,6 +2,7 @@
 import { toast } from "sonner"
 import { createPostSchema } from "@/lib/validations/post"
 import { useState, useRef, useCallback, useEffect } from "react"
+import { Spinner } from "@/components/loader/spinner"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -344,25 +345,7 @@ export default function CreatePostPage({ user }: CreatePostPageProps) {
       onClick: () => setShowGiphyPicker(true),
       disabled: totalMediaCount >= MAX_MEDIA_FILES,
     },
-    {
-      icon: Vote,
-      label: "Poll",
-      onClick: () => {
-        if (totalMediaCount === 0) {
-          setShowPollCreator(true)
-          setShowAddOptions(true)
-          setContent("")
-          if (contentEditableRef.current) {
-            contentEditableRef.current.textContent = ""
-            contentEditableRef.current.classList.add("placeholder-shown")
-          }
-        } else {
-          setError("You cannot add a poll when media is already attached to your post.")
-        }
-      },
-      disabled: totalMediaCount > 0 || showPollCreator,
-    },
-    { icon: HandHelping, label: "Adoption", onClick: () => console.log("Adoption clicked") },
+  
     { icon: FileWarning, label: "Lost Notice", onClick: () => console.log("Lost Notice clicked") },
     { icon: Calendar, label: "Event", onClick: () => console.log("Event clicked") },
   ]
@@ -439,7 +422,7 @@ export default function CreatePostPage({ user }: CreatePostPageProps) {
             disabled={isPosting || (!content.trim() && totalMediaCount === 0 && !showPollCreator) || isOverLimit}
             className="bg-blue-500 text-white px-4 py-2 rounded-full hover:bg-blue-600 font-semibold"
           >
-            {isPosting ? <Loader2 className="h-5 w-5 animate-spin" /> : "Post"}
+            {isPosting ? <Spinner className="h-5 w-5 animate-spin" /> : "Post"}
           </Button>
         </div>
       </div>
@@ -457,7 +440,7 @@ export default function CreatePostPage({ user }: CreatePostPageProps) {
         </div>
 
         <div className="mb-4">
-          {!showPollCreator ? (
+          
             <>
               <div
                 ref={contentEditableRef}
@@ -488,77 +471,7 @@ export default function CreatePostPage({ user }: CreatePostPageProps) {
                 dangerouslySetInnerHTML={{ __html: content ? highlightContent(content) : "" }}
               />
             </>
-          ) : (
-            <Card className="mb-4 shadow-none border">
-              <CardHeader className="p-4 pb-2 flex flex-row items-center justify-between">
-                <h3 className="text-lg font-semibold">Create Poll</h3>
-                <Button variant="ghost" size="sm" onClick={handleCancelPoll}>
-                  Cancel Poll
-                </Button>
-              </CardHeader>
-              <CardContent className="p-4 pt-2">
-                <div className="mb-4">
-                  <label htmlFor="poll-question" className="block text-sm font-medium text-gray-700 mb-1">
-                    Poll Question
-                  </label>
-                  <Input
-                    id="poll-question"
-                    placeholder="Ask a question..."
-                    value={pollQuestion}
-                    onChange={(e) => setPollQuestion(e.target.value)}
-                    className="w-full rounded-md border-gray-300 focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50"
-                  />
-                </div>
-                <div className="mb-4">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Poll Options</label>
-                  {pollOptions.map((option, index) => (
-                    <div key={index} className="flex items-center gap-2 mb-2">
-                      <Input
-                        placeholder={`Option ${index + 1}`}
-                        value={option}
-                        onChange={(e) => handlePollOptionChange(index, e.target.value)}
-                        className="flex-1 rounded-md border-gray-300 focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50"
-                      />
-                      {pollOptions.length > MIN_POLL_OPTIONS && (
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleRemovePollOption(index)}
-                          className="text-red-500 hover:bg-red-50"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      )}
-                    </div>
-                  ))}
-                  {pollOptions.length < MAX_POLL_OPTIONS && (
-                    <Button
-                      variant="outline"
-                      className="w-full mt-2 border-dashed border-gray-300 hover:bg-gray-50 bg-transparent"
-                      onClick={handleAddPollOption}
-                    >
-                      <Plus className="h-4 w-4 mr-2" /> Add Option
-                    </Button>
-                  )}
-                </div>
-                <div>
-                  <label htmlFor="poll-duration" className="block text-sm font-medium text-gray-700 mb-1">
-                    Poll Duration
-                  </label>
-                  <Select value={pollDuration} onValueChange={setPollDuration}>
-                    <SelectTrigger className="w-full rounded-md border-gray-300 focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50">
-                      <SelectValue placeholder="Select duration" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="1 day">1 Day</SelectItem>
-                      <SelectItem value="3 days">3 Days</SelectItem>
-                      <SelectItem value="1 week">1 Week</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </CardContent>
-            </Card>
-          )}
+          
           <style jsx>{`
             [contenteditable][data-placeholder]:empty:before {
               content: attr(data-placeholder);
