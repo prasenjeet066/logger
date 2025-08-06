@@ -1,5 +1,6 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { EditProfile } from '@/components/settings/options/EditProfile'
+import { VerificationBadge } from "@/components/badge/verification-badge"
 import { Search, Settings, MoreHorizontal, UserPlus, ArrowLeft, User, Lock, Key, Pen, Shield, Bell, CreditCard, HelpCircle } from "lucide-react"
 import VerificationRequest from "@/components/settings/options/VerificationRequest"
 import PrivacyAndPersonalSettings from '@/components/settings/options/PrivacyAndPersonalSettings'
@@ -76,6 +77,9 @@ export default function AccountSettings({
         <div className="flex flex-col flex-1 min-w-0">
           <span className="font-semibold text-lg text-gray-800 border-b border-indigo-200 pb-2 truncate">
             {userData.displayName}
+            {userData.isVerified && (
+                                    <VerificationBadge verified={true} size={16} className="h-4 w-4" />
+                                  )}
           </span>
           <span className="text-sm text-gray-600 mt-1 mb-3 truncate">
             @{userData.username || "No username"}

@@ -342,7 +342,7 @@ export function ExploreContent({params}) {
                                   {searchUser.isVerified && (
                                     <VerificationBadge verified={true} size={16} className="h-4 w-4" />
                                   )}
-                                  <span className="text-gray-500 text-sm">@{searchUser.username}</span>
+                                
                                   {searchUser._id !== currentUser._id && (
                                     <Button
                                       variant={searchUser.isFollowing ? "outline" : "default"}
