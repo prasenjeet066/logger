@@ -166,7 +166,7 @@ export function Timeline(userId: string, typesOfAlg: string) {
     <div className={`space-y-0 ${!isMobile && 'flex flex-col gap-2'}`}>
       <div className={`flex flex-row  gap-4 items-center   w-full my-4 ${isMobile ? "justify-between px-4":"justify-start"}`}>
         {algorithmLevels.map((lavel) => (
-  <Button
+  <button
     key={lavel.alg}
     className={currentAlg === lavel.alg ? 'bg-indigo-600 text-white max-h-8 rounded-full px-4 text-xs' : 'border text-gray-800 rounded-full bg-white text-gray-800  max-h-8 text-xs'}
     onClick={() => {
@@ -176,7 +176,7 @@ export function Timeline(userId: string, typesOfAlg: string) {
     }}
   >
     {lavel.name}
-  </Button>
+  </button>
 ))}
         
       </div>
