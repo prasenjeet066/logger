@@ -12,6 +12,13 @@ interface PostsState {
   error: string | null
 }
 
+interface nsfwResults {
+  fileName: string
+  label: string
+  score: number
+  error ? : string
+} []
+
 const initialState: PostsState = {
   posts: [],
   replies: [],
@@ -20,6 +27,7 @@ const initialState: PostsState = {
   pinnedPost: null,
   isLoading: false,
   error: null,
+  nsfwResults: [], // NEW
 }
 
 // Async thunks
@@ -58,7 +66,42 @@ export const fetchUserReposts = createAsyncThunk(
     }
   }
 )
+// store/slices/postsSlice.ts
 
+export const nsfwMedia = createAsyncThunk(
+  'posts/nsfwMedia',
+  async (mediaFiles: File[], { rejectWithValue }) => {
+    try {
+      const results = []
+      
+      for (const file of mediaFiles) {
+        const formData = new FormData()
+        formData.append("image", file)
+        
+        const response = await fetch('/api/context/ai/factCheck/nsfw', {
+          method: 'POST',
+          body: formData,
+        })
+        
+        if (!response.ok) {
+          results.push({ fileName: file.name, error: 'Detection failed' })
+          continue
+        }
+        
+        const result = await response.json()
+        results.push({
+          fileName: file.name,
+          label: result.label,
+          score: result.score,
+        })
+      }
+      
+      return results
+    } catch (e) {
+      return rejectWithValue("NSFW check failed")
+    }
+  }
+)
 export const fetchPinnedPost = createAsyncThunk(
   'posts/fetchPinnedPost',
   async (postId: string, { rejectWithValue }) => {
@@ -129,7 +172,7 @@ const postsSlice = createSlice({
       state.pinnedPost = null
       state.error = null
     },
-    updatePost: (state, action: PayloadAction<Partial<Post> & { _id: string }>) => {
+    updatePost: (state, action: PayloadAction < Partial < Post > & { _id: string } > ) => {
       const updatePostInArray = (posts: Post[]) =>
         posts.map((post) =>
           post._id === action.payload._id ? { ...post, ...action.payload } : post
@@ -164,7 +207,12 @@ const postsSlice = createSlice({
         state.isLoading = false
         state.error = action.payload as string
       })
-      
+      .addCase(nsfwMedia.fulfilled, (state, action) => {
+        state.nsfwResults = action.payload || []
+      })
+      .addCase(nsfwMedia.rejected, (state, action) => {
+        state.error = action.payload as string
+      })
       // Fetch reposts
       .addCase(fetchUserReposts.fulfilled, (state, action) => {
         state.reposts = action.payload
@@ -173,21 +221,18 @@ const postsSlice = createSlice({
       // Fetch pinned post
       .addCase(fetchPinnedPost.fulfilled, (state, action) => {
         state.pinnedPost = action.payload
-      })
-      
-      // Like post
-      .addCase(likePost.fulfilled, (state, action) => {
+      }).addCase(likePost.fulfilled, (state, action) => {
         const { postId, liked } = action.payload
         
         const updatePostLike = (posts: Post[]) =>
           posts.map((post) =>
-            post._id === postId
-              ? {
-                  ...post,
-                  isLiked: liked,
-                  likesCount: post.likesCount + (liked ? 1 : -1),
-                }
-              : post
+            post._id === postId ?
+            {
+              ...post,
+              isLiked: liked,
+              likesCount: post.likesCount + (liked ? 1 : -1),
+            } :
+            post
           )
         
         state.posts = updatePostLike(state.posts)
@@ -210,13 +255,13 @@ const postsSlice = createSlice({
         
         const updatePostRepost = (posts: Post[]) =>
           posts.map((post) =>
-            post._id === postId
-              ? {
-                  ...post,
-                  isReposted: reposted,
-                  repostsCount: post.repostsCount + (reposted ? 1 : -1),
-                }
-              : post
+            post._id === postId ?
+            {
+              ...post,
+              isReposted: reposted,
+              repostsCount: post.repostsCount + (reposted ? 1 : -1),
+            } :
+            post
           )
         
         state.posts = updatePostRepost(state.posts)

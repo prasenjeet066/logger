@@ -1,7 +1,10 @@
 "use client"
 
 import type React from "react"
-
+import { useAppDispatch, useAppSelector } from "@/store/main"
+import {
+  nsfwMedia
+} from "@/store/slices/postsSlice"
 import { useState, useCallback, useMemo,useEffect } from "react"
 import { formatDistanceToNow } from "date-fns"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -68,7 +71,7 @@ const smartTruncate = (text: string, maxLength: number): string => {
 export function PostCard({ post, onLike, onRepost, onReply }: PostCardProps) {
   const { data: session } = useSession()
   const currentUserId = session?.user?.id
-  
+  const dispatch = useAppDispatch()
   const [showReplyDialog, setShowReplyDialog] = useState(false)
   const [repostLoading, setRepostLoading] = useState(false)
   const [translation, setTranslation] = useState < TranslationState > ({
@@ -112,6 +115,12 @@ const addUniqueMention = (newMention: string) =>
       setRepliesTo(null)
     }
   }
+  const nsfwResult = useAppSelector((state)=>state.posts.nsfwResults)
+  useEffect(()=>{
+    if (post.mediaUrls.length > 1 && post.mediaType==='image') {
+      dispatch(nsfwMedia(post.mediaUrls))
+    }
+  },[post])
   // Translation function with better error handling
   const translateText = useCallback(async (text: string, targetLang = "bn"): Promise < string > => {
     try {
@@ -333,7 +342,7 @@ const addUniqueMention = (newMention: string) =>
         </div>
       )
     }
-    let nsfw = post.imageNSFW?.label && post.imageNSFW.label !== "normal";
+    let nsfw = nsfwResult?.label && nsfwResult.label !== "normal";
     // Default: images
     return (
       <div className={`mt-3 grid gap-2 ${mediaUrls.length === 1 ? "grid-cols-1" : "grid-cols-2"}`}>
