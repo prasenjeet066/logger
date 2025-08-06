@@ -246,7 +246,7 @@ export default function CreatePostPage({ user }: CreatePostPageProps) {
       
       let data = await __response.json();
       
-      console.log(imageReview);
+      //console.log(imageReview);
       const response = await fetch("/api/posts", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -255,7 +255,7 @@ export default function CreatePostPage({ user }: CreatePostPageProps) {
           mediaUrls: allMediaUrls.length > 0 ? allMediaUrls : [],
           mediaType: mediaType,
           reviewResults: data || null,
-          imageNSFW: nsfwResults
+          imageNSFW: nsfwResults || null
         }),
       })
       
