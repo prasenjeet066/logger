@@ -1,3 +1,14 @@
+// Key changes needed in post-card.tsx
+
+// 1. Fix the useEffect and selector
+
+
+// 2. Fix the NSFW check in renderMedia function
+
+// 3. Remove the old broken line:
+// const nsfwResult = useAppSelector((state)=>state.posts.nsfwResults) // Remove this
+// let nsfw = nsfwResult?.label && nsfwResult.label !== "normal"; // Remove this
+
 "use client"
 
 import type React from "react"
@@ -115,12 +126,14 @@ const addUniqueMention = (newMention: string) =>
       setRepliesTo(null)
     }
   }
-  const nsfwResult = useAppSelector((state)=>state.posts.nsfwResults)
-  useEffect(()=>{
-    if (post.mediaUrls.length > 1 && post.mediaType==='image') {
-      dispatch(nsfwMedia(post.mediaUrls))
-    }
-  },[post])
+  const nsfwResults = useAppSelector((state) => state.posts.nsfwResults)
+
+useEffect(() => {
+  // Fixed condition: > 0 instead of > 1
+  if (post.mediaUrls.length > 0 && post.mediaType === 'image') {
+    dispatch(nsfwMedia({ postId: post._id, mediaUrls: post.mediaUrls }))
+  }
+}, [post._id, post.mediaUrls, post.mediaType, dispatch])
   // Translation function with better error handling
   const translateText = useCallback(async (text: string, targetLang = "bn"): Promise < string > => {
     try {
@@ -293,73 +306,39 @@ const addUniqueMention = (newMention: string) =>
     }
   },[isReplise])
   // Enhanced media rendering with loading states
-  const renderMedia = useCallback((mediaUrls: string[] | null, mediaType: string | null ) => {
-    if (!mediaUrls || mediaUrls.length === 0) return null
-    
-    const handleMediaClick = (url: string, e: React.MouseEvent) => {
-      e.stopPropagation()
-      window.open(url, "_blank", "noopener,noreferrer")
-    }
-    
-    if (mediaType === "video") {
-      return (
-        <div className="mt-3 rounded-lg overflow-hidden border">
-          <video
-            src={mediaUrls[0]}
-            className=" aspect-video object-cover "
-            controls
-            preload="metadata"
-            onError={(e) => {
-              console.error("Video load error:", e)
-            }}
-          />
-        </div>
-      )
-    }
-    
-    if (mediaType === "gif") {
-      return (
-        <div className={`mt-3 grid gap-2 ${mediaUrls.length === 1 ? "grid-cols-1" : "grid-cols-2"}`}>
-          {mediaUrls.slice(0, 4).map((url, index) => (
-            <div key={index} className="relative group">
-              <img
-                src={url || "/placeholder.svg"}
-                alt={`GIF media ${index + 1}`}
-                className="w-full h-32 lg:h-48 object-cover cursor-pointer hover:opacity-90 rounded transition-opacity"
-                onClick={(e) => handleMediaClick(url, e)}
-                loading="lazy"
-                onError={(e) => {
-                  const target = e.target as HTMLImageElement
-                  target.src = "/placeholder.svg"
-                }}
-              />
-              {url.includes("giphy.com") && (
-                <div className="absolute bottom-2 left-2 bg-black/70 text-white text-xs px-2 py-1 rounded">GIF</div>
-              )}
-              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors rounded" />
-            </div>
-          ))}
-        </div>
-      )
-    }
-    let nsfw = nsfwResult?.label && nsfwResult.label !== "normal";
-    // Default: images
+  const renderMedia = useCallback((mediaUrls: string[] | null, mediaType: string | null) => {
+  if (!mediaUrls || mediaUrls.length === 0) return null
+  
+  const handleMediaClick = (url: string, e: React.MouseEvent) => {
+    e.stopPropagation()
+    window.open(url, "_blank", "noopener,noreferrer")
+  }
+  
+  if (mediaType === "video") {
+    return (
+      <div className="mt-3 rounded-lg overflow-hidden border">
+        <video
+          src={mediaUrls[0]}
+          className="aspect-video object-cover"
+          controls
+          preload="metadata"
+          onError={(e) => {
+            console.error("Video load error:", e)
+          }}
+        />
+      </div>
+    )
+  }
+  
+  if (mediaType === "gif") {
     return (
       <div className={`mt-3 grid gap-2 ${mediaUrls.length === 1 ? "grid-cols-1" : "grid-cols-2"}`}>
         {mediaUrls.slice(0, 4).map((url, index) => (
-          <div key={index} className={"relative group" + nsfw ? " backdrop-blur-lg flex flex flex-col items-center justify-center" : ""}>
-            {nsfw ? (
-              <>
-                <span className='font-semibold text-white text-center'>NSFW</span>
-                </>
-            ):<></>}
+          <div key={index} className="relative group">
             <img
               src={url || "/placeholder.svg"}
-              alt={`Post media ${index + 1}`}
-              className="object-cover cursor-pointer hover:opacity-90
-              aspect-3/2
-              
-              rounded transition-opacity"
+              alt={`GIF media ${index + 1}`}
+              className="w-full h-32 lg:h-48 object-cover cursor-pointer hover:opacity-90 rounded transition-opacity"
               onClick={(e) => handleMediaClick(url, e)}
               loading="lazy"
               onError={(e) => {
@@ -367,18 +346,64 @@ const addUniqueMention = (newMention: string) =>
                 target.src = "/placeholder.svg"
               }}
             />
-            
-            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors rounded" />
-            {mediaUrls.length > 4 && index === 3 && (
-              <div className="absolute inset-0 bg-black/50 flex items-center justify-center rounded">
-                <span className="text-white text-lg font-semibold">+{mediaUrls.length - 4}</span>
-              </div>
+            {url.includes("giphy.com") && (
+              <div className="absolute bottom-2 left-2 bg-black/70 text-white text-xs px-2 py-1 rounded">GIF</div>
             )}
+            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors rounded" />
           </div>
         ))}
       </div>
     )
-  }, [])
+  }
+
+  // Fixed NSFW logic for images
+  const currentPostNsfwResult = nsfwResults[post._id]
+  const isNsfw = currentPostNsfwResult?.label && currentPostNsfwResult.label !== "normal"
+  
+  return (
+    <div className={`mt-3 grid gap-2 ${mediaUrls.length === 1 ? "grid-cols-1" : "grid-cols-2"}`}>
+      {mediaUrls.slice(0, 4).map((url, index) => (
+        <div key={index} className={`relative group ${isNsfw ? "backdrop-blur-lg flex flex-col items-center justify-center" : ""}`}>
+          {isNsfw && (
+            <>
+              <div className="absolute inset-0 bg-black/50 flex flex-col items-center justify-center rounded z-10">
+                <span className="font-semibold text-white text-center mb-2">NSFW Content</span>
+                <button 
+                  className="px-4 py-2 bg-white/20 text-white rounded hover:bg-white/30 transition-colors"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    // Add logic to show image or remove blur
+                  }}
+                >
+                  Show Anyway
+                </button>
+              </div>
+            </>
+          )}
+          <img
+            src={url || "/placeholder.svg"}
+            alt={`Post media ${index + 1}`}
+            className={`object-cover cursor-pointer hover:opacity-90 aspect-3/2 rounded transition-opacity ${isNsfw ? "blur-xl" : ""}`}
+            onClick={(e) => handleMediaClick(url, e)}
+            loading="lazy"
+            onError={(e) => {
+              const target = e.target as HTMLImageElement
+              target.src = "/placeholder.svg"
+            }}
+          />
+          
+          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors rounded" />
+          {mediaUrls.length > 4 && index === 3 && (
+            <div className="absolute inset-0 bg-black/50 flex items-center justify-center rounded">
+              <span className="text-white text-lg font-semibold">+{mediaUrls.length - 4}</span>
+            </div>
+          )}
+        </div>
+      ))}
+    </div>
+  )
+}, [post._id, nsfwResults])
+
   const reviewResults = post?.reviewResults?.content ?
   JSON.parse(post.reviewResults.content) :
   [];

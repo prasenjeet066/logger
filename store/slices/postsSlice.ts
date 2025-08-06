@@ -10,14 +10,14 @@ interface PostsState {
   pinnedPost: Post | null
   isLoading: boolean
   error: string | null
+  nsfwResults: { [postId: string]: NSFWResult } // Changed to object with postId keys
 }
 
-interface nsfwResults {
-  fileName: string
+interface NSFWResult {
   label: string
   score: number
-  error ? : string
-} []
+  error?: string
+}
 
 const initialState: PostsState = {
   posts: [],
@@ -27,10 +27,50 @@ const initialState: PostsState = {
   pinnedPost: null,
   isLoading: false,
   error: null,
-  nsfwResults: [], // NEW
+  nsfwResults: {}, // Changed to object
 }
 
-// Async thunks
+// Fixed NSFW detection for URLs instead of Files
+export const nsfwMedia = createAsyncThunk(
+  'posts/nsfwMedia',
+  async ({ postId, mediaUrls }: { postId: string; mediaUrls: string[] }, { rejectWithValue }) => {
+    try {
+      // Take the first image URL for NSFW check
+      const firstImageUrl = mediaUrls[0]
+      
+      // Fetch the image and convert to blob
+      const imageResponse = await fetch(firstImageUrl)
+      if (!imageResponse.ok) {
+        throw new Error('Failed to fetch image')
+      }
+      
+      const imageBlob = await imageResponse.blob()
+      
+      const formData = new FormData()
+      formData.append("image", imageBlob)
+      
+      const response = await fetch('/api/context/ai/factCheck/nsfw', {
+        method: 'POST',
+        body: formData,
+      })
+      
+      if (!response.ok) {
+        return { postId, error: 'Detection failed' }
+      }
+      
+      const result = await response.json()
+      return {
+        postId,
+        label: result.label,
+        score: result.score,
+      }
+    } catch (e) {
+      return rejectWithValue("NSFW check failed")
+    }
+  }
+)
+
+// Rest of your async thunks remain the same...
 export const fetchUserPosts = createAsyncThunk(
   'posts/fetchUserPosts',
   async (username: string, { rejectWithValue }) => {
@@ -56,52 +96,17 @@ export const fetchUserReposts = createAsyncThunk(
       const response = await fetch(`/api/users/${username}/reposts`)
       
       if (!response.ok) {
-        return [] // Return empty array if reposts endpoint fails
+        return []
       }
       
       const reposts = await response.json()
       return reposts
     } catch (error) {
-      return [] // Return empty array on error
+      return []
     }
   }
 )
-// store/slices/postsSlice.ts
 
-export const nsfwMedia = createAsyncThunk(
-  'posts/nsfwMedia',
-  async (mediaFiles: File[], { rejectWithValue }) => {
-    try {
-      const results = []
-      
-      for (const file of mediaFiles) {
-        const formData = new FormData()
-        formData.append("image", file)
-        
-        const response = await fetch('/api/context/ai/factCheck/nsfw', {
-          method: 'POST',
-          body: formData,
-        })
-        
-        if (!response.ok) {
-          results.push({ fileName: file.name, error: 'Detection failed' })
-          continue
-        }
-        
-        const result = await response.json()
-        results.push({
-          fileName: file.name,
-          label: result.label,
-          score: result.score,
-        })
-      }
-      
-      return results
-    } catch (e) {
-      return rejectWithValue("NSFW check failed")
-    }
-  }
-)
 export const fetchPinnedPost = createAsyncThunk(
   'posts/fetchPinnedPost',
   async (postId: string, { rejectWithValue }) => {
@@ -171,8 +176,9 @@ const postsSlice = createSlice({
       state.media = []
       state.pinnedPost = null
       state.error = null
+      state.nsfwResults = {}
     },
-    updatePost: (state, action: PayloadAction < Partial < Post > & { _id: string } > ) => {
+    updatePost: (state, action: PayloadAction<Partial<Post> & { _id: string }>) => {
       const updatePostInArray = (posts: Post[]) =>
         posts.map((post) =>
           post._id === action.payload._id ? { ...post, ...action.payload } : post
@@ -190,7 +196,6 @@ const postsSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      // Fetch user posts
       .addCase(fetchUserPosts.pending, (state) => {
         state.isLoading = true
         state.error = null
@@ -208,20 +213,19 @@ const postsSlice = createSlice({
         state.error = action.payload as string
       })
       .addCase(nsfwMedia.fulfilled, (state, action) => {
-        state.nsfwResults = action.payload || []
+        const { postId, ...result } = action.payload
+        state.nsfwResults[postId] = result
       })
       .addCase(nsfwMedia.rejected, (state, action) => {
         state.error = action.payload as string
       })
-      // Fetch reposts
       .addCase(fetchUserReposts.fulfilled, (state, action) => {
         state.reposts = action.payload
       })
-      
-      // Fetch pinned post
       .addCase(fetchPinnedPost.fulfilled, (state, action) => {
         state.pinnedPost = action.payload
-      }).addCase(likePost.fulfilled, (state, action) => {
+      })
+      .addCase(likePost.fulfilled, (state, action) => {
         const { postId, liked } = action.payload
         
         const updatePostLike = (posts: Post[]) =>
@@ -248,8 +252,6 @@ const postsSlice = createSlice({
           }
         }
       })
-      
-      // Repost
       .addCase(repostPost.fulfilled, (state, action) => {
         const { postId, reposted } = action.payload
         
