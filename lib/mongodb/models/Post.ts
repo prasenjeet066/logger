@@ -74,6 +74,10 @@ const postSchema = new Schema<IPost>(
         type: String,
       },
     ],
+    vote: {
+      type : String,
+      default: null
+    },
     mentions: [
       {
         type: String,

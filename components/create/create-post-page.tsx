@@ -59,9 +59,7 @@ export default function CreatePostPage({ user }: CreatePostPageProps) {
   const [error, setError] = useState("")
   const [showGiphyPicker, setShowGiphyPicker] = useState(false)
   const [showFileUpload, setShowFileUpload] = useState(false)
-  const [isEnhancingText, setIsEnhancingText] = useState(false)
-  const [enhancedTextSuggestion, setEnhancedTextSuggestion] = useState < string | null > (null)
-  const [showEnhanceModal, setShowEnhanceModal] = useState(false)
+  
   const [isPosted, setIsPosted] = useState(false)
   const [showPollCreator, setShowPollCreator] = useState(false)
   const [pollQuestion, setPollQuestion] = useState("")
@@ -309,69 +307,7 @@ export default function CreatePostPage({ user }: CreatePostPageProps) {
     }
   }
   
-  const handleEnhanceText = async () => {
-    if (!content.trim()) {
-      setError("Please write some text to enhance first.")
-      return
-    }
-    
-    setIsEnhancingText(true)
-    setError("")
-    setEnhancedTextSuggestion(null)
-    
-    try {
-      const prompt = `Enhance the following text to be more engaging and descriptive for a social media post. Keep it concise and within 280 characters if possible. Here's the text: "${content}"`
-      const chatHistory = []
-      chatHistory.push({ role: "user", parts: [{ text: prompt }] })
-      const payload = { contents: chatHistory }
-      const apiKey = ""
-      const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`
-      
-      const response = await fetch(apiUrl, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      })
-      
-      const result = await response.json()
-      
-      if (
-        result.candidates &&
-        result.candidates.length > 0 &&
-        result.candidates[0].content &&
-        result.candidates[0].content.parts &&
-        result.candidates[0].content.parts.length > 0
-      ) {
-        const text = result.candidates[0].content.parts[0].text
-        setEnhancedTextSuggestion(text)
-        setShowEnhanceModal(true)
-      } else {
-        setError("Failed to get a text suggestion. Please try again.")
-      }
-    } catch (err: any) {
-      console.error("Gemini API error:", err)
-      setError("Failed to enhance text. Please check your network connection or try again later.")
-    } finally {
-      setIsEnhancingText(false)
-    }
-  }
   
-  const useEnhancedSuggestion = () => {
-    if (enhancedTextSuggestion) {
-      setContent(enhancedTextSuggestion)
-      if (contentEditableRef.current) {
-        contentEditableRef.current.textContent = enhancedTextSuggestion
-        const range = document.createRange()
-        const selection = window.getSelection()
-        range.selectNodeContents(contentEditableRef.current)
-        range.collapse(false)
-        selection?.removeAllRanges()
-        selection?.addRange(range)
-      }
-      setShowEnhanceModal(false)
-      setEnhancedTextSuggestion(null)
-    }
-  }
   
   const remainingChars = MAX_CHARACTERS - characterCount
   
@@ -637,21 +573,7 @@ export default function CreatePostPage({ user }: CreatePostPageProps) {
               display: block;
             }
           `}</style>
-          <div className="flex justify-between items-center mt-2">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleEnhanceText}
-              disabled={isEnhancingText || !content.trim()}
-              className="text-purple-500"
-            >
-              {isEnhancingText ? <Loader2 className="h-5 w-5 animate-spin" /> : <Sparkles className="h-5 w-5 mr-1" />}
-              Enhance Text
-            </Button>
-            <span className={`text-sm ${isOverLimit ? "text-red-500" : "text-gray-500"}`}>
-              {remainingChars}/{MAX_CHARACTERS}
-            </span>
-          </div>
+        
         </div>
 
         {/* Media Previews */}
