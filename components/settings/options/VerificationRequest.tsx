@@ -110,7 +110,7 @@ export default function VerificationRequest({ userId }: VerificationRequestProps
         }
 
         const formData = new FormData()
-        formData.append('file', file)
+        formData.append('files', file)
         formData.append('type', 'verification_document')
 
         const response = await fetch('/api/upload', {
@@ -238,7 +238,7 @@ export default function VerificationRequest({ userId }: VerificationRequestProps
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold">Account Verification</h1>
+        <h1 className="text-xl font-bold">Account Verification</h1>
         <p className="text-gray-600">Request verification for your account to get a verified badge</p>
       </div>
 
@@ -254,7 +254,7 @@ export default function VerificationRequest({ userId }: VerificationRequestProps
               {getStatusBadge(verificationStatus.status || 'pending')}
             </div>
           </CardHeader>
-          <CardContent>
+          <CardContent className='border-none shadow-none'>
             <div className="space-y-2">
               <p><strong>Plan:</strong> {verificationStatus.requestPlan}</p>
               {verificationStatus.userMessage && (
@@ -283,7 +283,7 @@ export default function VerificationRequest({ userId }: VerificationRequestProps
       {(!verificationStatus.hasRequest || verificationStatus.status === 'rejected') && (
         <Card>
           <CardHeader>
-            <CardTitle>Request Verification</CardTitle>
+            <CardTitle className='text-md'>Request Verification</CardTitle>
             <CardDescription>
               Fill out this form to request account verification. Please provide accurate information and valid documents.
             </CardDescription>
