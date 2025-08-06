@@ -109,7 +109,7 @@ const Spinner = ({className = ''}) => {
         
         @keyframes spinner-fade9234 {
           0% {
-            background-color: #11111;
+            background-color: #111;
           }
           100% {
             background-color: transparent;
