@@ -97,6 +97,7 @@ export default function AccountSettings({
       {/* Menu Items */}
       <div className="w-full max-w-md mx-auto bg-white rounded-lg shadow-sm overflow-hidden">
         <div className="divide-y divide-gray-100">
+          {!userData?.isVerified && (
           <button 
             onClick={onVerify}
             className="w-full flex items-center justify-between p-4 hover:bg-gray-50 transition-colors duration-150 text-left"
@@ -111,7 +112,7 @@ export default function AccountSettings({
             <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
             </svg>
-          </button>
+          </button>)}
 
           <button 
             onClick={onPrivacyClick}

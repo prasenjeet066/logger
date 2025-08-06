@@ -64,7 +64,7 @@ export const SettingsContent: React.FC<SettingsContentProps> = ({ user, t }) => 
       typeof _obj.name === "string"
         ? _obj.name
         : Array.isArray(_obj.name)
-        ? _obj.name.join(" / ")
+        ? _obj.name[1]
         : "Unknown"
     const matchedItem = SettingsMenusList.find(item => item.name === _obj.name);
     if (matchedItem) {
