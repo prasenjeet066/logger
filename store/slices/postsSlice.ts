@@ -61,6 +61,7 @@ export const nsfwMedia = createAsyncThunk(
       const result = await response.json()
       return {
         postId,
+        url: mediaUrls,
         label: result.label,
         score: result.score,
       }

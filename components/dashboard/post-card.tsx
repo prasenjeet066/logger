@@ -357,8 +357,8 @@ useEffect(() => {
   }
 
   // Fixed NSFW logic for images
-  const currentPostNsfwResult = nsfwResults[post._id]
-  const isNsfw = currentPostNsfwResult?.label && currentPostNsfwResult.label !== "normal"
+  const currentPostNsfwResult = nsfwResults
+  const isNsfw = currentPostNsfwResult?.label && currentPostNsfwResult.label !== "normal" && currentPostNsfwResult!==null
   
   return (
     <div className={`mt-3 grid gap-2 ${mediaUrls.length === 1 ? "grid-cols-1" : "grid-cols-2"}`}>
