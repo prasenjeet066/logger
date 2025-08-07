@@ -20,7 +20,7 @@ export async function POST(req: Request) {
       {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${process.env.HUGGINGFACE_API_KEY}`,
+          Authorization: `Bearer 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`,
           "Content-Type": "application/octet-stream",
         },
         body: buffer,

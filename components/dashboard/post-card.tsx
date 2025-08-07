@@ -476,9 +476,9 @@ useEffect(() => {
               {mentionsPeoples!==null && (
                 <div className='flex flex-row items-center gap-2'>
                   <small className='text-xs text-gray-500'>{"with"}</small>
-                 <Link href ={"profile/"+mentionsPeoples[0]}>
+                
                       <small>@{mentionsPeoples[0]}</small>
-                      </Link>
+                      
               {mentionsPeoples.length > 1 && (<small> and more {mentionsPeoples.length - 1 }</small>
                 
               )}

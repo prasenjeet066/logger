@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { InferenceClient } from "@huggingface/inference";
 
-const client = new InferenceClient(process.env.HUGGINGFACE_API_KEY);
+const client = new InferenceClient('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');
 
 export async function POST(req: NextRequest) {
   try {
