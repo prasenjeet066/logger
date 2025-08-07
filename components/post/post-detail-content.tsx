@@ -290,7 +290,7 @@ export function PostDetailContent({ postId, userId }: PostDetailContentProps) {
       )}
 
       {/* Input container */}
-      <div className="flex-1 flex items-center bg-gray-100 rounded-full px-3 py-2">
+      <div className="flex-1 flex items-center border rounded-full px-3 py-1">
         <input
           type="text"
           value={commentState.text}
@@ -325,7 +325,7 @@ export function PostDetailContent({ postId, userId }: PostDetailContentProps) {
     <div className="min-h-screen bg-white">
       <div className="max-w-2xl mx-auto border-x min-h-screen">
         {/* Header */}
-        <div className="sticky top-0 bg-white/80 backdrop-blur-md border-b px-4 py-3 z-50 flex items-center gap-4">
+        <div className="sticky top-0 bg-white/80 backdrop-blur-md px-4 py-3 z-50 flex items-center gap-4">
           <Button variant="ghost" size="icon" onClick={() => router.back()}>
             <ArrowLeft className="h-5 w-5" />
           </Button>

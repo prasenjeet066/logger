@@ -177,16 +177,7 @@ export async function POST(request: NextRequest) {
     
     // Create new post
     const post = new Post({
-      content: validatedData.content,
-      authorId: user._id.toString(),
-      mediaUrls: body.mediaUrls || [],
-      mediaType: body.mediaType || null,
-      
-      hashtags,
-      reviewResults: body.reviewResults,
-      imageNSFW: body.imageNSFW,
-      mentions,
-      parentPostId: body.parentPostId || null, // For replies
+      ...validatedData
     })
     post.visibility  = JSON.parse(body.reviewResults.content).isharmful ? "f-private" : body.visibility || "public";
     await post.save()

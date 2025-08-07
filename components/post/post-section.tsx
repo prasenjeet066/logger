@@ -539,7 +539,7 @@ async function detectLanguage(text) {
           )}
           
           {/* Action buttons */}
-          <div className="flex items-center justify-between max-w-sm lg:max-w-md mt-3">
+          <div className="flex items-center justify-between max-w-sm lg:max-w-md mt-1">
             <Button
               variant="ghost"
               size="sm"
