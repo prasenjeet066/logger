@@ -182,102 +182,111 @@ export default function CreatePostPage({ user }: CreatePostPageProps) {
   
   const handlePost = async () => {
     if (!content.trim() && totalMediaCount === 0 && !showPollCreator) {
-      setError("Please add some content, media, or a poll to your post.")
-      return
+      setError("Please add some content, media, or a poll to your post.");
+      return;
     }
     
     if (isOverLimit) {
-      setError(`Please keep your post under ${MAX_CHARACTERS} characters.`)
-      return
+      setError(`Please keep your post under ${MAX_CHARACTERS} characters.`);
+      return;
     }
     
     if (showPollCreator) {
       if (!pollQuestion.trim()) {
-        setError("Poll question cannot be empty.")
-        return
+        setError("Poll question cannot be empty.");
+        return;
       }
-      const trimmedOptions = pollOptions.filter((opt) => opt.trim())
+      
+      const trimmedOptions = pollOptions.filter((opt) => opt.trim());
       if (trimmedOptions.length < MIN_POLL_OPTIONS) {
-        setError(`Please provide at least ${MIN_POLL_OPTIONS} non-empty poll options.`)
-        return
+        setError(`Please provide at least ${MIN_POLL_OPTIONS} non-empty poll options.`);
+        return;
       }
+      
       if (!pollDuration) {
-        setError("Please select a poll duration.")
-        return
+        setError("Please select a poll duration.");
+        return;
       }
     }
     
-    setIsPosting(true)
-    setError("")
+    setIsPosting(true);
+    setError("");
     
     try {
-      const validatedData = createPostSchema.parse({ content })
+      const validatedData = createPostSchema.parse({ content });
       
-      // Combine uploaded files and Giphy media URLs
-      const uploadedMediaUrls = uploadedFiles.map((file) => file.url)
-      const giphyUrls = giphyMedia.map((gif) => gif.url)
-      const allMediaUrls = [...uploadedMediaUrls, ...giphyUrls]
+      const uploadedMediaUrls = uploadedFiles.map((file) => file.url);
+      const giphyUrls = giphyMedia.map((gif) => gif.url);
+      const allMediaUrls = [...uploadedMediaUrls, ...giphyUrls];
       
-      let mediaType = null
+      let mediaType: string | null = null;
       if (allMediaUrls.length > 0) {
-        // Check if any uploaded files are videos
-        const hasVideo = uploadedFiles.some((file) => file.contentType.startsWith("video/"))
+        const hasVideo = uploadedFiles.some((file) => file.contentType.startsWith("video/"));
         if (hasVideo) {
-          mediaType = "video"
+          mediaType = "video";
         } else if (giphyMedia.length > 0) {
-          mediaType = "gif"
+          mediaType = "gif";
         } else {
-          mediaType = "image"
-          
+          mediaType = "image";
         }
       }
       
-      // check with ai 
+      // 🔍 Run AI fact-check review
+      let reviewResults = null;
+      try {
+        const aiResponse = await fetch("/api/context/ai/factCheck/", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            messages: [{ role: "user", content: validatedData.content }],
+          }),
+        });
+        
+        if (aiResponse.ok) {
+          reviewResults = await aiResponse.json();
+        } else {
+          console.warn("AI fact-check failed with status:", aiResponse.status);
+        }
+      } catch (aiError) {
+        console.warn("AI fact-check error:", aiError);
+        // Continue gracefully
+      }
       
-      const __response = await fetch("/api/context/ai/factCheck/", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          messages: [
-            { role: "user", content: validatedData.content }
-          ]
-        })
-      });
+      // 🔞 Get NSFW detection results from Redux
+      const currentNsfwResults = Object.keys(nsfwResults || {}).length > 0 ? nsfwResults : null;
       
-      let data = await __response.json();
-      
-      //console.log(imageReview);
+      // 🚀 Submit post to backend
       const response = await fetch("/api/posts", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           content: validatedData.content,
-          mediaUrls: allMediaUrls.length > 0 ? allMediaUrls : [],
-          mediaType: mediaType,
-          reviewResults: data || null,
-          imageNSFW: nsfwResults || null
+          mediaUrls: allMediaUrls,
+          mediaType,
+          reviewResults,
+          imageNSFW: currentNsfwResults,
         }),
-      })
+      });
       
       if (!response.ok) {
-        const errorData = await response.json()
-        setError(errorData.error || "Failed to create post")
-        return
+        const errorData = await response.json();
+        setError(errorData.error || "Failed to create post");
+        return;
       }
       
-      const postData = await response.json()
+      const postData = await response.json();
       
-      // Reset form
-      setUploadedFiles([])
-      setGiphyMedia([])
-      setContent("")
-      setShowPollCreator(false)
-      setPollQuestion("")
-      setPollOptions(["", ""])
-      setPollDuration("1 day")
+      // ✅ Reset state after successful post
+      setUploadedFiles([]);
+      setGiphyMedia([]);
+      setContent("");
+      setShowPollCreator(false);
+      setPollQuestion("");
+      setPollOptions(["", ""]);
+      setPollDuration("1 day");
       if (contentEditableRef.current) {
-        contentEditableRef.current.textContent = ""
-        contentEditableRef.current.classList.add("placeholder-shown")
+        contentEditableRef.current.textContent = "";
+        contentEditableRef.current.classList.add("placeholder-shown");
       }
       
       toast("Post has been created", {
@@ -285,20 +294,17 @@ export default function CreatePostPage({ user }: CreatePostPageProps) {
           label: "View",
           onClick: () => router.push("/dashboard"),
         },
-      })
-      setIsPosted(true)
-      router.push("/dashboard")
+      });
       
-      
+      setIsPosted(true);
+      router.push("/dashboard");
     } catch (err: any) {
-      console.error("Post submission error:", err)
-      setError(err.message || "An error occurred while submitting the post.")
+      console.error("Post submission error:", err);
+      setError(err.message || "An error occurred while submitting the post.");
     } finally {
-      setIsPosting(false)
+      setIsPosting(false);
     }
-  }
-  
-  
+  };
   
   const remainingChars = MAX_CHARACTERS - characterCount
   
@@ -400,19 +406,21 @@ export default function CreatePostPage({ user }: CreatePostPageProps) {
   }, [])
   
   useEffect(() => {
-    // Fixed condition: > 0 instead of > 1
-    if (uploadedFiles.length) {
+    if (uploadedFiles.length > 0) {
       uploadedFiles.forEach((file) => {
-        const isImage = file.contentType.startsWith("image/")
+        const isImage = file.contentType.startsWith("image/");
         if (isImage) {
+          // Generate a temporary ID for the post or use a placeholder
+          const tempPostId = `temp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+          
           dispatch(nsfwMedia({
-            postId: null,
+            postId: tempPostId, // Provide a valid string ID
             mediaUrls: [file.url]
-          }))
+          }));
         }
-      })
+      });
     }
-  }, [uploadedFiles, dispatch])
+  }, [uploadedFiles, dispatch]);
   return (
     <div className="min-h-screen bg-white">
       <div className="sticky top-0 z-50 bg-white border-b border-gray-200">

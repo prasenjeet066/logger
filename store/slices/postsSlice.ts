@@ -33,44 +33,55 @@ const initialState: PostsState = {
 // Fixed NSFW detection for URLs instead of Files
 export const nsfwMedia = createAsyncThunk(
   'posts/nsfwMedia',
-  async ({ postId, mediaUrls }: { postId: string; mediaUrls: string[] }, { rejectWithValue }) => {
+  async ({ postId, mediaUrls }: { postId: string | null;mediaUrls: string[] }, { rejectWithValue }) => {
     try {
       // Take the first image URL for NSFW check
-      const firstImageUrl = mediaUrls[0]
+      const firstImageUrl = mediaUrls[0];
       
-      // Fetch the image and convert to blob
-      const imageResponse = await fetch(firstImageUrl)
-      if (!imageResponse.ok) {
-        throw new Error('Failed to fetch image')
+      if (!firstImageUrl) {
+        return rejectWithValue("No image URL provided");
       }
       
-      const imageBlob = await imageResponse.blob()
+      // Fetch the image and convert to blob
+      const imageResponse = await fetch(firstImageUrl);
+      if (!imageResponse.ok) {
+        throw new Error('Failed to fetch image');
+      }
       
-      const formData = new FormData()
-      formData.append("image", imageBlob)
+      const imageBlob = await imageResponse.blob();
+      
+      const formData = new FormData();
+      formData.append("image", imageBlob);
       
       const response = await fetch('/api/context/ai/factCheck/nsfw', {
         method: 'POST',
         body: formData,
-      })
+      });
       
       if (!response.ok) {
-        return { postId, error: 'Detection failed' }
+        const errorText = await response.text();
+        console.error('NSFW API error:', errorText);
+        return {
+          postId: postId || 'unknown',
+          error: 'Detection failed',
+          label: 'unknown',
+          score: 0
+        };
       }
       
-      const result = await response.json()
+      const result = await response.json();
       return {
-        postId,
+        postId: postId || 'unknown',
         url: mediaUrls,
-        label: result.label,
-        score: result.score,
-      }
+        label: result.label || 'unknown',
+        score: result.score || 0,
+      };
     } catch (e) {
-      return rejectWithValue("NSFW check failed")
+      console.error('NSFW detection error:', e);
+      return rejectWithValue("NSFW check failed");
     }
   }
-)
-
+);
 // Rest of your async thunks remain the same...
 export const fetchUserPosts = createAsyncThunk(
   'posts/fetchUserPosts',
