@@ -102,7 +102,9 @@
   font-family: "Tiro Bangla", serif !important;
 
 }
-
+.font-regular {
+  font-family: "TikTokSansRegular" !important;
+}
 .font-hindi {
   font-family: "Noto Sans Devanagari", sans-serif;
 }

@@ -5,6 +5,12 @@
   font-display: swap;
   font-style: normal;
 }
+@font-face {
+  font-family: 'TikTokSansRegular';
+  src: url("TikTokSans-Regular.ttf") format('truetype');
+  font-display: swap;
+  font-style: normal;
+}
 
 /* Add additional TikTok Sans weights if you have them */
 @font-face {
