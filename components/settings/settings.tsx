@@ -121,7 +121,7 @@ export const SettingsContent: React.FC<SettingsContentProps> = ({ user, t }) => 
           </Button>
           <div className="flex flex-col justify-start">
             <h1 className="text-lg font-semibold">Settings and Privacy</h1>
-            <Breadcrumb className="text-sm">
+            <Breadcrumb className="text-xs">
               <BreadcrumbList>
                 {breadcrumbTrail.map((crumb, index) => (
                   <Fragment key={index}>
@@ -141,14 +141,14 @@ export const SettingsContent: React.FC<SettingsContentProps> = ({ user, t }) => 
         </div>
       </header>
 
-      <div className="p-4">
+      <div className="p-4 pt-2">
         {currentSection === null ? (
           <div className="space-y-2">
             {SettingsMenusList.map((Setting, index) => (
               <Button
                 key={index}
                 variant="ghost"
-                className="w-full justify-start text-gray-800 hover:bg-gray-100 p-4 h-auto"
+                className="w-full border-b justify-start text-gray-800 hover:bg-gray-100 p-4 h-auto"
                 onClick={() => {
                   setBreadcrumbTrail([
                     { label: "Settings" },
