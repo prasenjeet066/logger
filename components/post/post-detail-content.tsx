@@ -86,14 +86,26 @@ export function PostDetailContent({ postId, userId }: PostDetailContentProps) {
       replyParentId: postId,
     })
   }, [postId, userId])
-  const updateWatch = async ()=>{
+  
+  const updateWatch = async () => {
     try {
-      const w_ = await fetch('/api/viewUpdate',{method:'POST',body: JSON.stringify({'postId': postId})})
+      const response = await fetch('/api/viewUpdate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 'postId': postId })
+      })
       
-    } catch (e) {
-      setError(e)
+      if (!response.ok) {
+        console.warn('Failed to update view count:', response.statusText)
+      }
+    } catch (error) {
+      console.warn('Error updating view count:', error)
+      // Don't set this as a critical error since it's not essential
     }
   }
+  
   const fetchCurrentUser = async () => {
     try {
       const response = await fetch(`/api/users/current`)
@@ -122,7 +134,7 @@ export function PostDetailContent({ postId, userId }: PostDetailContentProps) {
           throw new Error("Failed to fetch post")
         }
         setPost(null)
-        setIsLoadingPost(false)
+        setIsLoading(false) // Fixed: was setIsLoadingPost
         return
       }
 
@@ -150,24 +162,42 @@ export function PostDetailContent({ postId, userId }: PostDetailContentProps) {
 
   const handlePostComment = async () => {
     if (!commentState.text.trim() || isPosting) return
+    
+    // Validate required data
+    if (!currentUser) {
+      setError("User session not found. Please refresh and try again.")
+      return
+    }
 
     setIsPosting(true)
     try {
+      const requestBody = {
+        content: commentState.text,
+        parentPostId: commentState.replyParentId,
+        authorId: currentUser._id,
+        // Add default values to prevent API errors
+        mediaUrls: [],
+        mediaType: null,
+        hashtags: [],
+        mentions: [],
+        visibility: "public"
+      }
+
       const response = await fetch("/api/posts", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          content: commentState.text,
-          parentPostId: commentState.replyParentId,
-        }),
+        body: JSON.stringify(requestBody),
       })
 
       if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.error || "Failed to post comment")
+        const errorData = await response.json().catch(() => ({}))
+        throw new Error(errorData.error || `HTTP ${response.status}: Failed to post comment`)
       }
+
+      const result = await response.json()
+      console.log("Comment posted successfully:", result)
 
       // Reset comment box and refresh replies
       setCommentState({
@@ -175,10 +205,13 @@ export function PostDetailContent({ postId, userId }: PostDetailContentProps) {
         replyingTo: null,
         replyParentId: postId,
       })
+      
+      // Refresh the post and replies data
       await fetchPostAndReplies()
+      
     } catch (error) {
       console.error("Error posting comment:", error)
-      setError("Failed to post comment")
+      setError(error instanceof Error ? error.message : "Failed to post comment")
     } finally {
       setIsPosting(false)
     }
@@ -193,7 +226,8 @@ export function PostDetailContent({ postId, userId }: PostDetailContentProps) {
       })
 
       if (!response.ok) {
-        throw new Error("Failed to toggle like")
+        const errorData = await response.json().catch(() => ({}))
+        throw new Error(errorData.error || "Failed to toggle like")
       }
 
       await fetchPostAndReplies()
@@ -212,7 +246,8 @@ export function PostDetailContent({ postId, userId }: PostDetailContentProps) {
       })
 
       if (!response.ok) {
-        throw new Error("Failed to toggle repost")
+        const errorData = await response.json().catch(() => ({}))
+        throw new Error(errorData.error || "Failed to toggle repost")
       }
 
       await fetchPostAndReplies()
@@ -300,6 +335,12 @@ export function PostDetailContent({ postId, userId }: PostDetailContentProps) {
           disabled={isPosting}
           autoFocus
           maxLength={280}
+          onKeyPress={(e) => {
+            if (e.key === 'Enter' && !e.shiftKey && commentState.text.trim()) {
+              e.preventDefault()
+              handlePostComment()
+            }
+          }}
         />
         <button
           type="button"
@@ -312,7 +353,7 @@ export function PostDetailContent({ postId, userId }: PostDetailContentProps) {
       </div>
 
       <Button
-        className="bg-blue-500 hover:bg-blue-600 text-white rounded-full px-4 py-2 text-sm font-medium"
+        className="bg-blue-500 hover:bg-blue-600 text-white rounded-full px-4 py-2 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
         disabled={!commentState.text.trim() || isPosting}
         onClick={handlePostComment}
       >
@@ -344,7 +385,10 @@ export function PostDetailContent({ postId, userId }: PostDetailContentProps) {
               <div className="ml-3">
                 <p className="text-sm text-red-700">{error}</p>
               </div>
-              <button onClick={() => setError(null)} className="ml-auto text-red-400 hover:text-red-600">
+              <button 
+                onClick={() => setError(null)} 
+                className="ml-auto text-red-400 hover:text-red-600 text-xl leading-none"
+              >
                 ×
               </button>
             </div>

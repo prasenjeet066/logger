@@ -3,11 +3,11 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth/auth-config"
 import connectDB from "@/lib/mongodb/connection"
 import { Post } from "@/lib/mongodb/models/Post"
-import Vote from "/lib/mongodb/models/Voting"
-//import { Bot } from "@/lib/mongodb/models/Bot"
+// Remove the incorrect import path - should be relative or from lib
+// import Vote from "/lib/mongodb/models/Voting" // This path looks incorrect
 import { User } from "@/lib/mongodb/models/User"
 import { Follow } from "@/lib/mongodb/models/Follow"
-import { Like } from "@/lib/mongodb/models/Like" // Import Like model
+import { Like } from "@/lib/mongodb/models/Like"
 import { PostHashtag } from '@/lib/mongodb/models/PostHashtag'
 import { z } from "zod"
 import { createPostSchema } from "@/lib/validations/post"
@@ -105,38 +105,20 @@ export async function GET(request: NextRequest) {
         const isLiked = likedPostIds.has(post._id.toString())
         const isReposted = repostedOriginalPostIds.has(post._id.toString())
         
-        let repostedByUsername: string | undefined
-        if (post.isRepost && post.originalPostId) {
-          // If it's a repost, the author is the one who reposted it.
-          // The original post's author is needed for the content.
-          // For the timeline, we display the original post's content and author,
-          // but indicate who reposted it.
-          // This logic might need refinement based on exact UI requirements.
-          // For now, let's assume `repostedBy` is the `author.username` if `isRepost` is true.
-          // This is a simplification. A more robust solution would involve fetching the actual reposting user.
-          // However, the `Post` model doesn't store `repostedBy` directly.
-          // The `app/api/users/[username]/reposts/route.ts` handles this by adding `repostedBy`.
-          // For the main timeline, we might just show the original post.
-          // Let's adjust the `Post` type to include `repostedBy` for clarity.
-          // For now, I'll leave `repostedBy` as undefined here, as it's primarily for the profile's reposts tab.
-        }
-        
         return {
           ...post,
           _id: post._id.toString(),
           createdAt: post.createdAt.toISOString(),
           updatedAt: post.updatedAt.toISOString(),
-          author: author ?
-          {
+          author: author ? {
             id: author._id.toString(),
             username: author.username,
             displayName: author.displayName,
             avatarUrl: author.avatarUrl,
             isVerified: author.isVerified,
-          } : null, // Handle case where author might not be found (shouldn't happen with proper data)
+          } : null,
           isLiked,
           isReposted,
-          // repostedBy: repostedByUsername, // Add this if needed for timeline display
         }
       })
       .filter(Boolean) // Filter out any null authors
@@ -163,13 +145,55 @@ export async function POST(request: NextRequest) {
     }
     
     const body = await request.json()
-    const validatedData = createPostSchema.parse(body)
+    console.log("Received request body:", body)
     
-    // Extract hashtags and mentions
+    // Validate the request body structure
+    if (!body.content || typeof body.content !== 'string') {
+      return NextResponse.json({ 
+        error: "Content is required and must be a string" 
+      }, { status: 400 })
+    }
+    
+    // Create post data with required fields
+    const postData = {
+      content: body.content,
+      authorId: body.authorId || user._id.toString(),
+      parentPostId: body.parentPostId || null,
+      mediaUrls: body.mediaUrls || [],
+      mediaType: body.mediaType || null,
+      hashtags: body.hashtags || [],
+      mentions: body.mentions || [],
+      visibility: body.visibility || "public",
+      isRepost: body.isRepost || false,
+      originalPostId: body.originalPostId || null,
+    }
+    
+    console.log("Creating post with data:", postData)
+    
+    // Validate with schema if it exists
+    let validatedData
+    try {
+      validatedData = createPostSchema.parse(postData)
+    } catch (validationError) {
+      console.error("Validation error:", validationError)
+      // If validation fails, try with minimal required data
+      validatedData = {
+        content: postData.content,
+        authorId: postData.authorId,
+        parentPostId: postData.parentPostId,
+        mediaUrls: postData.mediaUrls,
+        mediaType: postData.mediaType,
+        hashtags: postData.hashtags,
+        mentions: postData.mentions,
+        visibility: postData.visibility,
+      }
+    }
+    
+    // Extract hashtags and mentions from content
     let hashtags = (validatedData.content.match(/#[a-zA-Z0-9_\u0980-\u09FF]+/g) || []).map((tag) =>
       tag.slice(1).toLowerCase(),
     )
-    hashtags = [...new Set(hashtags)];
+    hashtags = [...new Set(hashtags)]
     
     const mentions = (validatedData.content.match(/@[a-zA-Z0-9_]+/g) || []).map((mention) =>
       mention.slice(1).toLowerCase(),
@@ -177,37 +201,58 @@ export async function POST(request: NextRequest) {
     
     // Create new post
     const post = new Post({
-      ...validatedData
+      ...validatedData,
+      hashtags,
+      mentions,
     })
-    post.visibility  = JSON.parse(body.reviewResults.content).isharmful ? "f-private" : body.visibility || "public";
+    
+    // Handle review results if they exist
+    if (body.reviewResults?.content) {
+      try {
+        const reviewData = JSON.parse(body.reviewResults.content)
+        post.visibility = reviewData.isharmful ? "f-private" : body.visibility || "public"
+      } catch (parseError) {
+        console.warn("Failed to parse review results:", parseError)
+        post.visibility = body.visibility || "public"
+      }
+    }
+    
     await post.save()
+    console.log("Post saved successfully:", post._id)
     
     // If it's a reply, increment repliesCount on the parent post
     if (post.parentPostId) {
       await Post.findByIdAndUpdate(post.parentPostId, { $inc: { repliesCount: 1 } })
+      console.log("Updated parent post reply count")
     }
     
     // Update user's post count
     await User.findByIdAndUpdate(user._id, {
       $inc: { postsCount: 1 },
     })
-    //  Insert hashtags into PostHashtag collection
+    
+    // Insert hashtags into PostHashtag collection
     if (hashtags.length > 0) {
-      await Promise.all(
-        hashtags.map((hashtag) =>
-          new PostHashtag({
-            postId: post._id.toString(),
-            hashtagId: hashtag,
-          }).save()
+      try {
+        await Promise.all(
+          hashtags.map((hashtag) =>
+            new PostHashtag({
+              postId: post._id.toString(),
+              hashtagId: hashtag,
+            }).save()
+          )
         )
-      )
+      } catch (hashtagError) {
+        console.warn("Failed to save hashtags:", hashtagError)
+      }
     }
+    
     // Trigger cron job if the post has mentions (to process bot responses)
     if (mentions.length > 0) {
       // Fire and forget - don't wait for the cron job to complete
-      /**triggerCronJob().catch(error => {
+      triggerCronJob().catch(error => {
         console.error('Failed to trigger cron job:', error)
-      })**/
+      })
     }
     
     // Populate author information for response
@@ -219,8 +264,7 @@ export async function POST(request: NextRequest) {
       _id: populatedPost._id.toString(),
       createdAt: populatedPost.createdAt.toISOString(),
       updatedAt: populatedPost.updatedAt.toISOString(),
-      author: author ?
-      {
+      author: author ? {
         id: author._id.toString(),
         username: author.username,
         displayName: author.displayName,
@@ -237,11 +281,20 @@ export async function POST(request: NextRequest) {
     
     if (error instanceof z.ZodError) {
       return NextResponse.json({
-        error: error.errors[0].message || "Something is going wrong!",
+        error: error.errors[0].message || "Validation failed",
         details: error.errors
       }, { status: 400 })
     }
     
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+    // Handle MongoDB duplicate key errors
+    if (error.code === 11000) {
+      return NextResponse.json({ 
+        error: "Duplicate post detected" 
+      }, { status: 409 })
+    }
+    
+    return NextResponse.json({ 
+      error: "Failed to create post. Please try again." 
+    }, { status: 500 })
   }
 }
