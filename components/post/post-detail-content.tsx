@@ -8,6 +8,8 @@ import { PostSection } from "@/components/post/post-section"
 import { Button } from "@/components/ui/button"
 import { ArrowLeft, Loader2, Paperclip } from "lucide-react"
 import Image from "next/image"
+import { fetchCurrentUser } from "@/store/slices/authSlice"
+import { useAppDispatch, useAppSelector } from "@/store/main"
 
 interface PostDetailContentProps {
   postId: string
@@ -63,7 +65,7 @@ type CommentState = {
 export function PostDetailContent({ postId, userId }: PostDetailContentProps) {
   const [post, setPost] = useState<Post | null>(null)
   const [replies, setReplies] = useState<Reply[]>([])
-  const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null)
+  
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const router = useRouter()
@@ -73,10 +75,19 @@ export function PostDetailContent({ postId, userId }: PostDetailContentProps) {
     replyingTo: null,
     replyParentId: postId,
   })
+  const dispatch = useAppDispatch()
+  const authState = useAppSelector((state) => state.auth)
+  const { currentUser = null } = authState || {}
   const [isPosting, setIsPosting] = useState(false)
 
   useEffect(() => {
-    fetchCurrentUser()
+    const fetchCurrentUserData=  async () => {
+      try {
+        dispatch(fetchCurrentUser())
+      } catch (e) {
+        setError(e)
+      }
+    }
     fetchPostAndReplies()
     updateWatch()
     // Reset comment state when postId changes
@@ -85,7 +96,8 @@ export function PostDetailContent({ postId, userId }: PostDetailContentProps) {
       replyingTo: null,
       replyParentId: postId,
     })
-  }, [postId, userId])
+    fetchCurrentUserData()
+  }, [postId, userId , dispatch])
   
   const updateWatch = async () => {
     try {
@@ -106,7 +118,7 @@ export function PostDetailContent({ postId, userId }: PostDetailContentProps) {
     }
   }
   
-  const fetchCurrentUser = async () => {
+  /**const fetchCurrentUser = async () => {
     try {
       const response = await fetch(`/api/users/current`)
       if (!response.ok) {
@@ -118,7 +130,7 @@ export function PostDetailContent({ postId, userId }: PostDetailContentProps) {
       console.error("Error fetching current user:", error)
       setError("Failed to load user data")
     }
-  }
+  }**/
 
   const fetchPostAndReplies = async () => {
     try {
