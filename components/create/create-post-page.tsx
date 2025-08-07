@@ -17,6 +17,19 @@ import { useAppDispatch, useAppSelector } from "@/store/main"
 import {
   nsfwMedia
 } from "@/store/slices/postsSlice"
+import {
+  setUploadedFiles,
+  addUploadedFiles,
+  removeUploadedFile,
+  setGiphyMedia,
+  addGiphyMedia,
+  removeGiphyMedia,
+  setIsPosting,
+  setError,
+  setIsPosted,
+  resetPostState,
+  setPoll,
+} from "@/store/slices/underPostSlice"
 import type { UploadResult } from "@/lib/blob/client"
 import {
   ImageIcon,
@@ -55,29 +68,33 @@ interface GiphyMedia {
 export default function CreatePostPage({ user }: CreatePostPageProps) {
   const { data: session } = useSession()
   const router = useRouter()
-  const contentEditableRef = useRef < HTMLDivElement > (null)
+  const dispatch = useAppDispatch()
+  
+  // Redux selectors
+  const {
+    uploadedFiles,
+    giphyMedia,
+    isPosting,
+    error,
+    isPosted,
+    poll
+  } = useAppSelector((state) => state.createPost)
+  const nsfwResults = useAppSelector((state) => state.posts.nsfwResults)
+  
+  // Local state (UI-specific)
+  const contentEditableRef = useRef<HTMLDivElement>(null)
   const [content, setContent] = useState("")
-  const [uploadedFiles, setUploadedFiles] = useState < UploadResult[] > ([])
-  const [giphyMedia, setGiphyMedia] = useState < GiphyMedia[] > ([])
-  const [gifs, setGifs] = useState < any[] > ([])
-  const [isPosting, setIsPosting] = useState(false)
-  const [error, setError] = useState("")
+  const [gifs, setGifs] = useState<any[]>([])
   const [showGiphyPicker, setShowGiphyPicker] = useState(false)
   const [showFileUpload, setShowFileUpload] = useState(false)
-  
-  const [isPosted, setIsPosted] = useState(false)
-  const [showPollCreator, setShowPollCreator] = useState(false)
-  const [pollQuestion, setPollQuestion] = useState("")
-  const [pollOptions, setPollOptions] = useState < string[] > (["", ""])
-  const [pollDuration, setPollDuration] = useState("1 day")
   const [showAddOptions, setShowAddOptions] = useState(false)
-  const cursorPositionRef = useRef < { node: Node | null;offset: number } | null > (null)
-  const [imageReview, setInageReview] = useState(null)
+  const cursorPositionRef = useRef<{ node: Node | null; offset: number } | null>(null)
+  
   const characterCount = content.length
   const isOverLimit = characterCount > MAX_CHARACTERS
   const progressPercentage = (characterCount / MAX_CHARACTERS) * 100
   const totalMediaCount = uploadedFiles.length + giphyMedia.length
-  const nsfwResults = useAppSelector((state) => state.posts.nsfwResults)
+  
   const getProgressColor = () => {
     if (progressPercentage < 70) return "bg-green-500"
     if (progressPercentage < 90) return "bg-yellow-500"
@@ -87,7 +104,7 @@ export default function CreatePostPage({ user }: CreatePostPageProps) {
   useEffect(() => {
     fetchTrending()
   }, [])
-  const dispatch = useAppDispatch()
+  
   const fetchTrending = async () => {
     try {
       const gifsResponse = await fetch(`${GIPHY_BASE_URL}/gifs/trending?api_key=${GIPHY_API_KEY}&limit=20&rating=g`)
@@ -100,43 +117,45 @@ export default function CreatePostPage({ user }: CreatePostPageProps) {
       )
     } catch (error) {
       console.error("Error fetching trending media:", error)
-      setError("Failed to load trending GIFs")
+      dispatch(setError("Failed to load trending GIFs"))
     }
   }
   
   const handleAddPollOption = () => {
-    if (pollOptions.length < MAX_POLL_OPTIONS) {
-      setPollOptions([...pollOptions, ""])
+    if (poll.options.length < MAX_POLL_OPTIONS) {
+      dispatch(setPoll({ options: [...poll.options, ""] }))
     }
   }
   
   const handleRemovePollOption = (index: number) => {
-    if (pollOptions.length > MIN_POLL_OPTIONS) {
-      setPollOptions(pollOptions.filter((_, i) => i !== index))
+    if (poll.options.length > MIN_POLL_OPTIONS) {
+      dispatch(setPoll({ options: poll.options.filter((_, i) => i !== index) }))
     }
   }
   
   const handlePollOptionChange = (index: number, value: string) => {
-    const newOptions = [...pollOptions]
+    const newOptions = [...poll.options]
     newOptions[index] = value
-    setPollOptions(newOptions)
+    dispatch(setPoll({ options: newOptions }))
   }
   
   const handleCancelPoll = () => {
-    setShowPollCreator(false)
-    setPollQuestion("")
-    setPollOptions(["", ""])
-    setPollDuration("1 day")
-    setError("")
+    dispatch(setPoll({
+      show: false,
+      question: "",
+      options: ["", ""],
+      duration: "1 day"
+    }))
+    dispatch(setError(null))
   }
   
   const handleFilesUploaded = useCallback((files: UploadResult[]) => {
-    setUploadedFiles((prev) => [...prev, ...files])
+    dispatch(addUploadedFiles(files))
     setShowFileUpload(false)
-  }, [])
+  }, [dispatch])
   
-  const removeUploadedFile = (urlToRemove: string) => {
-    setUploadedFiles((prev) => prev.filter((file) => file.url !== urlToRemove))
+  const handleRemoveUploadedFile = (urlToRemove: string) => {
+    dispatch(removeUploadedFile(urlToRemove))
   }
   
   const handleGiphySelect = (gif: any, type: "gif" | "sticker") => {
@@ -147,17 +166,17 @@ export default function CreatePostPage({ user }: CreatePostPageProps) {
     }
     
     if (totalMediaCount >= MAX_MEDIA_FILES) {
-      setError("You can only add up to 4 media items")
+      dispatch(setError("You can only add up to 4 media items"))
       return
     }
     
-    setGiphyMedia((prev) => [...prev, giphyItem])
+    dispatch(addGiphyMedia(giphyItem))
     setShowGiphyPicker(false)
-    setError("")
+    dispatch(setError(null))
   }
   
-  const removeGiphyMedia = (index: number) => {
-    setGiphyMedia((prev) => prev.filter((_, i) => i !== index))
+  const handleRemoveGiphyMedia = (id: string) => {
+    dispatch(removeGiphyMedia(id))
   }
   
   const insertText = (text: string) => {
@@ -181,58 +200,58 @@ export default function CreatePostPage({ user }: CreatePostPageProps) {
   }
   
   const handlePost = async () => {
-    if (!content.trim() && totalMediaCount === 0 && !showPollCreator) {
-      setError("Please add some content, media, or a poll to your post.");
-      return;
+    if (!content.trim() && totalMediaCount === 0 && !poll.show) {
+      dispatch(setError("Please add some content, media, or a poll to your post."))
+      return
     }
     
     if (isOverLimit) {
-      setError(`Please keep your post under ${MAX_CHARACTERS} characters.`);
-      return;
+      dispatch(setError(`Please keep your post under ${MAX_CHARACTERS} characters.`))
+      return
     }
     
-    if (showPollCreator) {
-      if (!pollQuestion.trim()) {
-        setError("Poll question cannot be empty.");
-        return;
+    if (poll.show) {
+      if (!poll.question.trim()) {
+        dispatch(setError("Poll question cannot be empty."))
+        return
       }
       
-      const trimmedOptions = pollOptions.filter((opt) => opt.trim());
+      const trimmedOptions = poll.options.filter((opt) => opt.trim())
       if (trimmedOptions.length < MIN_POLL_OPTIONS) {
-        setError(`Please provide at least ${MIN_POLL_OPTIONS} non-empty poll options.`);
-        return;
+        dispatch(setError(`Please provide at least ${MIN_POLL_OPTIONS} non-empty poll options.`))
+        return
       }
       
-      if (!pollDuration) {
-        setError("Please select a poll duration.");
-        return;
+      if (!poll.duration) {
+        dispatch(setError("Please select a poll duration."))
+        return
       }
     }
     
-    setIsPosting(true);
-    setError("");
+    dispatch(setIsPosting(true))
+    dispatch(setError(null))
     
     try {
-      const validatedData = createPostSchema.parse({ content });
+      const validatedData = createPostSchema.parse({ content })
       
-      const uploadedMediaUrls = uploadedFiles.map((file) => file.url);
-      const giphyUrls = giphyMedia.map((gif) => gif.url);
-      const allMediaUrls = [...uploadedMediaUrls, ...giphyUrls];
+      const uploadedMediaUrls = uploadedFiles.map((file) => file.url)
+      const giphyUrls = giphyMedia.map((gif) => gif.url)
+      const allMediaUrls = [...uploadedMediaUrls, ...giphyUrls]
       
-      let mediaType: string | null = null;
+      let mediaType: string | null = null
       if (allMediaUrls.length > 0) {
-        const hasVideo = uploadedFiles.some((file) => file.contentType.startsWith("video/"));
+        const hasVideo = uploadedFiles.some((file) => file.contentType.startsWith("video/"))
         if (hasVideo) {
-          mediaType = "video";
+          mediaType = "video"
         } else if (giphyMedia.length > 0) {
-          mediaType = "gif";
+          mediaType = "gif"
         } else {
-          mediaType = "image";
+          mediaType = "image"
         }
       }
       
       // 🔍 Run AI fact-check review
-      let reviewResults = null;
+      let reviewResults = null
       try {
         const aiResponse = await fetch("/api/context/ai/factCheck/", {
           method: "POST",
@@ -240,20 +259,20 @@ export default function CreatePostPage({ user }: CreatePostPageProps) {
           body: JSON.stringify({
             messages: [{ role: "user", content: validatedData.content }],
           }),
-        });
+        })
         
         if (aiResponse.ok) {
-          reviewResults = await aiResponse.json();
+          reviewResults = await aiResponse.json()
         } else {
-          console.warn("AI fact-check failed with status:", aiResponse.status);
+          console.warn("AI fact-check failed with status:", aiResponse.status)
         }
       } catch (aiError) {
-        console.warn("AI fact-check error:", aiError);
+        console.warn("AI fact-check error:", aiError)
         // Continue gracefully
       }
       
       // 🔞 Get NSFW detection results from Redux
-      const currentNsfwResults = Object.keys(nsfwResults || {}).length > 0 ? nsfwResults : null;
+      const currentNsfwResults = Object.keys(nsfwResults || {}).length > 0 ? nsfwResults : null
       
       // 🚀 Submit post to backend
       const response = await fetch("/api/posts", {
@@ -265,28 +284,30 @@ export default function CreatePostPage({ user }: CreatePostPageProps) {
           mediaType,
           reviewResults,
           imageNSFW: currentNsfwResults,
+          ...(poll.show && {
+            poll: {
+              question: poll.question,
+              options: poll.options.filter(opt => opt.trim()),
+              duration: poll.duration
+            }
+          })
         }),
-      });
+      })
       
       if (!response.ok) {
-        const errorData = await response.json();
-        setError(errorData.error || "Failed to create post");
-        return;
+        const errorData = await response.json()
+        dispatch(setError(errorData.error || "Failed to create post"))
+        return
       }
       
-      const postData = await response.json();
+      const postData = await response.json()
       
       // ✅ Reset state after successful post
-      setUploadedFiles([]);
-      setGiphyMedia([]);
-      setContent("");
-      setShowPollCreator(false);
-      setPollQuestion("");
-      setPollOptions(["", ""]);
-      setPollDuration("1 day");
+      dispatch(resetPostState())
+      setContent("")
       if (contentEditableRef.current) {
-        contentEditableRef.current.textContent = "";
-        contentEditableRef.current.classList.add("placeholder-shown");
+        contentEditableRef.current.textContent = ""
+        contentEditableRef.current.classList.add("placeholder-shown")
       }
       
       toast("Post has been created", {
@@ -294,17 +315,17 @@ export default function CreatePostPage({ user }: CreatePostPageProps) {
           label: "View",
           onClick: () => router.push("/dashboard"),
         },
-      });
+      })
       
-      setIsPosted(true);
-      router.push("/dashboard");
+      dispatch(setIsPosted(true))
+      router.push("/dashboard")
     } catch (err: any) {
-      console.error("Post submission error:", err);
-      setError(err.message || "An error occurred while submitting the post.");
+      console.error("Post submission error:", err)
+      dispatch(setError(err.message || "An error occurred while submitting the post."))
     } finally {
-      setIsPosting(false);
+      dispatch(setIsPosting(false))
     }
-  };
+  }
   
   const remainingChars = MAX_CHARACTERS - characterCount
   
@@ -341,7 +362,12 @@ export default function CreatePostPage({ user }: CreatePostPageProps) {
       onClick: () => setShowGiphyPicker(true),
       disabled: totalMediaCount >= MAX_MEDIA_FILES,
     },
-    
+    {
+      icon: Vote,
+      label: "Poll",
+      onClick: () => dispatch(setPoll({ show: !poll.show })),
+      disabled: false,
+    },
     { icon: FileWarning, label: "Lost Notice", onClick: () => console.log("Lost Notice clicked") },
     { icon: Calendar, label: "Event", onClick: () => console.log("Event clicked") },
   ]
@@ -408,19 +434,20 @@ export default function CreatePostPage({ user }: CreatePostPageProps) {
   useEffect(() => {
     if (uploadedFiles.length > 0) {
       uploadedFiles.forEach((file) => {
-        const isImage = file.contentType.startsWith("image/");
+        const isImage = file.contentType.startsWith("image/")
         if (isImage) {
           // Generate a temporary ID for the post or use a placeholder
-          const tempPostId = `temp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+          const tempPostId = `temp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
           
           dispatch(nsfwMedia({
             postId: tempPostId, // Provide a valid string ID
             mediaUrls: [file.url]
-          }));
+          }))
         }
-      });
+      })
     }
-  }, [uploadedFiles, dispatch]);
+  }, [uploadedFiles, dispatch])
+
   return (
     <div className="min-h-screen bg-white">
       <div className="sticky top-0 z-50 bg-white border-b border-gray-200">
@@ -431,7 +458,7 @@ export default function CreatePostPage({ user }: CreatePostPageProps) {
           <h1 className="text-lg font-semibold">Create Post</h1>
           <Button
             onClick={handlePost}
-            disabled={isPosting || (!content.trim() && totalMediaCount === 0 && !showPollCreator) || isOverLimit}
+            disabled={isPosting || (!content.trim() && totalMediaCount === 0 && !poll.show) || isOverLimit}
             className="text-white px-4 py-2 rounded-full border font-semibold"
           >
             {isPosting ? <Spinner className="h-5 w-5" /> : "Post"}
@@ -446,43 +473,40 @@ export default function CreatePostPage({ user }: CreatePostPageProps) {
             <AvatarFallback>{"U"}</AvatarFallback>
           </Avatar>
           <div className='flex flex-col items-start justify-center'>
-            <span className="font-semibold text-lg">{session?.user?. displayName|| "User"}</span>
+            <span className="font-semibold text-lg">{session?.user?.displayName || "User"}</span>
             <span className="text-xs text-gray-600">@{session?.user?.username || "username"}</span>
           </div>
         </div>
 
         <div className="mb-4">
-          
-            <>
-              <div
-                ref={contentEditableRef}
-                className="w-full border-0 resize-none text-lg focus:ring-0 outline-none"
-                style={{ minHeight: "120px" }}
-                contentEditable
-                suppressContentEditableWarning
-                onInput={(e) => {
-                  if (contentEditableRef.current) {
-                    const offset = getCaretCharacterOffset(contentEditableRef.current)
-                    cursorPositionRef.current = { node: null, offset: offset }
-                  }
-                  setContent(e.currentTarget.textContent || "")
-                }}
-                data-placeholder="What do you want to talk about?"
-                onFocus={(e) => {
-                  if (e.target.textContent === e.target.dataset.placeholder) {
-                    e.target.textContent = ""
-                    e.target.classList.remove("placeholder-shown")
-                  }
-                }}
-                onBlur={(e) => {
-                  if (!e.target.textContent?.trim()) {
-                    e.target.textContent = e.target.dataset.placeholder || ""
-                    e.target.classList.add("placeholder-shown")
-                  }
-                }}
-                dangerouslySetInnerHTML={{ __html: content ? highlightContent(content) : "" }}
-              />
-            </>
+          <div
+            ref={contentEditableRef}
+            className="w-full border-0 resize-none text-lg focus:ring-0 outline-none"
+            style={{ minHeight: "120px" }}
+            contentEditable
+            suppressContentEditableWarning
+            onInput={(e) => {
+              if (contentEditableRef.current) {
+                const offset = getCaretCharacterOffset(contentEditableRef.current)
+                cursorPositionRef.current = { node: null, offset: offset }
+              }
+              setContent(e.currentTarget.textContent || "")
+            }}
+            data-placeholder="What do you want to talk about?"
+            onFocus={(e) => {
+              if (e.target.textContent === e.target.dataset.placeholder) {
+                e.target.textContent = ""
+                e.target.classList.remove("placeholder-shown")
+              }
+            }}
+            onBlur={(e) => {
+              if (!e.target.textContent?.trim()) {
+                e.target.textContent = e.target.dataset.placeholder || ""
+                e.target.classList.add("placeholder-shown")
+              }
+            }}
+            dangerouslySetInnerHTML={{ __html: content ? highlightContent(content) : "" }}
+          />
           
           <style jsx>{`
             [contenteditable][data-placeholder]:empty:before {
@@ -498,8 +522,73 @@ export default function CreatePostPage({ user }: CreatePostPageProps) {
               display: block;
             }
           `}</style>
-        
         </div>
+
+        {/* Poll Creator */}
+        {poll.show && (
+          <div className="mb-4 p-4 border border-gray-200 rounded-lg bg-gray-50">
+            <div className="flex justify-between items-center mb-3">
+              <h3 className="font-semibold text-lg">Create Poll</h3>
+              <Button variant="ghost" size="sm" onClick={handleCancelPoll}>
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+            
+            <Input
+              placeholder="Ask a question..."
+              value={poll.question}
+              onChange={(e) => dispatch(setPoll({ question: e.target.value }))}
+              className="mb-3"
+            />
+            
+            <div className="space-y-2 mb-3">
+              {poll.options.map((option, index) => (
+                <div key={index} className="flex gap-2">
+                  <Input
+                    placeholder={`Option ${index + 1}`}
+                    value={option}
+                    onChange={(e) => handlePollOptionChange(index, e.target.value)}
+                    className="flex-1"
+                  />
+                  {poll.options.length > MIN_POLL_OPTIONS && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => handleRemovePollOption(index)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
+              ))}
+            </div>
+            
+            {poll.options.length < MAX_POLL_OPTIONS && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleAddPollOption}
+                className="mb-3"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Add Option
+              </Button>
+            )}
+            
+            <Select value={poll.duration} onValueChange={(value) => dispatch(setPoll({ duration: value }))}>
+              <SelectTrigger>
+                <SelectValue placeholder="Poll duration" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="1 hour">1 Hour</SelectItem>
+                <SelectItem value="6 hours">6 Hours</SelectItem>
+                <SelectItem value="1 day">1 Day</SelectItem>
+                <SelectItem value="3 days">3 Days</SelectItem>
+                <SelectItem value="7 days">7 Days</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        )}
 
         {/* Media Previews */}
         {(uploadedFiles.length > 0 || giphyMedia.length > 0) && (
@@ -519,25 +608,59 @@ export default function CreatePostPage({ user }: CreatePostPageProps) {
                   variant="ghost"
                   size="icon"
                   className="absolute top-1 right-1 bg-black bg-opacity-50 text-white rounded-full h-6 w-6"
-                  onClick={() => removeUploadedFile(file.url)}
+                  onClick={() => handleRemoveUploadedFile(file.url)}
                 >
                   <X className="h-4 w-4" />
                 </Button>
               </div>
             ))}
-            {giphyMedia.map((gif, index) => (
+            {giphyMedia.map((gif) => (
               <div key={gif.id} className="relative aspect-video rounded-lg overflow-hidden border border-gray-200">
                 <img src={gif.url || "/placeholder.svg"} alt="Giphy media" className="w-full h-full object-cover" />
                 <Button
                   variant="ghost"
                   size="icon"
                   className="absolute top-1 right-1 bg-black bg-opacity-50 text-white rounded-full h-6 w-6"
-                  onClick={() => removeGiphyMedia(index)}
+                  onClick={() => handleRemoveGiphyMedia(gif.id)}
                 >
                   <X className="h-4 w-4" />
                 </Button>
               </div>
             ))}
+          </div>
+        )}
+
+        {/* Character Counter */}
+        {content.length > 0 && (
+          <div className="flex items-center justify-between mt-2 mb-4">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 relative">
+                <svg className="w-8 h-8 transform -rotate-90">
+                  <circle
+                    cx="16"
+                    cy="16"
+                    r="14"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    fill="none"
+                    className="text-gray-200"
+                  />
+                  <circle
+                    cx="16"
+                    cy="16"
+                    r="14"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    fill="none"
+                    strokeDasharray={`${progressPercentage * 0.88} 88`}
+                    className={getProgressColor()}
+                  />
+                </svg>
+              </div>
+              <span className={`text-sm ${isOverLimit ? 'text-red-500' : 'text-gray-500'}`}>
+                {remainingChars}
+              </span>
+            </div>
           </div>
         )}
 
@@ -557,7 +680,7 @@ export default function CreatePostPage({ user }: CreatePostPageProps) {
                 <Card
                   key={index}
                   className="flex items-center justify-between p-4 bg-blue-50 border-none cursor-pointer hover:bg-gray-50 transition-colors shadow-none"
-                  onClick={option.onClick}
+                  onClick={option.disabled ? undefined : option.onClick}
                   tabIndex={option.disabled ? -1 : 0}
                   aria-disabled={option.disabled}
                   style={option.disabled ? { opacity: 0.6, cursor: "not-allowed" } : {}}
