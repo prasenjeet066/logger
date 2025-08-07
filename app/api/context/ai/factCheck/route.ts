@@ -5,31 +5,34 @@ const client = new InferenceClient(process.env.HUGGINGFACE_API_KEY);
 
 export async function POST(req: NextRequest) {
   try {
-    // Parse request body (expecting: { messages: [...] })
     const body = await req.json();
     
-    // Validate messages format
     if (!body.messages || !Array.isArray(body.messages)) {
       return NextResponse.json({ error: "Missing or invalid 'messages' array." }, { status: 400 });
     }
     
-    // Call Hugging Face Inference
+    // Insert a system prompt to guide the model's behavior
+    const systemPrompt = {
+      role: "system",
+      content: "You are a fact-checking assistant. Check if the information is true, harmful, or contains adult content. Keep the reply neutral, concise, and accurate."
+    };
+    
+    const fullMessages = [systemPrompt, ...body.messages];
+    
     const chatCompletion = await client.chatCompletion({
-      model: "microsoft/DialoGPT-medium", // Use a more reliable model
-      messages: body.messages,
+      model: "Qwen/Qwen3-Coder-30B-A3B-Instruct",
+      messages: fullMessages,
       max_tokens: 500,
       temperature: 0.7,
     });
     
-    // Parse the response and structure it according to your schema
     const content = chatCompletion.choices[0].message.content || "";
     
-    // Create a structured response (you may want to use a more sophisticated parsing method)
     const structuredResponse = {
       factCheck: content,
-      isTrueInfo: true, // You'd need AI to determine this
-      isHarmful: false, // You'd need AI to determine this
-      isAdultContent: false, // You'd need AI to determine this
+      isTrueInfo: true, // Placeholder: You can add logic to parse flags from content
+      isHarmful: false,
+      isAdultContent: false,
       oneLineAboutThisText: content.substring(0, 100),
       writeReportWithSrc: content
     };
