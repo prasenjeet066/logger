@@ -3,8 +3,6 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth/auth-config"
 import connectDB from "@/lib/mongodb/connection"
 import { Post } from "@/lib/mongodb/models/Post"
-// Remove the incorrect import path - should be relative or from lib
-// import Vote from "/lib/mongodb/models/Voting" // This path looks incorrect
 import { User } from "@/lib/mongodb/models/User"
 import { Follow } from "@/lib/mongodb/models/Follow"
 import { Like } from "@/lib/mongodb/models/Like"
@@ -62,6 +60,7 @@ export async function GET(request: NextRequest) {
     // Get posts from followed users and own posts
     const posts = await Post.find({
         authorId: { $in: followingIds },
+        visibility: { $in: ["public", undefined, null] } // Only show public posts in feed
       })
       .sort({ createdAt: -1 })
       .skip(skip)
@@ -153,97 +152,113 @@ export async function POST(request: NextRequest) {
         error: "Content is required and must be a string" 
       }, { status: 400 })
     }
-    
-    // Create post data with required fields
-    const postData = {
-      content: body.content,
-      authorId: body.authorId || user._id.toString(),
-      parentPostId: body.parentPostId || null,
-      mediaUrls: body.mediaUrls || [],
-      mediaType: body.mediaType || null,
-      hashtags: body.hashtags || [],
-      mentions: body.mentions || [],
-      visibility: body.visibility || "public",
-      isRepost: body.isRepost || false,
-      originalPostId: body.originalPostId || null,
-    }
-    
-    console.log("Creating post with data:", postData)
-    
-    // Validate with schema if it exists
-    let validatedData
-    try {
-      validatedData = createPostSchema.parse(postData)
-    } catch (validationError) {
-      console.error("Validation error:", validationError)
-      // If validation fails, try with minimal required data
-      validatedData = {
-        content: postData.content,
-        authorId: postData.authorId,
-        parentPostId: postData.parentPostId,
-        mediaUrls: postData.mediaUrls,
-        mediaType: postData.mediaType,
-        hashtags: postData.hashtags,
-        mentions: postData.mentions,
-        visibility: postData.visibility,
-      }
-    }
-    
+
     // Extract hashtags and mentions from content
-    let hashtags = (validatedData.content.match(/#[a-zA-Z0-9_\u0980-\u09FF]+/g) || []).map((tag) =>
+    let hashtags = (body.content.match(/#[a-zA-Z0-9_\u0980-\u09FF]+/g) || []).map((tag) =>
       tag.slice(1).toLowerCase(),
     )
     hashtags = [...new Set(hashtags)]
     
-    const mentions = (validatedData.content.match(/@[a-zA-Z0-9_]+/g) || []).map((mention) =>
+    const mentions = (body.content.match(/@[a-zA-Z0-9_]+/g) || []).map((mention) =>
       mention.slice(1).toLowerCase(),
     )
     
-    // Create new post
-    const post = new Post({
-      ...validatedData,
-      hashtags,
-      mentions,
-    })
+    // Create post data with required fields - matching your Post model
+    const postData = {
+      content: body.content.trim(),
+      authorId: user._id.toString(), // Use authenticated user's ID
+      parentPostId: body.parentPostId || null,
+      mediaUrls: Array.isArray(body.mediaUrls) ? body.mediaUrls : [],
+      mediaType: body.mediaType || null,
+      hashtags: hashtags,
+      mentions: mentions,
+      visibility: body.visibility || "public",
+      isRepost: Boolean(body.isRepost),
+      originalPostId: body.originalPostId || null,
+      // Add fields from your Post model that might be missing
+      likesCount: 0,
+      repostsCount: 0,
+      repliesCount: 0,
+      watch: 0,
+      isPinned: false,
+      processed: false,
+      reviewResults: body.reviewResults || null,
+      restrictions: null,
+      imageNSFW: body.imageNSFW || null,
+      watchedBy: []
+    }
+    
+    console.log("Creating post with data:", postData)
+    
+    // Simple validation for required fields
+    if (!postData.content.trim()) {
+      return NextResponse.json({ 
+        error: "Content cannot be empty" 
+      }, { status: 400 })
+    }
+
+    if (postData.content.length > 380) { // Updated to match your frontend limit
+      return NextResponse.json({ 
+        error: "Content exceeds maximum length of 380 characters" 
+      }, { status: 400 })
+    }
     
     // Handle review results if they exist
     if (body.reviewResults?.content) {
       try {
         const reviewData = JSON.parse(body.reviewResults.content)
-        post.visibility = reviewData.isharmful ? "f-private" : body.visibility || "public"
+        postData.visibility = reviewData.isharmful ? "f-private" : (body.visibility || "public")
       } catch (parseError) {
         console.warn("Failed to parse review results:", parseError)
-        post.visibility = body.visibility || "public"
+        postData.visibility = body.visibility || "public"
       }
     }
     
+    // Create new post directly
+    const post = new Post(postData)
     await post.save()
+    
     console.log("Post saved successfully:", post._id)
     
     // If it's a reply, increment repliesCount on the parent post
     if (post.parentPostId) {
-      await Post.findByIdAndUpdate(post.parentPostId, { $inc: { repliesCount: 1 } })
-      console.log("Updated parent post reply count")
+      try {
+        await Post.findByIdAndUpdate(post.parentPostId, { $inc: { repliesCount: 1 } })
+        console.log("Updated parent post reply count")
+      } catch (parentUpdateError) {
+        console.warn("Failed to update parent post:", parentUpdateError)
+        // Don't fail the entire operation for this
+      }
     }
     
     // Update user's post count
-    await User.findByIdAndUpdate(user._id, {
-      $inc: { postsCount: 1 },
-    })
+    try {
+      await User.findByIdAndUpdate(user._id, {
+        $inc: { postsCount: 1 },
+      })
+    } catch (userUpdateError) {
+      console.warn("Failed to update user post count:", userUpdateError)
+      // Don't fail the entire operation for this
+    }
     
     // Insert hashtags into PostHashtag collection
     if (hashtags.length > 0) {
       try {
         await Promise.all(
-          hashtags.map((hashtag) =>
-            new PostHashtag({
-              postId: post._id.toString(),
-              hashtagId: hashtag,
-            }).save()
-          )
+          hashtags.map(async (hashtag) => {
+            try {
+              return await new PostHashtag({
+                postId: post._id.toString(),
+                hashtagId: hashtag,
+              }).save()
+            } catch (hashtagError) {
+              console.warn(`Failed to save hashtag ${hashtag}:`, hashtagError)
+              return null
+            }
+          })
         )
       } catch (hashtagError) {
-        console.warn("Failed to save hashtags:", hashtagError)
+        console.warn("Failed to save some hashtags:", hashtagError)
       }
     }
     
@@ -255,15 +270,15 @@ export async function POST(request: NextRequest) {
       })
     }
     
-    // Populate author information for response
-    const populatedPost = await Post.findById(post._id).lean()
+    // Get fresh post data for response
+    const savedPost = await Post.findById(post._id).lean()
     const author = await User.findById(user._id).select("username displayName avatarUrl isVerified").lean()
     
     const postResponse = {
-      ...populatedPost,
-      _id: populatedPost._id.toString(),
-      createdAt: populatedPost.createdAt.toISOString(),
-      updatedAt: populatedPost.updatedAt.toISOString(),
+      ...savedPost,
+      _id: savedPost._id.toString(),
+      createdAt: savedPost.createdAt.toISOString(),
+      updatedAt: savedPost.updatedAt.toISOString(),
       author: author ? {
         id: author._id.toString(),
         username: author.username,
@@ -279,10 +294,19 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error("Create post error:", error)
     
+    // Handle Zod validation errors
     if (error instanceof z.ZodError) {
       return NextResponse.json({
-        error: error.errors[0].message || "Validation failed",
+        error: "Validation failed: " + error.errors[0].message,
         details: error.errors
+      }, { status: 400 })
+    }
+    
+    // Handle MongoDB errors
+    if (error.name === 'ValidationError') {
+      const firstError = Object.values(error.errors)[0]
+      return NextResponse.json({ 
+        error: "Database validation failed: " + (firstError?.message || "Invalid data")
       }, { status: 400 })
     }
     
@@ -292,9 +316,17 @@ export async function POST(request: NextRequest) {
         error: "Duplicate post detected" 
       }, { status: 409 })
     }
+
+    // Handle MongoDB connection errors
+    if (error.name === 'MongoNetworkError' || error.name === 'MongoTimeoutError') {
+      return NextResponse.json({ 
+        error: "Database connection failed. Please try again." 
+      }, { status: 503 })
+    }
     
     return NextResponse.json({ 
-      error: "Failed to create post. Please try again." 
+      error: "Failed to create post. Please try again.",
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined
     }, { status: 500 })
   }
 }

@@ -148,7 +148,7 @@ export const SettingsContent: React.FC<SettingsContentProps> = ({ user, t }) => 
               <Button
                 key={index}
                 variant="ghost"
-                className="w-full border-b justify-start text-gray-800 hover:bg-gray-100 p-4 h-auto"
+                className="w-full rounded-none border-b justify-start text-gray-800 hover:bg-gray-100 p-4 h-auto"
                 onClick={() => {
                   setBreadcrumbTrail([
                     { label: "Settings" },
