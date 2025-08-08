@@ -8,6 +8,8 @@ import { PostSection } from "@/components/post/post-section"
 import { Button } from "@/components/ui/button"
 import { ArrowLeft, Loader2, Paperclip } from "lucide-react"
 import Image from "next/image"
+import { fetchCurrentUser } from "@/store/slices/authSlice"
+import { useAppDispatch, useAppSelector } from "@/store/main"
 
 interface PostDetailContentProps {
   postId: string
@@ -63,7 +65,7 @@ type CommentState = {
 export function PostDetailContent({ postId, userId }: PostDetailContentProps) {
   const [post, setPost] = useState<Post | null>(null)
   const [replies, setReplies] = useState<Reply[]>([])
-  const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null)
+  
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const router = useRouter()
@@ -73,10 +75,19 @@ export function PostDetailContent({ postId, userId }: PostDetailContentProps) {
     replyingTo: null,
     replyParentId: postId,
   })
+  const dispatch = useAppDispatch()
+  const authState = useAppSelector((state) => state.auth)
+  const { currentUser = null } = authState || {}
   const [isPosting, setIsPosting] = useState(false)
 
   useEffect(() => {
-    fetchCurrentUser()
+    const fetchCurrentUserData=  async () => {
+      try {
+        dispatch(fetchCurrentUser())
+      } catch (e) {
+        setError(e)
+      }
+    }
     fetchPostAndReplies()
     updateWatch()
     // Reset comment state when postId changes
@@ -85,16 +96,29 @@ export function PostDetailContent({ postId, userId }: PostDetailContentProps) {
       replyingTo: null,
       replyParentId: postId,
     })
-  }, [postId, userId])
-  const updateWatch = async ()=>{
+    fetchCurrentUserData()
+  }, [postId, userId , dispatch])
+  
+  const updateWatch = async () => {
     try {
-      const w_ = await fetch('/api/viewUpdate',{method:'POST',body: JSON.stringify({'postId': postId})})
+      const response = await fetch('/api/viewUpdate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 'postId': postId })
+      })
       
-    } catch (e) {
-      setError(e)
+      if (!response.ok) {
+        console.warn('Failed to update view count:', response.statusText)
+      }
+    } catch (error) {
+      console.warn('Error updating view count:', error)
+      // Don't set this as a critical error since it's not essential
     }
   }
-  const fetchCurrentUser = async () => {
+  
+  /**const fetchCurrentUser = async () => {
     try {
       const response = await fetch(`/api/users/current`)
       if (!response.ok) {
@@ -106,7 +130,7 @@ export function PostDetailContent({ postId, userId }: PostDetailContentProps) {
       console.error("Error fetching current user:", error)
       setError("Failed to load user data")
     }
-  }
+  }**/
 
   const fetchPostAndReplies = async () => {
     try {
@@ -122,7 +146,7 @@ export function PostDetailContent({ postId, userId }: PostDetailContentProps) {
           throw new Error("Failed to fetch post")
         }
         setPost(null)
-        setIsLoadingPost(false)
+        setIsLoading(false) // Fixed: was setIsLoadingPost
         return
       }
 
@@ -150,24 +174,42 @@ export function PostDetailContent({ postId, userId }: PostDetailContentProps) {
 
   const handlePostComment = async () => {
     if (!commentState.text.trim() || isPosting) return
+    
+    // Validate required data
+    if (!currentUser) {
+      setError("User session not found. Please refresh and try again.")
+      return
+    }
 
     setIsPosting(true)
     try {
+      const requestBody = {
+        content: commentState.text,
+        parentPostId: commentState.replyParentId,
+        authorId: currentUser._id,
+        // Add default values to prevent API errors
+        mediaUrls: [],
+        mediaType: null,
+        hashtags: [],
+        mentions: [],
+        visibility: "public"
+      }
+
       const response = await fetch("/api/posts", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          content: commentState.text,
-          parentPostId: commentState.replyParentId,
-        }),
+        body: JSON.stringify(requestBody),
       })
 
       if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.error || "Failed to post comment")
+        const errorData = await response.json().catch(() => ({}))
+        throw new Error(errorData.error || `HTTP ${response.status}: Failed to post comment`)
       }
+
+      const result = await response.json()
+      console.log("Comment posted successfully:", result)
 
       // Reset comment box and refresh replies
       setCommentState({
@@ -175,10 +217,13 @@ export function PostDetailContent({ postId, userId }: PostDetailContentProps) {
         replyingTo: null,
         replyParentId: postId,
       })
+      
+      // Refresh the post and replies data
       await fetchPostAndReplies()
+      
     } catch (error) {
       console.error("Error posting comment:", error)
-      setError("Failed to post comment")
+      setError(error instanceof Error ? error.message : "Failed to post comment")
     } finally {
       setIsPosting(false)
     }
@@ -193,7 +238,8 @@ export function PostDetailContent({ postId, userId }: PostDetailContentProps) {
       })
 
       if (!response.ok) {
-        throw new Error("Failed to toggle like")
+        const errorData = await response.json().catch(() => ({}))
+        throw new Error(errorData.error || "Failed to toggle like")
       }
 
       await fetchPostAndReplies()
@@ -212,7 +258,8 @@ export function PostDetailContent({ postId, userId }: PostDetailContentProps) {
       })
 
       if (!response.ok) {
-        throw new Error("Failed to toggle repost")
+        const errorData = await response.json().catch(() => ({}))
+        throw new Error(errorData.error || "Failed to toggle repost")
       }
 
       await fetchPostAndReplies()
@@ -290,7 +337,7 @@ export function PostDetailContent({ postId, userId }: PostDetailContentProps) {
       )}
 
       {/* Input container */}
-      <div className="flex-1 flex items-center bg-gray-100 rounded-full px-3 py-2">
+      <div className="flex-1 flex items-center border rounded-full px-3 py-1">
         <input
           type="text"
           value={commentState.text}
@@ -300,6 +347,12 @@ export function PostDetailContent({ postId, userId }: PostDetailContentProps) {
           disabled={isPosting}
           autoFocus
           maxLength={280}
+          onKeyPress={(e) => {
+            if (e.key === 'Enter' && !e.shiftKey && commentState.text.trim()) {
+              e.preventDefault()
+              handlePostComment()
+            }
+          }}
         />
         <button
           type="button"
@@ -312,7 +365,7 @@ export function PostDetailContent({ postId, userId }: PostDetailContentProps) {
       </div>
 
       <Button
-        className="bg-blue-500 hover:bg-blue-600 text-white rounded-full px-4 py-2 text-sm font-medium"
+        className="bg-blue-500 hover:bg-blue-600 text-white rounded-full px-4 py-2 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
         disabled={!commentState.text.trim() || isPosting}
         onClick={handlePostComment}
       >
@@ -325,7 +378,7 @@ export function PostDetailContent({ postId, userId }: PostDetailContentProps) {
     <div className="min-h-screen bg-white">
       <div className="max-w-2xl mx-auto border-x min-h-screen">
         {/* Header */}
-        <div className="sticky top-0 bg-white/80 backdrop-blur-md border-b px-4 py-3 z-50 flex items-center gap-4">
+        <div className="sticky top-0 bg-white/80 backdrop-blur-md px-4 py-3 z-50 flex items-center gap-4">
           <Button variant="ghost" size="icon" onClick={() => router.back()}>
             <ArrowLeft className="h-5 w-5" />
           </Button>
@@ -344,7 +397,10 @@ export function PostDetailContent({ postId, userId }: PostDetailContentProps) {
               <div className="ml-3">
                 <p className="text-sm text-red-700">{error}</p>
               </div>
-              <button onClick={() => setError(null)} className="ml-auto text-red-400 hover:text-red-600">
+              <button 
+                onClick={() => setError(null)} 
+                className="ml-auto text-red-400 hover:text-red-600 text-xl leading-none"
+              >
                 ×
               </button>
             </div>
