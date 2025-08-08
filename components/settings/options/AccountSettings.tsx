@@ -1,5 +1,6 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { EditProfile } from '@/components/settings/options/EditProfile'
+import { useRouter } from "next/navigation"
 import { VerificationBadge } from "@/components/badge/verification-badge"
 import { Search, Settings, MoreHorizontal, UserPlus, ArrowLeft, User, Lock, Key, Pen, Shield, Bell, CreditCard, HelpCircle } from "lucide-react"
 import VerificationRequest from "@/components/settings/options/VerificationRequest"
@@ -15,53 +16,29 @@ interface AccountSettingsProps {
 
 export default function AccountSettings({
   userData,
-  sendPathLink
-}: AccountSettingsProps) {
   
+}: AccountSettingsProps) {
+  const router = useRouter()
   const onEditClick = () => {
-    sendPathLink({
-      name: ['Account', 'Edit Profile'],
-      _component: <EditProfile user={userData} />,
-      icon: Pen
-    })
+    router.push('/edit_profile')
   }
   const onVerify = () => {
-    sendPathLink({
-      name : ['Account','Verification'],
-      _component: <VerificationRequest userId = {userData._id}/>,
-      icon : Shield
-    })
+    
   }
   const onPrivacyClick = () => {
-    sendPathLink({
-      name: ['Account', 'Privacy Settings'],
-      _component: <PrivacyAndPersonalSettings/>, // You can create this component
-      icon: Shield
-    })
+    
   }
   
   const onNotificationsClick = () => {
-    sendPathLink({
-      name: ['Account', 'Notifications'],
-      _component: <div>Notifications Component</div>, // You can create this component
-      icon: Bell
-    })
+    
   }
   
   const onBillingClick = () => {
-    sendPathLink({
-      name: ['Account', 'Billing & Payments'],
-      _component: <div>Billing Component</div>, // You can create this component
-      icon: CreditCard
-    })
+    
   }
   
   const onHelpClick = () => {
-    sendPathLink({
-      name: ['Account', 'Help & Support'],
-      _component: <div>Help & Support Component</div>, // You can create this component
-      icon: HelpCircle
-    })
+    
   }
   
   return (

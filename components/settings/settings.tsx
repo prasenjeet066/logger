@@ -14,6 +14,7 @@ import { ArrowLeft, User, Lock, Key } from "lucide-react"
 import Link from "next/link"
 import {
   AccountSettings,
+  EditProfile,
   PrivacyAndPersonalSettings,
   PasswordAndSecuritySettings,
 } from "@/components/settings/options"
@@ -28,7 +29,7 @@ interface BreadcrumbItemType {
   component ? : JSX.Element
 }
 
-export const SettingsContent: React.FC < SettingsContentProps > = ({ user, slug }) => {
+export const SettingsContent: React.FC < SettingsContentProps > = ({ user, slug = null }) => {
   const router = useRouter()
   
   const [breadcrumbTrail, setBreadcrumbTrail] = useState < BreadcrumbItemType[] > ([
@@ -40,7 +41,7 @@ export const SettingsContent: React.FC < SettingsContentProps > = ({ user, slug 
   {
     name: "Account",
     icon: User,
-    _component: <AccountSettings userData={user} sendPathLink={sendPathLink} />,
+    _component: <AccountSettings userData={user}  />,
   },
   {
     name: "Privacy and Personal",
@@ -51,48 +52,19 @@ export const SettingsContent: React.FC < SettingsContentProps > = ({ user, slug 
     name: "Password and Security",
     icon: Key,
     _component: <PasswordAndSecuritySettings />,
-  }, ]
+  }, {
+      name: ['Edit Profile'],
+      _component: <EditProfile user={userData} />,
+      icon: Pen
+    }]
   
   // Dynamic navigation for nested links
-  function sendPathLink(_obj: {
-    name: string | string[]
-    icon: any
-    _component: JSX.Element
-  }) {
-    if (!_obj || !Object.keys(_obj).length) return
-    
-    const label = typeof _obj.name === "string" ?
-      _obj.name :
-      Array.isArray(_obj.name) ?
-      _obj.name[_obj.name.length - 1] // Get the last element for display
-      :
-      "Unknown"
-    
-    // Check if this is a main menu item
-    const matchedItem = SettingsMenusList.find(item => item.name === label)
-    
-    if (matchedItem) {
-      // This is a main menu item
-      setCurrentSection(matchedItem._component)
-      setBreadcrumbTrail([
-        { label: "Settings" },
-        { label: matchedItem.name, component: matchedItem._component }
-      ])
-    } else {
-      // This is a nested item
-      const newCrumb: BreadcrumbItemType = {
-        label,
-        component: _obj._component,
-      }
-      
-      setBreadcrumbTrail((prev) => [...prev, newCrumb])
-      setCurrentSection(_obj._component)
-    }
-  }
+  
   
   // Initialize based on slug
   useEffect(() => {
-    if (slug && slug.length > 0) {
+    
+    if (slug && !slug==null && slug.length > 0) {
       const slugString = slug[0].replace('_', ' ')
       const matchedSetting = SettingsMenusList.find(
         item => item.name.toLowerCase() === slugString.toLowerCase()
@@ -165,7 +137,7 @@ export const SettingsContent: React.FC < SettingsContentProps > = ({ user, slug 
                     { label: Setting.name, component: Setting._component },
                   ])
                   setCurrentSection(Setting._component)
-                  router.push(`/settings/${Setting.name.toLowerCase().replace(' ', '_')}`)
+                  router.push(`/${Setting.name.toLowerCase().replace(' ', '_')}`)
                 }}
               >
                 <Setting.icon className="h-5 w-5 mr-3" />
