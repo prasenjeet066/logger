@@ -532,8 +532,7 @@ export function PostSection({ post, onLike, onRepost, onReply, isMobile = false 
   return (
     <article
       className={isMobile ? "border-b hover:bg-gray-50 transition-colors h-auto cursor-pointer" : "space-y-2 hover:bg-gray-50 transition-colors cursor-pointer h-auto rounded-md border-2 border-gray-50"}
-      onClick={handlePostClick}
-      aria-label={`Post by ${post.author.displayName}`}
+       aria-label={`Post by ${post.author.displayName}`}
     >
       <div className="p-4">
         {/* Repost header */}
