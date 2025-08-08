@@ -543,7 +543,7 @@ async function detectLanguage(text) {
             <Button
               variant="ghost"
               size="sm"
-              className="text-gray-500 hover:text-blue-600 hover:bg-blue-50 p-2 rounded-full transition-colors"
+              className="text-gray-500 hover:text-indigo-600 p-2 rounded-full transition-colors"
               onClick={(e) => {
                 e.stopPropagation()
                 handleReplyClick()
@@ -559,8 +559,8 @@ async function detectLanguage(text) {
               size="sm"
               className={`${
                 post.isReposted
-                  ? "text-green-600 bg-green-50"
-                  : "text-gray-500 hover:text-green-600 hover:bg-green-50"
+                  ? "text-indigo-600"
+                  : "text-gray-500 hover:text-indigo-600"
               } p-2 rounded-full transition-colors`}
               onClick={(e) => {
                 e.stopPropagation()
@@ -581,7 +581,7 @@ async function detectLanguage(text) {
               variant="ghost"
               size="sm"
               className={`${
-                post.isLiked ? "text-red-600 bg-red-50" : "text-gray-500 hover:text-red-600 hover:bg-red-50"
+                post.isLiked ? "text-indigo-600 " : "text-gray-500 hover:text-indigo-600"
               } p-2 rounded-full transition-colors`}
               onClick={(e) => {
                 e.stopPropagation()
@@ -596,7 +596,7 @@ async function detectLanguage(text) {
             <Button
               variant="ghost"
               size="sm"
-              className="text-gray-500 hover:text-blue-600 hover:bg-blue-50 p-2 rounded-full transition-colors"
+              className="text-gray-500 hover:text-blue-600 p-2 rounded-full transition-colors"
               onClick={(e) => e.stopPropagation()}
               aria-label="Share post"
             >

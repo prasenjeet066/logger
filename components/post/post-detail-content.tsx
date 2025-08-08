@@ -134,7 +134,7 @@ export function PostDetailContent({ postId, userId }: PostDetailContentProps) {
 
   const fetchPostAndReplies = async () => {
     try {
-      setIsLoading(true)
+      //setIsLoading(true)
       setError(null)
 
       // Fetch main post
@@ -146,7 +146,7 @@ export function PostDetailContent({ postId, userId }: PostDetailContentProps) {
           throw new Error("Failed to fetch post")
         }
         setPost(null)
-        setIsLoading(false) // Fixed: was setIsLoadingPost
+        //setIsLoading(false) // Fixed: was setIsLoadingPost
         return
       }
 
