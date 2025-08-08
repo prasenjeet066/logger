@@ -25,32 +25,33 @@ interface SettingsContentProps {
 
 interface BreadcrumbItemType {
   label: string
-  component: JSX.Element
+  component ? : JSX.Element
 }
 
-export const SettingsContent: React.FC<SettingsContentProps> = ({ user , slug }) => {
+export const SettingsContent: React.FC < SettingsContentProps > = ({ user, slug }) => {
   const router = useRouter()
-
-  const [breadcrumbTrail, setBreadcrumbTrail] = useState<BreadcrumbItemType[]>([])
-  const [currentSection, setCurrentSection] = useState<JSX.Element | null>(null)
-
+  
+  const [breadcrumbTrail, setBreadcrumbTrail] = useState < BreadcrumbItemType[] > ([
+    { label: "Settings" }
+  ])
+  const [currentSection, setCurrentSection] = useState < JSX.Element | null > (null)
+  
   const SettingsMenusList = [
-    {
-      name: "Account",
-      icon: User,
-      _component: <AccountSettings userData={user} sendPathLink={sendPathLink} />,
-    },
-    {
-      name: "Privacy and Personal",
-      icon: Lock,
-      _component: <PrivacyAndPersonalSettings />,
-    },
-    {
-      name: "Password and Security",
-      icon: Key,
-      _component: <PasswordAndSecuritySettings />,
-    },
-  ]
+  {
+    name: "Account",
+    icon: User,
+    _component: <AccountSettings userData={user} sendPathLink={sendPathLink} />,
+  },
+  {
+    name: "Privacy and Personal",
+    icon: Lock,
+    _component: <PrivacyAndPersonalSettings />,
+  },
+  {
+    name: "Password and Security",
+    icon: Key,
+    _component: <PasswordAndSecuritySettings />,
+  }, ]
   
   // Dynamic navigation for nested links
   function sendPathLink(_obj: {
@@ -59,53 +60,73 @@ export const SettingsContent: React.FC<SettingsContentProps> = ({ user , slug })
     _component: JSX.Element
   }) {
     if (!_obj || !Object.keys(_obj).length) return
-
-    const label =
-      typeof _obj.name === "string"
-        ? _obj.name
-        : Array.isArray(_obj.name)
-        ? _obj.name[1]
-        : "Unknown"
-    const matchedItem = SettingsMenusList.find(item => item.name === _obj.name);
+    
+    const label = typeof _obj.name === "string" ?
+      _obj.name :
+      Array.isArray(_obj.name) ?
+      _obj.name[_obj.name.length - 1] // Get the last element for display
+      :
+      "Unknown"
+    
+    // Check if this is a main menu item
+    const matchedItem = SettingsMenusList.find(item => item.name === label)
+    
     if (matchedItem) {
+      // This is a main menu item
       setCurrentSection(matchedItem._component)
-      setBreadcrumbTrail(matchedItem.name)
-    }else{
-    const newCrumb:BreadcrumbItemType = {
-      label,
-      component: _obj._component,
+      setBreadcrumbTrail([
+        { label: "Settings" },
+        { label: matchedItem.name, component: matchedItem._component }
+      ])
+    } else {
+      // This is a nested item
+      const newCrumb: BreadcrumbItemType = {
+        label,
+        component: _obj._component,
+      }
+      
+      setBreadcrumbTrail((prev) => [...prev, newCrumb])
+      setCurrentSection(_obj._component)
     }
-
-    setBreadcrumbTrail((prev) => [...prev, newCrumb])
-    setCurrentSection(_obj._component)
   }
-  }
-
-  // Initialize based on query param
+  
+  // Initialize based on slug
   useEffect(() => {
-    if (slug.length > 0) {
-       
+    if (slug && slug.length > 0) {
+      const slugString = slug[0].replace('_', ' ')
+      const matchedSetting = SettingsMenusList.find(
+        item => item.name.toLowerCase() === slugString.toLowerCase()
+      )
+      
+      if (matchedSetting) {
+        setCurrentSection(matchedSetting._component)
+        setBreadcrumbTrail([
+          { label: "Settings" },
+          { label: matchedSetting.name, component: matchedSetting._component }
+        ])
+      }
     }
-  },[slug])
-
+  }, [slug])
+  
   const handleBack = () => {
     if (breadcrumbTrail.length > 2) {
       const newTrail = [...breadcrumbTrail]
       newTrail.pop()
       const last = newTrail[newTrail.length - 1]
       setBreadcrumbTrail(newTrail)
-      setCurrentSection(last.component)
+      setCurrentSection(last.component || null)
     } else {
       setCurrentSection(null)
       setBreadcrumbTrail([{ label: "Settings" }])
+      router.push('/settings')
     }
   }
-
+  
   return (
-    <div className="w-screen">
+    <div className="w-full max-w-4xl mx-auto">
       <header className="sticky top-0 bg-white/80 backdrop-blur-md z-50">
         <div className="flex items-center px-4 py-3">
-          <Button variant="ghost" size="icon" onClick={handleBack} className="mr-8">
+          <Button variant="ghost" size="icon" onClick={handleBack} className="mr-4">
             <ArrowLeft className="w-5 h-5" />
           </Button>
           <div className="flex flex-col justify-start">
@@ -117,7 +138,7 @@ export const SettingsContent: React.FC<SettingsContentProps> = ({ user , slug })
                     {index > 0 && <BreadcrumbSeparator />}
                     <BreadcrumbItem>
                       <BreadcrumbLink asChild>
-                        <Link href={`/settings/${crumb.lebel.replace(' ','_')}`}>
+                        <Link href={`/settings/${crumb.label.toLowerCase().replace(' ', '_')}`}>
                           {crumb.label}
                         </Link>
                       </BreadcrumbLink>
@@ -144,6 +165,7 @@ export const SettingsContent: React.FC<SettingsContentProps> = ({ user , slug })
                     { label: Setting.name, component: Setting._component },
                   ])
                   setCurrentSection(Setting._component)
+                  router.push(`/settings/${Setting.name.toLowerCase().replace(' ', '_')}`)
                 }}
               >
                 <Setting.icon className="h-5 w-5 mr-3" />

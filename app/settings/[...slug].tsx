@@ -1,12 +1,12 @@
+// app/settings/[...slug].tsx
 import { redirect } from "next/navigation"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth/auth-config"
-import { SettingsContent } from "@/components/settings/settings.tsx"
+import { SettingsContent } from "@/components/settings/settings"
 
-export default async function SettingsPage({params}) {
+export default async function SettingsPage({ params }: { params: { slug?: string[] } }) {
   const session = await getServerSession(authOptions)
-  const option = params.slug || null;
-  
+  const slug = params.slug || []
   
   if (!session?.user) {
     redirect("/auth/sign-in")
@@ -26,5 +26,10 @@ export default async function SettingsPage({params}) {
     createdAt: session.user.createdAt,
   }
 
-  return <SettingsContent user={user} slug= {slug}/>
+  return <SettingsContent user={user} slug={slug} />
 }
+
+// components/settings/options/PasswordAndSecuritySettings.tsx
+
+
+// components/settings/settings.tsx (Fixed version)

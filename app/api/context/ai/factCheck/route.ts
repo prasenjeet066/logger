@@ -6,31 +6,36 @@ const client = new InferenceClient("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");
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    let uploadedFiles = null
-    if (body.image) {
-      let _images = body.images.formData()
-      _images = _images.getAll('images')[0]
-      uploadedFiles = client.uploadImage(_images)
+    let uploadedFiles = null;
+    
+    // Fix: Check for images instead of image, and handle FormData properly
+    if (body.images) {
+      // Note: FormData cannot be passed through JSON. This needs to be handled differently
+      // The image data should be passed as base64 or handled via multipart/form-data
+      console.warn("Image handling through JSON not supported. Consider using multipart/form-data or base64.");
     }
+    
     if (!body.messages || !Array.isArray(body.messages)) {
       return NextResponse.json({ error: "Missing or invalid 'messages' array." }, { status: 400 });
     }
     
     const systemPrompt = {
       role: "system",
-      content: "You are a fact-checking assistant. Respond with a JSON containing: Fact_Of_This_Post (string), IsHarmful (boolean), NeedVerifyWithSearch (boolean), TellAboutThisPost_Html_formate (string). Be neutral and factual.",
+      content: "You are a fact-checking assistant. Respond with a JSON containing: FactCheckInfo (string), IsHarmful (boolean), Is18Plus (boolean), headlineOfFactCheckInfo (boolean), NeedVerifyWithSearch (boolean), ContentTypeOrContextType (string). Be neutral and factual.",
     };
+    
     let messages = body.messages;
     if (uploadedFiles !== null) {
       messages = [
-        { role: "user", content: messages[0].content,
-        images: [uploadedFiles]
-          
+        { 
+          role: "user", 
+          content: messages[0].content,
+          images: [uploadedFiles]
         }
-        
-      ]
+      ];
     }
-    const fullMessages = [systemPrompt, ...body.messages];
+    
+    const fullMessages = [systemPrompt, ...messages]; // Fix: Use messages instead of body.messages
     
     const stream = await client.chatCompletionStream({
       provider: "together",
@@ -45,14 +50,13 @@ export async function POST(req: NextRequest) {
             type: "object",
             properties: {
               FactCheckInfo: { type: "string" },
-              
               IsHarmful: { type: "boolean" },
               Is18Plus: { type: "boolean" },
-              headlineOfFactCheckInfo:{type:'boolean'},
+              headlineOfFactCheckInfo: { type: "boolean" }, // Fix: typo in original
               NeedVerifyWithSearch: { type: "boolean" },
               ContentTypeOrContextType: { type: "string" },
             },
-            required: ["FactCheckInfo", "IsHarmful", "ContentTypeOrContextType", "NeedVerifyWithSearch", "Is18Plus",'headlineOfFactCheckInfo'],
+            required: ["FactCheckInfo", "IsHarmful", "ContentTypeOrContextType", "NeedVerifyWithSearch", "Is18Plus", "headlineOfFactCheckInfo"],
             additionalProperties: true,
           },
           strict: true,
