@@ -63,10 +63,10 @@ export default function FactCheck({ searchParams }: Props) {
         {reviewResults && (
           <div className='flex flex-col gap-2 p-4'>
             <span className='font-semibold border-b'>
-              {reviewResults.oneLineAboutThisText}
+              {reviewResults.headlineOfFactCheckInfo}
             </span>
             <p className='text-xs w-full'>
-              {reviewResults.factCheck}
+              {reviewResults.FactCheckInfo}
             </p>
           </div>
         )}

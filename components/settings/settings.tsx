@@ -20,7 +20,7 @@ import {
 
 interface SettingsContentProps {
   user: any
-  t: string
+  slug: string[]
 }
 
 interface BreadcrumbItemType {
@@ -28,7 +28,7 @@ interface BreadcrumbItemType {
   component: JSX.Element
 }
 
-export const SettingsContent: React.FC<SettingsContentProps> = ({ user, t }) => {
+export const SettingsContent: React.FC<SettingsContentProps> = ({ user , slug }) => {
   const router = useRouter()
 
   const [breadcrumbTrail, setBreadcrumbTrail] = useState<BreadcrumbItemType[]>([])
@@ -51,7 +51,7 @@ export const SettingsContent: React.FC<SettingsContentProps> = ({ user, t }) => 
       _component: <PasswordAndSecuritySettings />,
     },
   ]
-
+  
   // Dynamic navigation for nested links
   function sendPathLink(_obj: {
     name: string | string[]
@@ -83,21 +83,10 @@ export const SettingsContent: React.FC<SettingsContentProps> = ({ user, t }) => 
 
   // Initialize based on query param
   useEffect(() => {
-    const decoded = decodeURIComponent(t)
-    if (decoded && decoded.length > 2) {
-      const foundSetting = SettingsMenusList.find((item) => item.name === decoded)
-      if (foundSetting) {
-        setCurrentSection(foundSetting._component)
-        setBreadcrumbTrail([{ label: "Settings" }, { label: foundSetting.name, component: foundSetting._component }])
-      } else {
-        setCurrentSection(null)
-        setBreadcrumbTrail([{ label: "Settings" }])
-      }
-    } else {
-      setCurrentSection(null)
-      setBreadcrumbTrail([{ label: "Settings" }])
+    if (slug.length > 0) {
+       
     }
-  }, [t])
+  },[slug])
 
   const handleBack = () => {
     if (breadcrumbTrail.length > 2) {
@@ -128,7 +117,7 @@ export const SettingsContent: React.FC<SettingsContentProps> = ({ user, t }) => 
                     {index > 0 && <BreadcrumbSeparator />}
                     <BreadcrumbItem>
                       <BreadcrumbLink asChild>
-                        <Link href={`/settings?t=${encodeURIComponent(crumb.label)}`}>
+                        <Link href={`/settings/${crumb.lebel.replace(' ','_')}`}>
                           {crumb.label}
                         </Link>
                       </BreadcrumbLink>

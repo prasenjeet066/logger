@@ -10,8 +10,8 @@ import { useFileUpload } from "@/hooks/use-file-upload"
 import { Upload, X, File, ImageIcon, Video, AlertCircle, CheckCircle } from "lucide-react"
 import { cn } from "@/lib/utils"
 import type { UploadResult } from "@/lib/blob/client"
-
 interface FileUploadProps {
+  handlefiles?: (_files)=> void
   onUploadComplete?: (files: UploadResult[]) => void
   onFilesChange?: (files: UploadResult[]) => void
   maxFiles?: number
@@ -31,6 +31,7 @@ interface UploadedFile extends UploadResult {
 }
 
 export function FileUpload({
+  handlefiles,
   onUploadComplete,
   onFilesChange,
   maxFiles = 10,
@@ -108,6 +109,7 @@ export function FileUpload({
     const files = Array.from(e.target.files || [])
     if (files.length > 0) {
       handleFileUpload(files)
+      handlefiles(files)
     }
     // Reset input value to allow selecting the same file again
     e.target.value = ""

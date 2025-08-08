@@ -3,9 +3,9 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth/auth-config"
 import { SettingsContent } from "@/components/settings/settings.tsx"
 
-export default async function SettingsPage({searchParams}) {
+export default async function SettingsPage({params}) {
   const session = await getServerSession(authOptions)
-  const t = searchParams.t || null;
+  const option = params.slug || null;
   
   
   if (!session?.user) {
@@ -26,5 +26,5 @@ export default async function SettingsPage({searchParams}) {
     createdAt: session.user.createdAt,
   }
 
-  return <SettingsContent user={user} t = {t}/>
+  return <SettingsContent user={user} slug= {slug}/>
 }

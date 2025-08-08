@@ -540,9 +540,9 @@ useEffect(() => {
            
 
            
-            {reviewResults && reviewResults.isTrueInfo===false ? (
+            {reviewResults && reviewResults.IsHarmful===true ? (
               <div className='bg-gary-50 rounded-md p-2 text-left flex flex-row items-center justify-between border text-xs'>
-                <small className='flex-1 pr-2 text-gray-600'>{reviewResults?.oneLineAboutThisText || "This Post is not correct!"}</small>
+                <small className='flex-1 pr-2 text-gray-600'>{reviewResults?.headlineOfFactCheckInfo || "This Post is not correct!"}</small>
                 
                 <span className='border-l pl-1 text-gray-800  underline font-semibold' onClick = {()=>{router.push('fact-check?post=' + post._id)}}>{"Fact Check"}</span>
               </div>

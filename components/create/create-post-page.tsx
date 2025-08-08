@@ -82,19 +82,22 @@ export default function CreatePostPage({ user }: CreatePostPageProps) {
   const nsfwResults = useAppSelector((state) => state.posts.nsfwResults)
   
   // Local state (UI-specific)
-  const contentEditableRef = useRef<HTMLDivElement>(null)
+  const contentEditableRef = useRef < HTMLDivElement > (null)
   const [content, setContent] = useState("")
-  const [gifs, setGifs] = useState<any[]>([])
+  const [gifs, setGifs] = useState < any[] > ([])
   const [showGiphyPicker, setShowGiphyPicker] = useState(false)
   const [showFileUpload, setShowFileUpload] = useState(false)
   const [showAddOptions, setShowAddOptions] = useState(false)
-  const cursorPositionRef = useRef<{ node: Node | null; offset: number } | null>(null)
+  const cursorPositionRef = useRef < { node: Node | null;offset: number } | null > (null)
   
   const characterCount = content.length
   const isOverLimit = characterCount > MAX_CHARACTERS
   const progressPercentage = (characterCount / MAX_CHARACTERS) * 100
   const totalMediaCount = uploadedFiles.length + giphyMedia.length
-  
+  const [_FileList, setFileList] = useState(null)
+  const handleFiles = (files) => {
+    setFileList(files)
+  }
   const getProgressColor = () => {
     if (progressPercentage < 70) return "bg-green-500"
     if (progressPercentage < 90) return "bg-yellow-500"
@@ -252,12 +255,18 @@ export default function CreatePostPage({ user }: CreatePostPageProps) {
       
       // 🔍 Run AI fact-check review
       let reviewResults = null
+      let formDataImg = new FormData();
+      formDataImg.append('images', _FileList)
+      
       try {
         const aiResponse = await fetch("/api/context/ai/factCheck/", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            messages: [{ role: "user", content: validatedData.content }],
+            image:formDataImg, messages: [
+              { role: "user", content: validatedData.content }
+              
+            ],
           }),
         })
         
@@ -283,7 +292,7 @@ export default function CreatePostPage({ user }: CreatePostPageProps) {
           mediaUrls: allMediaUrls,
           mediaType,
           reviewResults,
-          imageNSFW: currentNsfwResults,
+          
           ...(poll.show && {
             poll: {
               question: poll.question,
@@ -447,7 +456,7 @@ export default function CreatePostPage({ user }: CreatePostPageProps) {
       })
     }
   }, [uploadedFiles, dispatch])
-
+  
   return (
     <div className="min-h-screen bg-white">
       <div className="sticky top-0 z-50 bg-white border-b border-gray-200">
@@ -715,7 +724,7 @@ export default function CreatePostPage({ user }: CreatePostPageProps) {
             </CardHeader>
             <CardContent className="pt-2 p-4">
               <FileUpload
-                onUploadComplete={handleFilesUploaded}
+               handlefiles={handleFiles} onUploadComplete={handleFilesUploaded}
                 maxFiles={MAX_MEDIA_FILES - totalMediaCount}
                 pathPrefix={`posts/${session?.user?.id}`}
                 className="w-full"
