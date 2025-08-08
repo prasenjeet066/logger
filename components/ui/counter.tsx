@@ -92,7 +92,7 @@ export default function Counter({
   places = [100, 10, 1],
   gap = 8,
   borderRadius = 4,
-  horizontalPadding = 8,
+  horizontalPadding = 0,
   containerClassName,
   counterClassName,
   digitStyle,
