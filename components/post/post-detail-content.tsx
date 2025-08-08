@@ -384,7 +384,7 @@ export function PostDetailContent({ postId, userId }: PostDetailContentProps) {
           </Button>
           <div className="flex flex-col">
             <h1 className="text-xl font-semibold">Post</h1>
-            <span className="text-sm text-gray-500">
+            <span className="text-xs text-gray-500">
               {replies.length} {replies.length === 1 ? "reply" : "replies"}
             </span>
           </div>
@@ -421,7 +421,7 @@ export function PostDetailContent({ postId, userId }: PostDetailContentProps) {
         {!commentState.replyingTo && renderReplyInput()}
 
         {/* Replies Section */}
-        <div className="divide-y">
+        <div className="divide-y ease-in">
           {replies.length > 0 ? (
             replies.map((reply) => (
               <div key={reply._id}>
