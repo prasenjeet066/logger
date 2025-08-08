@@ -6,7 +6,7 @@ import { useState, useEffect, useCallback, useMemo } from "react"
 import { formatDistanceToNow } from "date-fns"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
-import { Heart, Loader2, MessageCircle, Repeat2, Share } from "lucide-react"
+import { Heart, Loader2, MessageCircle,Bookmark, Repeat2, Share } from "lucide-react"
 import Link from "next/link"
 import { VerificationBadge } from "@/components/badge/verification-badge"
 import LinkPreview from "@/components/link-preview"
@@ -391,11 +391,12 @@ export function ReplyCard({ post, onLike, onRepost }: PostCardProps) {
                 }}
                 aria-label="Share post"
               >
-                <Share className="h-4 w-4" />
+                <Bookmark className="h-4 w-4" />
               </Button>
             </div>
             {replies.length ?(
-            <small className = 'text-xs -mb-2'>{"See more " + replies.length + " replies…"}</small>):<></>}
+            <small className = 'text-xs -mb-2' onClick={()=>router.push('/post/'+post._id
+            )}>{"See more " + replies.length + " replies…"}</small>):<></>}
           </div>
         </div>
       </div>
