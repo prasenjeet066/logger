@@ -1,40 +1,37 @@
-import { redirect } from "next/navigation"
-import { getServerSession } from "next-auth"
-import { authOptions } from "@/lib/auth/auth-config"
+// app/posts/[id]/page.tsx (Next.js App Router)
+
 import { PostDetailContent } from "@/components/post/post-detail-content"
 import { connectDB } from "@/lib/mongodb/connection"
-import { User } from "@/lib/mongodb/models/User"
+import { Post } from "@/lib/mongodb/models/Post"
+
+// ✅ Revalidate page every 60 seconds
+export const revalidate = 60
 
 interface PostPageProps {
-  params: Promise<{ id: string }>
+  params: { id: string }
 }
 
 export default async function PostPage({ params }: PostPageProps) {
-  const { id } = await params
-
-  // Get session using NextAuth
-  const session = await getServerSession(authOptions)
-
-  if (!session?.user) {
-    redirect("/auth/sign-in")
+  const { id } = params
+  
+  // Get post data at build time or revalidation
+  await connectDB()
+  const post = await Post.findById(id).lean()
+  
+  if (!post) {
+    return <div>Post not found</div>
   }
+  
+  // Render the post; user session will be fetched client-side
+  return <PostDetailContent postId={id} />
+}
 
-  // Connect to MongoDB and get user data
-  let currentUser = null
-  try {
-    await connectDB()
-
-    // Find user by email from session
-    currentUser = await User.findOne({ email: session.user.email }).lean()
-
-    if (!currentUser) {
-      // If user not found in database, redirect to sign-in
-      redirect("/auth/sign-in")
-    }
-  } catch (error) {
-    console.error("Error fetching user:", error)
-    redirect("/auth/sign-in")
-  }
-
-  return <PostDetailContent postId={id} userId={currentUser._id.toString()} />
+// Optional: Pre-generate some popular posts at build time
+export async function generateStaticParams() {
+  await connectDB()
+  const posts = await Post.find().select("_id").limit(10).lean()
+  
+  return posts.map(post => ({
+    id: post._id.toString(),
+  }))
 }
