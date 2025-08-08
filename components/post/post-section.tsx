@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-
+import Counter from '@/components/ui/counter'
 import { useState, useCallback, useMemo, useRef,useEffect } from "react"
 import { formatDistanceToNow } from "date-fns"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -551,7 +551,14 @@ async function detectLanguage(text) {
               aria-label={`Reply to post. ${post.repliesCount || 0} replies`}
             >
               <MessageCircle className="h-4 w-4 mr-1" />
-              <span className="text-xs lg:text-sm">{post.repliesCount || 0}</span>
+              
+
+<Counter
+  value={post.repliesCount || 0}
+  places={[100, 10, 1]}
+  textColor="black"
+/>
+              
             </Button>
 
             <Button

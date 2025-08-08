@@ -78,7 +78,8 @@
     "@huggingface/inference": "latest", 
     "i18next-browser-languagedetector": "^7.0.0",
     "@reduxjs/toolkit": "latest",
-    "react-redux" : "latest"
+    "react-redux" : "latest",
+    "motion": "latest"
   },
   "devDependencies": {
     "@types/node": "^22",
