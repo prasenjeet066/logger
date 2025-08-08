@@ -2,7 +2,7 @@
 
 import type React from "react"
 import Counter from '@/components/ui/counter'
-import { useState, useCallback, useMemo, useRef,useEffect } from "react"
+import { useState, useCallback, useMemo, useRef, useEffect } from "react"
 import { formatDistanceToNow } from "date-fns"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { getImageRatioFromSrc, getHeightFromWidth } from "@/lib/ration-lib"
@@ -23,8 +23,8 @@ interface PostCardProps {
   post: Post
   onLike: (postId: string, isLiked: boolean) => void
   onRepost: (postId: string, isReposted: boolean) => void
-  onReply?: () => void
-  isMobile?: boolean // Added missing prop
+  onReply ? : () => void
+  isMobile ? : boolean // Added missing prop
 }
 
 interface TranslationState {
@@ -74,8 +74,8 @@ export function PostSection({ post, onLike, onRepost, onReply, isMobile = false 
   const [showReplyDialog, setShowReplyDialog] = useState(false)
   const [showTrim, setShowTrim] = useState("trim") // Fixed capitalization
   const [repostLoading, setRepostLoading] = useState(false)
-  const [mentionsPeoples, setMentions] = useState<string[] | null>(null) // Fixed duplicate declaration
-  const [translation, setTranslation] = useState<TranslationState>({
+  const [mentionsPeoples, setMentions] = useState < string[] | null > (null) // Fixed duplicate declaration
+  const [translation, setTranslation] = useState < TranslationState > ({
     isTranslating: false,
     translatedText: null,
     originalText: post.content,
@@ -90,32 +90,32 @@ export function PostSection({ post, onLike, onRepost, onReply, isMobile = false 
   const postUrl = useMemo(() => extractFirstUrl(post.content), [post.content])
   const hasMedia = useMemo(() => post.mediaUrls && post.mediaUrls.length > 0, [post.mediaUrls])
   const isPostPage = useMemo(() => pathname.startsWith("/post"), [pathname])
-  const imageRef = useRef<HTMLImageElement>(null)
+  const imageRef = useRef < HTMLImageElement > (null)
   const [imageH, setH] = useState(0)
-  const [postLang,setPostLang] = useState('en')
+  const [postLang, setPostLang] = useState('en')
   const MAX_LENGTH = 100
   const shouldTrim = post.content.length > MAX_LENGTH
   const displayContent = shouldTrim && showTrim === "trim" ? smartTruncate(post.content, MAX_LENGTH) : post.content
-async function detectLanguage(text) {
-  try {
-    const cldFactory = await loadModule(); // Load the WebAssembly module
-    const cld = cldFactory.create();       // Create a CLD3 instance
-    const result = cld.findLanguage(text); // Detect the language
-    
-    if (result && result.isReliable) {
-      return result.language;
-    } else if (result) {
-      return result.language;
-    } else {
-      return null; // Fallback when detection fails
+  async function detectLanguage(text) {
+    try {
+      const cldFactory = await loadModule(); // Load the WebAssembly module
+      const cld = cldFactory.create(); // Create a CLD3 instance
+      const result = cld.findLanguage(text); // Detect the language
+      
+      if (result && result.isReliable) {
+        return result.language;
+      } else if (result) {
+        return result.language;
+      } else {
+        return null; // Fallback when detection fails
+      }
+    } catch (error) {
+      console.error("Error loading or using CLD3:", error);
+      return null;
     }
-  } catch (error) {
-    console.error("Error loading or using CLD3:", error);
-    return null;
   }
-}
-
-
+  
+  
   // Function to check mentions - added missing implementation
   const checkTrueMentions = useCallback((username: string) => {
     // Add your logic here to validate mentions
@@ -131,7 +131,7 @@ async function detectLanguage(text) {
   }, [])
   
   // Translation function with better error handling
-  const translateText = useCallback(async (text: string, targetLang = "bn"): Promise<string> => {
+  const translateText = useCallback(async (text: string, targetLang = "bn"): Promise < string > => {
     try {
       const res = await fetch("https://libretranslate.com/translate", {
         method: "POST",
@@ -274,15 +274,15 @@ async function detectLanguage(text) {
     }
   }, [post._id, currentUserId, onReply])
   useEffect(() => {
-  const detect = async () => {
-    if (post.content.length) {
-      const lang = await detectLanguage(post.content);
-      console.log(lang);
-      setPostLang(lang);
-    }
-  };
-  detect();
-}, [post]);
+    const detect = async () => {
+      if (post.content.length) {
+        const lang = await detectLanguage(post.content);
+        console.log(lang);
+        setPostLang(lang);
+      }
+    };
+    detect();
+  }, [post]);
   // Enhanced media rendering with loading states
   const renderMedia = useCallback(
     (mediaUrls: string[] | null, mediaType: string | null) => {
@@ -555,8 +555,8 @@ async function detectLanguage(text) {
 
 <Counter
   value={post.repliesCount || 0}
-  places={[100, 10, 1]}
-  textColor="black"
+  containerClassName='bg-none'
+  counterClassName='text-xs lg:text-sm'
 />
               
             </Button>

@@ -2,7 +2,7 @@ import { MotionValue, motion, useSpring, useTransform } from "motion/react";
 import { useEffect } from "react";
 
 interface NumberProps {
-  mv: MotionValue<number>;
+  mv: MotionValue < number > ;
   number: number;
   height: number;
 }
@@ -17,45 +17,51 @@ function Number({ mv, number, height }: NumberProps) {
     }
     return memo;
   });
-
-  const style: React.CSSProperties = {
-    position: "absolute",
-    top: 0,
-    right: 0,
-    bottom: 0,
-    left: 0,
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-  };
-
-  return <motion.span style={{ ...style, y }}>{number}</motion.span>;
+  
+  return (
+    <motion.span
+      style={{
+        position: "absolute",
+        top: 0,
+        right: 0,
+        bottom: 0,
+        left: 0,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        y,
+      }}
+    >
+      {number}
+    </motion.span>
+  );
 }
 
 interface DigitProps {
   place: number;
   value: number;
   height: number;
-  digitStyle?: React.CSSProperties;
+  digitStyle ? : React.CSSProperties;
 }
 
 function Digit({ place, value, height, digitStyle }: DigitProps) {
   let valueRoundedToPlace = Math.floor(value / place);
   let animatedValue = useSpring(valueRoundedToPlace);
-
+  
   useEffect(() => {
     animatedValue.set(valueRoundedToPlace);
   }, [animatedValue, valueRoundedToPlace]);
-
-  const defaultStyle: React.CSSProperties = {
-    height,
-    position: "relative",
-    width: "1ch",
-    fontVariantNumeric: "tabular-nums",
-  };
-
+  
   return (
-    <div style={{ ...defaultStyle, ...digitStyle }}>
+    <div
+      style={{
+        height,
+        position: "relative",
+        width: "1ch",
+        fontVariantNumeric: "tabular-nums",
+        ...digitStyle,
+      }}
+    >
       {Array.from({ length: 10 }, (_, i) => (
         <Number key={i} mv={animatedValue} number={i} height={height} />
       ))}
@@ -65,36 +71,30 @@ function Digit({ place, value, height, digitStyle }: DigitProps) {
 
 interface CounterProps {
   value: number;
-  fontSize?: number;
-  padding?: number;
-  places?: number[];
-  gap?: number;
-  borderRadius?: number;
-  horizontalPadding?: number;
-  textColor?: string;
-  fontWeight?: React.CSSProperties["fontWeight"];
-  containerStyle?: React.CSSProperties;
-  counterStyle?: React.CSSProperties;
-  digitStyle?: React.CSSProperties;
-  gradientHeight?: number;
-  gradientFrom?: string;
-  gradientTo?: string;
-  topGradientStyle?: React.CSSProperties;
-  bottomGradientStyle?: React.CSSProperties;
+  padding ? : number;
+  places ? : number[];
+  gap ? : number;
+  borderRadius ? : number;
+  horizontalPadding ? : number;
+  containerClassName ? : string;
+  counterClassName ? : string; // className for font size, color, etc.
+  digitStyle ? : React.CSSProperties;
+  gradientHeight ? : number;
+  gradientFrom ? : string;
+  gradientTo ? : string;
+  topGradientStyle ? : React.CSSProperties;
+  bottomGradientStyle ? : React.CSSProperties;
 }
 
 export default function Counter({
   value,
-  fontSize = 100,
   padding = 0,
   places = [100, 10, 1],
   gap = 8,
   borderRadius = 4,
   horizontalPadding = 8,
-  textColor = "white",
-  fontWeight = "bold",
-  containerStyle,
-  counterStyle,
+  containerClassName,
+  counterClassName,
   digitStyle,
   gradientHeight = 16,
   gradientFrom = "black",
@@ -102,15 +102,15 @@ export default function Counter({
   topGradientStyle,
   bottomGradientStyle,
 }: CounterProps) {
-  const height = fontSize + padding;
-
+  // Height is now derived from font-size via className — here we only use padding
+  const height = (parseInt(getComputedStyle(document.documentElement).fontSize) || 16) + padding;
+  
   const defaultContainerStyle: React.CSSProperties = {
     position: "relative",
     display: "inline-block",
   };
-
+  
   const defaultCounterStyle: React.CSSProperties = {
-    fontSize,
     display: "flex",
     gap: gap,
     overflow: "hidden",
@@ -118,10 +118,8 @@ export default function Counter({
     paddingLeft: horizontalPadding,
     paddingRight: horizontalPadding,
     lineHeight: 1,
-    color: textColor,
-    fontWeight: fontWeight,
   };
-
+  
   const gradientContainerStyle: React.CSSProperties = {
     pointerEvents: "none",
     position: "absolute",
@@ -130,12 +128,12 @@ export default function Counter({
     left: 0,
     right: 0,
   };
-
+  
   const defaultTopGradientStyle: React.CSSProperties = {
     height: gradientHeight,
     background: `linear-gradient(to bottom, ${gradientFrom}, ${gradientTo})`,
   };
-
+  
   const defaultBottomGradientStyle: React.CSSProperties = {
     position: "absolute",
     bottom: 0,
@@ -143,10 +141,10 @@ export default function Counter({
     height: gradientHeight,
     background: `linear-gradient(to top, ${gradientFrom}, ${gradientTo})`,
   };
-
+  
   return (
-    <div style={{ ...defaultContainerStyle, ...containerStyle }}>
-      <div style={{ ...defaultCounterStyle, ...counterStyle }}>
+    <div style={defaultContainerStyle} className={containerClassName}>
+      <div style={defaultCounterStyle} className={counterClassName}>
         {places.map((place) => (
           <Digit
             key={place}
@@ -157,17 +155,9 @@ export default function Counter({
           />
         ))}
       </div>
-      <div style={gradientContainerStyle}>
-        <div
-          style={topGradientStyle ? topGradientStyle : defaultTopGradientStyle}
-        />
-        <div
-          style={
-            bottomGradientStyle
-              ? bottomGradientStyle
-              : defaultBottomGradientStyle
-          }
-        />
+      <div>
+        <div/>
+        <div />
       </div>
     </div>
   );
