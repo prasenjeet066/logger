@@ -395,7 +395,7 @@ export function ReplyCard({ post, onLike, onRepost }: PostCardProps) {
               </Button>
             </div>
             {replies.length ?(
-            <small className = 'text-xs -mb-2' onClick={()=>router.push('/post/'+post._id
+            <small className = 'text-xs -mb-2 hover:underline' onClick={()=>router.push('/post/'+post._id
             )}>{"See more " + replies.length + " replies…"}</small>):<></>}
           </div>
         </div>
