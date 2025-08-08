@@ -368,8 +368,8 @@ export function ReplyCard({ post, onLike, onRepost }: PostCardProps) {
                 size="sm"
                 className={`rounded-full transition-colors ${
                   post.isLiked
-                    ? "text-red-500 hover:text-red-600 hover:bg-red-50"
-                    : "text-gray-500 hover:text-red-600 hover:bg-red-50"
+                    ? "text-red-500 hover:text-indigo-600"
+                    : "text-gray-500 hover:text-indigo-600"
                 }`}
                 onClick={(e) => {
                   e.stopPropagation()
