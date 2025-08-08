@@ -22,7 +22,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { useMobile } from "@/hooks/use-mobile"
 import { AspectRatio } from "@/components/ui/aspect-ratio"
 import { Button } from "@/components/ui/button"
-import { Loader2, Languages, Repeat2, Share, Pin, AlertCircle, Heart, MessageCircle } from "lucide-react"
+import { Loader2, Languages, Repeat2, Share, Pin, AlertCircle, Heart, MessageCircle ,Bookmark} from "lucide-react"
 import Link from "next/link"
 import { PostActionsMenu } from "./post-actions-menu"
 import { VerificationBadge } from "@/components/badge/verification-badge"
@@ -615,8 +615,8 @@ useEffect(() => {
                 onClick={(e) => e.stopPropagation()}
                 aria-label="Share post"
               >
-                <Share className="h-4 w-4 mr-1" />
-                <span className="text-xs lg:text-sm">Share</span>
+                <Bookmark className="h-4 w-4 mr-1" />
+                <span className="text-xs lg:text-sm">Save</span>
               </Button>
 
               <PostActionsMenu
