@@ -252,6 +252,7 @@ export function ReplyCard({ post, onLike, onRepost }: PostCardProps) {
   
   return (
     <main>
+      
       <div className={"flex p-4 flex-col"}>
         <div className ='flex flex-row items-center gap-2'>
            <Link
@@ -276,6 +277,7 @@ export function ReplyCard({ post, onLike, onRepost }: PostCardProps) {
                 <span className="font-semibold flex items-center gap-1 text-sm">
                   {post.author.displayName}
                   {post.author.isVerified && <VerificationBadge className="h-4 w-4" size={15} />}
+                  
                 </span>
               </Link>
               <div className="flex flex-row items-center gap-1 -mt-1">

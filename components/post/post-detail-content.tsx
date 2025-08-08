@@ -419,9 +419,13 @@ export function PostDetailContent({ postId, userId }: PostDetailContentProps) {
 
         {/* Reply Input - Always show at top */}
         {!commentState.replyingTo && renderReplyInput()}
-
+        <div className='text-md px-4 py-2'>
+          {`${replies.length} ${replies.length === 1 ? 'Comment' : 'Comments'}`}
+        </div>
+        
         {/* Replies Section */}
         <div className="divide-y ease-in">
+          
           {replies.length > 0 ? (
             replies.map((reply) => (
               <div key={reply._id}>
