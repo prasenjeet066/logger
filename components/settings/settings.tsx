@@ -106,11 +106,6 @@ export const SettingsContent: React.FC < SettingsContentProps > = ({ user, slug 
   }
   
   const handleSettingClick = (setting: SettingsMenuItem) => {
-    setBreadcrumbTrail([
-      { label: "Settings" },
-      { label: setting.name, component: setting._component },
-    ])
-    setCurrentSection(setting._component)
     
     // Update URL
     const slugName = setting.name.toLowerCase().replace(/ /g, '_')
@@ -121,11 +116,11 @@ export const SettingsContent: React.FC < SettingsContentProps > = ({ user, slug 
     <div className="w-full max-w-4xl mx-auto">
       <header className="sticky top-0 bg-white/80 backdrop-blur-md z-50">
         <div className="flex items-center px-4 py-3">
-          {breadcrumbTrail.length > 1 && (
+          
             <Button variant="ghost" size="icon" onClick={handleBack} className="mr-4">
               <ArrowLeft className="w-5 h-5" />
             </Button>
-          )}
+          
           <div className="flex flex-col justify-start">
             <h1 className="text-lg font-semibold">Settings and Privacy</h1>
             <Breadcrumb className="text-xs">
