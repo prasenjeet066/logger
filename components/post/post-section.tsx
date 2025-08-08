@@ -1,8 +1,8 @@
+// Updated PostSection component with optimistic UI updates
 "use client"
 
 import type React from "react"
-
-import { useState, useCallback, useMemo, useRef,useEffect } from "react"
+import { useState, useCallback, useMemo, useRef, useEffect } from "react"
 import { formatDistanceToNow } from "date-fns"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { getImageRatioFromSrc, getHeightFromWidth } from "@/lib/ration-lib"
@@ -16,15 +16,14 @@ import DOMPurify from "dompurify"
 import { useRouter, usePathname } from "next/navigation"
 import type { Post } from "@/types/post"
 import { useSession } from "next-auth/react"
-import { loadModule } from 'cld3-asm';
-
+import { loadModule } from 'cld3-asm'
 
 interface PostCardProps {
   post: Post
   onLike: (postId: string, isLiked: boolean) => void
   onRepost: (postId: string, isReposted: boolean) => void
   onReply?: () => void
-  isMobile?: boolean // Added missing prop
+  isMobile?: boolean
 }
 
 interface TranslationState {
@@ -33,6 +32,24 @@ interface TranslationState {
   originalText: string
   targetLang: string
   error: string | null
+}
+
+// Optimistic UI state for actions
+interface ActionStates {
+  like: {
+    isLoading: boolean
+    optimisticCount: number
+    optimisticLiked: boolean
+  }
+  repost: {
+    isLoading: boolean
+    optimisticCount: number
+    optimisticReposted: boolean
+  }
+  reply: {
+    isLoading: boolean
+    optimisticCount: number
+  }
 }
 
 // Utility functions
@@ -45,7 +62,6 @@ const extractFirstUrl = (text: string): string | null => {
 const smartTruncate = (text: string, maxLength: number): string => {
   if (text.length <= maxLength) return text
   
-  // Try to break at sentence boundary
   const sentences = text.match(/[^.!?]+[.!?]+/g)
   if (sentences) {
     let truncated = ""
@@ -56,7 +72,6 @@ const smartTruncate = (text: string, maxLength: number): string => {
     if (truncated.length > 0) return truncated.trim() + "..."
   }
   
-  // Fallback to word boundary
   const words = text.split(" ")
   let truncated = ""
   for (const word of words) {
@@ -72,15 +87,32 @@ export function PostSection({ post, onLike, onRepost, onReply, isMobile = false 
   const currentUserId = session?.user?.id
   
   const [showReplyDialog, setShowReplyDialog] = useState(false)
-  const [showTrim, setShowTrim] = useState("trim") // Fixed capitalization
-  const [repostLoading, setRepostLoading] = useState(false)
-  const [mentionsPeoples, setMentions] = useState<string[] | null>(null) // Fixed duplicate declaration
+  const [showTrim, setShowTrim] = useState("trim")
+  const [mentionsPeoples, setMentions] = useState<string[] | null>(null)
   const [translation, setTranslation] = useState<TranslationState>({
     isTranslating: false,
     translatedText: null,
     originalText: post.content,
     targetLang: "bn",
     error: null,
+  })
+  
+  // Optimistic UI states
+  const [actionStates, setActionStates] = useState<ActionStates>({
+    like: {
+      isLoading: false,
+      optimisticCount: post.likesCount || 0,
+      optimisticLiked: post.isLiked || false
+    },
+    repost: {
+      isLoading: false,
+      optimisticCount: post.repostsCount || 0,
+      optimisticReposted: post.isReposted || false
+    },
+    reply: {
+      isLoading: false,
+      optimisticCount: post.repliesCount || 0
+    }
   })
   
   const router = useRouter()
@@ -92,34 +124,52 @@ export function PostSection({ post, onLike, onRepost, onReply, isMobile = false 
   const isPostPage = useMemo(() => pathname.startsWith("/post"), [pathname])
   const imageRef = useRef<HTMLImageElement>(null)
   const [imageH, setH] = useState(0)
-  const [postLang,setPostLang] = useState('en')
+  const [postLang, setPostLang] = useState('en')
   const MAX_LENGTH = 100
   const shouldTrim = post.content.length > MAX_LENGTH
   const displayContent = shouldTrim && showTrim === "trim" ? smartTruncate(post.content, MAX_LENGTH) : post.content
-async function detectLanguage(text) {
-  try {
-    const cldFactory = await loadModule(); // Load the WebAssembly module
-    const cld = cldFactory.create();       // Create a CLD3 instance
-    const result = cld.findLanguage(text); // Detect the language
-    
-    if (result && result.isReliable) {
-      return result.language;
-    } else if (result) {
-      return result.language;
-    } else {
-      return null; // Fallback when detection fails
+
+  // Update action states when post prop changes
+  useEffect(() => {
+    setActionStates({
+      like: {
+        isLoading: false,
+        optimisticCount: post.likesCount || 0,
+        optimisticLiked: post.isLiked || false
+      },
+      repost: {
+        isLoading: false,
+        optimisticCount: post.repostsCount || 0,
+        optimisticReposted: post.isReposted || false
+      },
+      reply: {
+        isLoading: false,
+        optimisticCount: post.repliesCount || 0
+      }
+    })
+  }, [post.likesCount, post.isLiked, post.repostsCount, post.isReposted, post.repliesCount])
+
+  async function detectLanguage(text: string) {
+    try {
+      const cldFactory = await loadModule()
+      const cld = cldFactory.create()
+      const result = cld.findLanguage(text)
+      
+      if (result && result.isReliable) {
+        return result.language
+      } else if (result) {
+        return result.language
+      } else {
+        return null
+      }
+    } catch (error) {
+      console.error("Error loading or using CLD3:", error)
+      return null
     }
-  } catch (error) {
-    console.error("Error loading or using CLD3:", error);
-    return null;
   }
-}
 
-
-  // Function to check mentions - added missing implementation
+  // Function to check mentions
   const checkTrueMentions = useCallback((username: string) => {
-    // Add your logic here to validate mentions
-    // For now, just add to mentions array
     setMentions(prev => {
       if (prev && !prev.includes(username)) {
         return [...prev, username]
@@ -130,7 +180,7 @@ async function detectLanguage(text) {
     })
   }, [])
   
-  // Translation function with better error handling
+  // Translation function
   const translateText = useCallback(async (text: string, targetLang = "bn"): Promise<string> => {
     try {
       const res = await fetch("https://libretranslate.com/translate", {
@@ -161,11 +211,10 @@ async function detectLanguage(text) {
     }
   }, [])
   
-  // Enhanced content formatting with better security
+  // Enhanced content formatting
   const formatContent = useCallback((content: string) => {
     const urlRegex = /(https?:\/\/[^\s]+)/g
     
-    // Sanitize content first
     const sanitizedContent = DOMPurify.sanitize(content, {
       ALLOWED_TAGS: [],
       ALLOWED_ATTR: [],
@@ -186,7 +235,7 @@ async function detectLanguage(text) {
           return `<span class="text-blue-600 hover:underline cursor-pointer font-medium transition-colors">@${m1}</span>`
         }
       )
-  }, [checkTrueMentions]) // Added dependency
+  }, [checkTrueMentions])
   
   // Enhanced translation handler
   const handlePostTranslate = useCallback(async () => {
@@ -233,27 +282,121 @@ async function detectLanguage(text) {
     router.push(`/post/${post._id}`)
   }, [router, post._id])
   
-  // Enhanced repost handler with better error handling
-  const handleRepostClick = useCallback(async () => {
-    if (repostLoading || !currentUserId) return
+  // OPTIMISTIC LIKE HANDLER
+  const handleLikeClick = useCallback(async () => {
+    if (actionStates.like.isLoading || !currentUserId) return
     
-    setRepostLoading(true)
+    const currentLiked = actionStates.like.optimisticLiked
+    const currentCount = actionStates.like.optimisticCount
+    
+    // Optimistic update
+    setActionStates(prev => ({
+      ...prev,
+      like: {
+        isLoading: true,
+        optimisticLiked: !currentLiked,
+        optimisticCount: currentLiked ? currentCount - 1 : currentCount + 1
+      }
+    }))
+    
+    try {
+      const response = await fetch(`/api/posts/${post._id}/like`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ liked: !currentLiked }),
+      })
+      
+      if (!response.ok) {
+        throw new Error("Failed to toggle like")
+      }
+      
+      const result = await response.json()
+      
+      // Update with server response
+      setActionStates(prev => ({
+        ...prev,
+        like: {
+          isLoading: false,
+          optimisticLiked: result.isLiked,
+          optimisticCount: result.likesCount
+        }
+      }))
+      
+      // Call parent callback for any additional updates
+      onLike(post._id, result.isLiked)
+      
+    } catch (error) {
+      console.error("Error liking post:", error)
+      
+      // Revert optimistic update on error
+      setActionStates(prev => ({
+        ...prev,
+        like: {
+          isLoading: false,
+          optimisticLiked: currentLiked,
+          optimisticCount: currentCount
+        }
+      }))
+    }
+  }, [actionStates.like, post._id, currentUserId, onLike])
+  
+  // OPTIMISTIC REPOST HANDLER
+  const handleRepostClick = useCallback(async () => {
+    if (actionStates.repost.isLoading || !currentUserId) return
+    
+    const currentReposted = actionStates.repost.optimisticReposted
+    const currentCount = actionStates.repost.optimisticCount
+    
+    // Optimistic update
+    setActionStates(prev => ({
+      ...prev,
+      repost: {
+        isLoading: true,
+        optimisticReposted: !currentReposted,
+        optimisticCount: currentReposted ? currentCount - 1 : currentCount + 1
+      }
+    }))
+    
     try {
       const response = await fetch(`/api/posts/${post._id}/repost`, {
         method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ reposted: !currentReposted }),
       })
       
       if (!response.ok) {
         throw new Error("Failed to toggle repost")
       }
+      
       const result = await response.json()
-      onRepost(post._id, result.reposted)
+      
+      // Update with server response
+      setActionStates(prev => ({
+        ...prev,
+        repost: {
+          isLoading: false,
+          optimisticReposted: result.isReposted,
+          optimisticCount: result.repostsCount
+        }
+      }))
+      
+      // Call parent callback
+      onRepost(post._id, result.isReposted)
+      
     } catch (error) {
       console.error("Error reposting:", error)
-    } finally {
-      setRepostLoading(false)
+      
+      // Revert optimistic update on error
+      setActionStates(prev => ({
+        ...prev,
+        repost: {
+          isLoading: false,
+          optimisticReposted: currentReposted,
+          optimisticCount: currentCount
+        }
+      }))
     }
-  }, [repostLoading, post._id, currentUserId, onRepost])
+  }, [actionStates.repost, post._id, currentUserId, onRepost])
   
   // Enhanced pin handler
   const handlePinPost = useCallback(async () => {
@@ -267,23 +410,24 @@ async function detectLanguage(text) {
       if (!response.ok) {
         throw new Error("Failed to toggle pin status")
       }
-      const result = await response.json()
+      
       onReply?.()
     } catch (error) {
       console.error("Error pinning post:", error)
     }
   }, [post._id, currentUserId, onReply])
+
   useEffect(() => {
-  const detect = async () => {
-    if (post.content.length) {
-      const lang = await detectLanguage(post.content);
-      console.log(lang);
-      setPostLang(lang);
+    const detect = async () => {
+      if (post.content.length) {
+        const lang = await detectLanguage(post.content)
+        setPostLang(lang || 'en')
+      }
     }
-  };
-  detect();
-}, [post]);
-  // Enhanced media rendering with loading states
+    detect()
+  }, [post])
+  
+  // Enhanced media rendering
   const renderMedia = useCallback(
     (mediaUrls: string[] | null, mediaType: string | null) => {
       if (!mediaUrls || mediaUrls.length === 0) return null
@@ -418,7 +562,7 @@ async function detectLanguage(text) {
         )}
 
         <div className="flex flex-col gap-3">
-          <div className="flex gap-3"> {/* Fixed className */}
+          <div className="flex gap-3">
             <Link
               href={`/profile/${post.author.username}`}
               className="flex-shrink-0"
@@ -448,7 +592,7 @@ async function detectLanguage(text) {
                   {mentionsPeoples !== null && (
                     <div className="flex flex-row items-center gap-2">
                       <small className="text-xs text-gray-500">{"with"}</small>
-                      <Link href={`/profile/${mentionsPeoples[0]}`}> {/* Fixed href */}
+                      <Link href={`/profile/${mentionsPeoples[0]}`}>
                         <small>@{mentionsPeoples[0]}</small>
                       </Link>
                       {mentionsPeoples.length > 1 && (
@@ -467,11 +611,12 @@ async function detectLanguage(text) {
               </div>
             </div>
           </div>
+          
           {/* Post content */}
           {post.content && (
             <div className="mt-2">
               <div
-                className={"text-gray-900 whitespace-pre-wrap text-sm lg:text-base leading-relaxed" + " " + postLang === 'bn' ? "font-bengali": ""}
+                className={`text-gray-900 whitespace-pre-wrap text-sm lg:text-base leading-relaxed ${postLang === 'bn' ? "font-bengali" : ""}`}
                 dangerouslySetInnerHTML={{ __html: formatContent(contentToDisplay) }}
               />
 
@@ -538,7 +683,7 @@ async function detectLanguage(text) {
             </span>
           )}
           
-          {/* Action buttons */}
+          {/* Action buttons with optimistic UI */}
           <div className="flex items-center justify-between max-w-sm lg:max-w-md mt-1">
             <Button
               variant="ghost"
@@ -548,17 +693,17 @@ async function detectLanguage(text) {
                 e.stopPropagation()
                 handleReplyClick()
               }}
-              aria-label={`Reply to post. ${post.repliesCount || 0} replies`}
+              aria-label={`Reply to post. ${actionStates.reply.optimisticCount} replies`}
             >
               <MessageCircle className="h-4 w-4 mr-1" />
-              <span className="text-xs lg:text-sm">{post.repliesCount || 0}</span>
+              <span className="text-xs lg:text-sm">{actionStates.reply.optimisticCount}</span>
             </Button>
 
             <Button
               variant="ghost"
               size="sm"
               className={`${
-                post.isReposted
+                actionStates.repost.optimisticReposted
                   ? "text-green-600 bg-green-50"
                   : "text-gray-500 hover:text-green-600 hover:bg-green-50"
               } p-2 rounded-full transition-colors`}
@@ -566,31 +711,38 @@ async function detectLanguage(text) {
                 e.stopPropagation()
                 handleRepostClick()
               }}
-              disabled={repostLoading}
-              aria-label={`${post.isReposted ? "Unrepost" : "Repost"}. ${post.repostsCount || 0} reposts`}
+              disabled={actionStates.repost.isLoading}
+              aria-label={`${actionStates.repost.optimisticReposted ? "Unrepost" : "Repost"}. ${actionStates.repost.optimisticCount} reposts`}
             >
-              {repostLoading ? (
+              {actionStates.repost.isLoading ? (
                 <Loader2 className="h-4 w-4 mr-1 animate-spin" />
               ) : (
-                <Repeat2 className={`h-4 w-4 mr-1 ${post.isReposted ? "fill-current" : ""}`} />
+                <Repeat2 className={`h-4 w-4 mr-1 ${actionStates.repost.optimisticReposted ? "fill-current" : ""}`} />
               )}
-              <span className="text-xs lg:text-sm">{post.repostsCount || 0}</span>
+              <span className="text-xs lg:text-sm">{actionStates.repost.optimisticCount}</span>
             </Button>
 
             <Button
               variant="ghost"
               size="sm"
               className={`${
-                post.isLiked ? "text-red-600 bg-red-50" : "text-gray-500 hover:text-red-600 hover:bg-red-50"
+                actionStates.like.optimisticLiked 
+                  ? "text-red-600 bg-red-50" 
+                  : "text-gray-500 hover:text-red-600 hover:bg-red-50"
               } p-2 rounded-full transition-colors`}
               onClick={(e) => {
                 e.stopPropagation()
-                onLike(post._id, post.isLiked)
+                handleLikeClick()
               }}
-              aria-label={`${post.isLiked ? "Unlike" : "Like"} post. ${post.likesCount} likes`}
+              disabled={actionStates.like.isLoading}
+              aria-label={`${actionStates.like.optimisticLiked ? "Unlike" : "Like"} post. ${actionStates.like.optimisticCount} likes`}
             >
-              <Heart className={`h-4 w-4 mr-1 ${post.isLiked ? "fill-current" : ""}`} />
-              <span className="text-xs lg:text-sm">{post.likesCount}</span>
+              {actionStates.like.isLoading ? (
+                <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+              ) : (
+                <Heart className={`h-4 w-4 mr-1 ${actionStates.like.optimisticLiked ? "fill-current" : ""}`} />
+              )}
+              <span className="text-xs lg:text-sm">{actionStates.like.optimisticCount}</span>
             </Button>
 
             <Button
