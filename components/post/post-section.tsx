@@ -557,6 +557,7 @@ export function PostSection({ post, onLike, onRepost, onReply, isMobile = false 
   value={post.repliesCount || 0}
   gap={0}
   places={[1]}
+  
   containerClassName='bg-none'
   counterClassName='text-xs lg:text-sm'
 />
