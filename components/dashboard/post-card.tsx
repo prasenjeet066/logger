@@ -558,7 +558,7 @@ useEffect(() => {
               <Button
                 variant="ghost"
                 size="sm"
-                className="text-gray-500 hover:text-blue-600 hover:bg-blue-50 p-2 rounded-full transition-colors"
+                className="text-gray-500 hover:text-indigo-600  p-2 rounded-full transition-colors"
                 onClick={(e) => {
                   e.stopPropagation()
                   handleReplyClick()
@@ -574,8 +574,8 @@ useEffect(() => {
                 size="sm"
                 className={`${
                   post.isReposted
-                    ? "text-green-600 bg-green-50"
-                    : "text-gray-500 hover:text-green-600 hover:bg-green-50"
+                    ? "text-indigo-600"
+                    : "text-gray-500 hover:text-indigo-600"
                 } p-2 rounded-full transition-colors`}
                 onClick={(e) => {
                   e.stopPropagation()
@@ -596,7 +596,7 @@ useEffect(() => {
                 variant="ghost"
                 size="sm"
                 className={`${
-                  post.isLiked ? "text-red-600 bg-red-50" : "text-gray-500 hover:text-red-600 hover:bg-red-50"
+                  post.isLiked ? "text-indigo-600" : "text-gray-500 hover:text-indigo-600"
                 } p-2 rounded-full transition-colors`}
                 onClick={(e) => {
                   e.stopPropagation()
@@ -611,7 +611,7 @@ useEffect(() => {
               <Button
                 variant="ghost"
                 size="sm"
-                className="text-gray-500 hover:text-blue-600 hover:bg-blue-50 p-2 rounded-full transition-colors"
+                className="text-gray-500 hover:text-indigo-600  p-2 rounded-full transition-colors"
                 onClick={(e) => e.stopPropagation()}
                 aria-label="Share post"
               >
