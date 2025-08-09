@@ -16,15 +16,14 @@ import DOMPurify from "dompurify"
 import { useRouter, usePathname } from "next/navigation"
 import type { Post } from "@/types/post"
 import { useSession } from "next-auth/react"
-import { loadModule } from 'cld3-asm';
-
+import { loadModule } from 'cld3-asm'
 
 interface PostCardProps {
   post: Post
   onLike: (postId: string, isLiked: boolean) => void
   onRepost: (postId: string, isReposted: boolean) => void
-  onReply ? : () => void
-  isMobile ? : boolean // Added missing prop
+  onReply?: () => void
+  isMobile?: boolean
 }
 
 interface TranslationState {
@@ -71,11 +70,10 @@ export function PostSection({ post, onLike, onRepost, onReply, isMobile = false 
   const { data: session } = useSession()
   const currentUserId = session?.user?.id
   
-  const [showReplyDialog, setShowReplyDialog] = useState(false)
-  const [showTrim, setShowTrim] = useState("trim") // Fixed capitalization
+  const [showTrim, setShowTrim] = useState("trim")
   const [repostLoading, setRepostLoading] = useState(false)
-  const [mentionsPeoples, setMentions] = useState < string[] | null > (null) // Fixed duplicate declaration
-  const [translation, setTranslation] = useState < TranslationState > ({
+  const [mentionsPeoples, setMentions] = useState<string[] | null>(null)
+  const [translation, setTranslation] = useState<TranslationState>({
     isTranslating: false,
     translatedText: null,
     originalText: post.content,
@@ -90,36 +88,34 @@ export function PostSection({ post, onLike, onRepost, onReply, isMobile = false 
   const postUrl = useMemo(() => extractFirstUrl(post.content), [post.content])
   const hasMedia = useMemo(() => post.mediaUrls && post.mediaUrls.length > 0, [post.mediaUrls])
   const isPostPage = useMemo(() => pathname.startsWith("/post"), [pathname])
-  const imageRef = useRef < HTMLImageElement > (null)
+  const imageRef = useRef<HTMLImageElement>(null)
   const [imageH, setH] = useState(0)
   const [postLang, setPostLang] = useState('en')
   const MAX_LENGTH = 100
   const shouldTrim = post.content.length > MAX_LENGTH
   const displayContent = shouldTrim && showTrim === "trim" ? smartTruncate(post.content, MAX_LENGTH) : post.content
-  async function detectLanguage(text) {
+
+  async function detectLanguage(text: string): Promise<string | null> {
     try {
-      const cldFactory = await loadModule(); // Load the WebAssembly module
-      const cld = cldFactory.create(); // Create a CLD3 instance
-      const result = cld.findLanguage(text); // Detect the language
+      const cldFactory = await loadModule() // Load the WebAssembly module
+      const cld = cldFactory.create() // Create a CLD3 instance
+      const result = cld.findLanguage(text) // Detect the language
       
       if (result && result.isReliable) {
-        return result.language;
+        return result.language
       } else if (result) {
-        return result.language;
+        return result.language
       } else {
-        return null; // Fallback when detection fails
+        return null // Fallback when detection fails
       }
     } catch (error) {
-      console.error("Error loading or using CLD3:", error);
-      return null;
+      console.error("Error loading or using CLD3:", error)
+      return null
     }
   }
   
-  
-  // Function to check mentions - added missing implementation
+  // Function to check mentions
   const checkTrueMentions = useCallback((username: string) => {
-    // Add your logic here to validate mentions
-    // For now, just add to mentions array
     setMentions(prev => {
       if (prev && !prev.includes(username)) {
         return [...prev, username]
@@ -131,7 +127,7 @@ export function PostSection({ post, onLike, onRepost, onReply, isMobile = false 
   }, [])
   
   // Translation function with better error handling
-  const translateText = useCallback(async (text: string, targetLang = "bn"): Promise < string > => {
+  const translateText = useCallback(async (text: string, targetLang = "bn"): Promise<string> => {
     try {
       const res = await fetch("https://libretranslate.com/translate", {
         method: "POST",
@@ -186,7 +182,7 @@ export function PostSection({ post, onLike, onRepost, onReply, isMobile = false 
           return `<span class="text-blue-600 hover:underline cursor-pointer font-medium transition-colors">@${m1}</span>`
         }
       )
-  }, [checkTrueMentions]) // Added dependency
+  }, [checkTrueMentions])
   
   // Enhanced translation handler
   const handlePostTranslate = useCallback(async () => {
@@ -273,16 +269,18 @@ export function PostSection({ post, onLike, onRepost, onReply, isMobile = false 
       console.error("Error pinning post:", error)
     }
   }, [post._id, currentUserId, onReply])
+
   useEffect(() => {
     const detect = async () => {
       if (post.content.length) {
-        const lang = await detectLanguage(post.content);
-        console.log(lang);
-        setPostLang(lang);
+        const lang = await detectLanguage(post.content)
+        console.log(lang)
+        setPostLang(lang || 'en')
       }
-    };
-    detect();
-  }, [post]);
+    }
+    detect()
+  }, [post])
+
   // Enhanced media rendering with loading states
   const renderMedia = useCallback(
     (mediaUrls: string[] | null, mediaType: string | null) => {
@@ -418,7 +416,7 @@ export function PostSection({ post, onLike, onRepost, onReply, isMobile = false 
         )}
 
         <div className="flex flex-col gap-3">
-          <div className="flex gap-3"> {/* Fixed className */}
+          <div className="flex gap-3">
             <Link
               href={`/profile/${post.author.username}`}
               className="flex-shrink-0"
@@ -448,7 +446,7 @@ export function PostSection({ post, onLike, onRepost, onReply, isMobile = false 
                   {mentionsPeoples !== null && (
                     <div className="flex flex-row items-center gap-2">
                       <small className="text-xs text-gray-500">{"with"}</small>
-                      <Link href={`/profile/${mentionsPeoples[0]}`}> {/* Fixed href */}
+                      <Link href={`/profile/${mentionsPeoples[0]}`}>
                         <small>@{mentionsPeoples[0]}</small>
                       </Link>
                       {mentionsPeoples.length > 1 && (
@@ -467,11 +465,12 @@ export function PostSection({ post, onLike, onRepost, onReply, isMobile = false 
               </div>
             </div>
           </div>
+          
           {/* Post content */}
           {post.content && (
             <div className="mt-2">
               <div
-                className={"text-gray-900 whitespace-pre-wrap text-sm lg:text-base leading-relaxed" + " " + postLang === 'bn' ? "font-bengali": ""}
+                className={`text-gray-900 whitespace-pre-wrap text-sm lg:text-base leading-relaxed ${postLang === 'bn' ? "font-bengali" : ""}`}
                 dangerouslySetInnerHTML={{ __html: formatContent(contentToDisplay) }}
               />
 
@@ -535,13 +534,12 @@ export function PostSection({ post, onLike, onRepost, onReply, isMobile = false 
           {post.watch && (
             <span className="text-xs text-gray-600">
               <Counter
-  value={post.watch || 0}
-  gap={0}
-  places={[1]}
-  
-  containerClassName='bg-none'
-  counterClassName='text-xs lg:text-sm'
-/> watched
+                value={post.watch || 0}
+                gap={0}
+                places={[1]}
+                containerClassName="bg-none"
+                counterClassName="text-xs lg:text-sm"
+              /> watched
             </span>
           )}
           
@@ -558,17 +556,13 @@ export function PostSection({ post, onLike, onRepost, onReply, isMobile = false 
               aria-label={`Reply to post. ${post.repliesCount || 0} replies`}
             >
               <MessageCircle className="h-4 w-4 mr-1" />
-              
-
-<Counter
-  value={post.repliesCount || 0}
-  gap={0}
-  places={[1]}
-  
-  containerClassName='bg-none'
-  counterClassName='text-xs lg:text-sm'
-/>
-              
+              <Counter
+                value={post.repliesCount || 0}
+                gap={0}
+                places={[1]}
+                containerClassName="bg-none"
+                counterClassName="text-xs lg:text-sm"
+              />
             </Button>
 
             <Button
@@ -592,14 +586,12 @@ export function PostSection({ post, onLike, onRepost, onReply, isMobile = false 
                 <Repeat2 className={`h-4 w-4 mr-1 ${post.isReposted ? "fill-current" : ""}`} />
               )}
               <Counter
-  value={post.repostsCount || 0}
-  gap={0}
-  places={[1]}
-  
-  containerClassName='bg-none'
-  counterClassName='text-xs lg:text-sm'
-/>
-             
+                value={post.repostsCount || 0}
+                gap={0}
+                places={[1]}
+                containerClassName="bg-none"
+                counterClassName="text-xs lg:text-sm"
+              />
             </Button>
 
             <Button
@@ -616,14 +608,12 @@ export function PostSection({ post, onLike, onRepost, onReply, isMobile = false 
             >
               <Heart className={`h-4 w-4 mr-1 ${post.isLiked ? "fill-current" : ""}`} />
               <Counter
-  value={post.likesCount || 0}
-  gap={0}
-  places={[1]}
-  
-  containerClassName='bg-none'
-  counterClassName='text-xs lg:text-sm'
-/>
-
+                value={post.likesCount || 0}
+                gap={0}
+                places={[1]}
+                containerClassName="bg-none"
+                counterClassName="text-xs lg:text-sm"
+              />
             </Button>
 
             <Button
