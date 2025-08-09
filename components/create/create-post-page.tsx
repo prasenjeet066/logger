@@ -347,6 +347,7 @@ export default function CreatePostPage({ user }: CreatePostPageProps) {
       /#([a-zA-Z0-9_\u0980-\u09FF]+)/g,
       '<span style="color: #1DA1F2; font-weight: bold;">#$1</span>',
     )
+    
     escapedText = escapedText.replace(
       /@([a-zA-Z0-9_]+)/g,
       '<span style="color: #1DA1F2; font-weight: bold;">@$1</span>',
