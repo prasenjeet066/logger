@@ -6,15 +6,9 @@ import { Post } from "@/lib/mongodb/models/Post"
 import { User } from "@/lib/mongodb/models/User"
 import { Like } from "@/lib/mongodb/models/Like"
 
-interface Params {
-  id: string
-  filter?: "relevant" | "recently" | "forceView"
-  _id?: string // id of this comment to force view
-}
-
 export async function GET(
   request: NextRequest,
-  { params }: { params: Params }
+  { params }: { params: { id: string } }
 ) {
   try {
     const session = await getServerSession(authOptions)
@@ -29,28 +23,33 @@ export async function GET(
       return NextResponse.json({ error: "User not found" }, { status: 404 })
     }
 
-    // Base query: find all replies to the given post
-    const query: any = { parentPostId: params.id }
+    const postId = params.id
+    const filter = request.nextUrl.searchParams.get("filter") ?? "recently"
+    const forcedId = request.nextUrl.searchParams.get("_id")
 
-    // If forceView is active, ensure the specific reply appears
+    // Base query: find replies to the given post
+    const query: any = { parentPostId: postId }
+
+    // Get forced reply if filter is forceView and _id is given
     let forcedReply: any = null
-    if (params.filter === "forceView" && params._id) {
-      forcedReply = await Post.findById(params._id).lean()
+    if (filter === "forceView" && forcedId) {
+      forcedReply = await Post.findById(forcedId).lean()
     }
 
+    // Determine sorting order
     let sortOption: any = { createdAt: -1 } // default: recently
-    if (params.filter === "relevant") {
+    if (filter === "relevant") {
       sortOption = { likesCount: -1, createdAt: -1 }
     }
 
     const replies = await Post.find(query).sort(sortOption).lean()
 
-    // Add forced reply to top if not already included
+    // If forcedReply exists and not in replies, prepend it
     if (forcedReply && !replies.find((r) => r._id.toString() === forcedReply._id.toString())) {
       replies.unshift(forcedReply)
     }
 
-    // Format replies with author info & like status
+    // Map replies with author & like info
     const formattedReplies = await Promise.all(
       replies.map(async (reply) => {
         const author = await User.findById(reply.authorId).lean()

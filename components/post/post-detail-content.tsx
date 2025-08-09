@@ -159,7 +159,7 @@ export function PostDetailContent({
   // Fetch post and its replies based on current filter
   const fetchPostAndReplies = async () => {
     try {
-      setIsLoading(true)
+      //setIsLoading(true)
       setError(null)
 
       // Fetch main post
@@ -194,7 +194,7 @@ export function PostDetailContent({
       setError("Failed to load post data")
       setPost(null)
     } finally {
-      setIsLoading(false)
+      //setIsLoading(false)
     }
   }
 
