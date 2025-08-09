@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation"
 import { Spinner } from "@/components/loader/spinner"
 import { PostSection } from "@/components/post/post-section"
 import { Button } from "@/components/ui/button"
-import { ArrowLeft, Loader2, Paperclip } from "lucide-react"
+import { ArrowLeft, Loader2, Paperclip, Filter } from "lucide-react"
 import Image from "next/image"
 import { fetchCurrentUser } from "@/store/slices/authSlice"
 import { useAppDispatch, useAppSelector } from "@/store/main"
@@ -15,6 +15,7 @@ import { useAppDispatch, useAppSelector } from "@/store/main"
 interface PostDetailContentProps {
   postId: string
   userId: string
+  algorithm ? : 'relevant' | 'recently' | 'forceView'
 }
 
 interface Post {
@@ -25,28 +26,28 @@ interface Post {
     _id: string
     username: string
     displayName: string
-    avatarUrl?: string
+    avatarUrl ? : string
     isVerified: boolean
   }
-  mediaUrls?: string[]
-  mediaType?: "image" | "video" | "gif"
+  mediaUrls ? : string[]
+  mediaType ? : "image" | "video" | "gif"
   likesCount: number
   repostsCount: number
   repliesCount: number
   isRepost: boolean
-  originalPostId?: string
-  parentPostId?: string
+  originalPostId ? : string
+  parentPostId ? : string
   hashtags: string[]
   mentions: string[]
   isPinned: boolean
   createdAt: string
   updatedAt: string
-  isLiked?: boolean
-  isReposted?: boolean
+  isLiked ? : boolean
+  isReposted ? : boolean
 }
 
 interface Reply extends Post {
-  parentPost?: Post
+  parentPost ? : Post
 }
 
 type CommentState = {
@@ -55,11 +56,11 @@ type CommentState = {
   replyParentId: string | null
 }
 
-export function PostDetailContent({ postId, userId }: PostDetailContentProps) {
-  const [post, setPost] = useState<Post | null>(null)
-  const [replies, setReplies] = useState<Reply[]>([])
+export function PostDetailContent({ postId, userId, algorithm = 'relevant' , _id = null}: PostDetailContentProps) {
+  const [post, setPost] = useState < Post | null > (null)
+  const [replies, setReplies] = useState < Reply[] > ([])
   const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const [error, setError] = useState < string | null > (null)
   const [isPosting, setIsPosting] = useState(false)
   const [headerTitle, setHeaderTitle] = useState("Post")
   
@@ -68,18 +69,23 @@ export function PostDetailContent({ postId, userId }: PostDetailContentProps) {
   const authState = useAppSelector((state) => state.auth)
   const { currentUser = null } = authState || {}
   
-  const commentHeaderRef = useRef<HTMLDivElement | null>(null)
-
-  const [commentState, setCommentState] = useState<CommentState>({
+  const commentHeaderRef = useRef < HTMLDivElement | null > (null)
+  
+  const [commentState, setCommentState] = useState < CommentState > ({
     text: "",
     replyingTo: null,
     replyParentId: postId,
   })
-
+  const [Algorithm, setAlgorithm ] = useState(algorithm || 'relevant')
+  useEffect(()=>{
+    if (_id === null || (algorithm!== 'forceView' && _id!==null)) {
+      setAlgorithm('relevant')
+    }
+  },[algorithm , _id])
   // IntersectionObserver effect for header title
   useEffect(() => {
     if (!commentHeaderRef.current) return
-
+    
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
@@ -95,14 +101,14 @@ export function PostDetailContent({ postId, userId }: PostDetailContentProps) {
         threshold: 0.1, // adjust if you want earlier/later trigger
       }
     )
-
+    
     observer.observe(commentHeaderRef.current)
-
+    
     return () => {
       observer.disconnect()
     }
   }, [])
-
+  
   // Main data fetching effect
   useEffect(() => {
     const fetchCurrentUserData = async () => {
@@ -113,7 +119,7 @@ export function PostDetailContent({ postId, userId }: PostDetailContentProps) {
         setError(e instanceof Error ? e.message : 'Failed to fetch user data')
       }
     }
-
+    
     fetchPostAndReplies()
     updateWatch()
     
@@ -145,11 +151,11 @@ export function PostDetailContent({ postId, userId }: PostDetailContentProps) {
       // Don't set this as a critical error since it's not essential
     }
   }
-
+  
   const fetchPostAndReplies = async () => {
     try {
       setError(null)
-
+      
       // Fetch main post
       const postResponse = await fetch(`/api/posts/${postId}`)
       if (!postResponse.ok) {
@@ -161,18 +167,22 @@ export function PostDetailContent({ postId, userId }: PostDetailContentProps) {
         setPost(null)
         return
       }
-
+      
       const postData = await postResponse.json()
       setPost(postData)
-
+      
       // Fetch replies
-      const repliesResponse = await fetch(`/api/posts/${postId}/replies`)
+      const repliesResponse = await fetch(
+        `/api/posts/${postId}/replies?filter=${Algorithm}${
+    Algorithm === 'forceView' ? `&_id=${_id}` : ''
+  }`
+      );
       if (!repliesResponse.ok) {
         console.warn("Failed to fetch replies")
         setReplies([])
         return
       }
-
+      
       const repliesData = await repliesResponse.json()
       setReplies(Array.isArray(repliesData) ? repliesData : [])
     } catch (error) {
@@ -183,7 +193,7 @@ export function PostDetailContent({ postId, userId }: PostDetailContentProps) {
       setIsLoading(false)
     }
   }
-
+  
   const handlePostComment = async () => {
     if (!commentState.text.trim() || isPosting) return
     
@@ -192,7 +202,7 @@ export function PostDetailContent({ postId, userId }: PostDetailContentProps) {
       setError("User session not found. Please refresh and try again.")
       return
     }
-
+    
     setIsPosting(true)
     try {
       const requestBody = {
@@ -206,7 +216,7 @@ export function PostDetailContent({ postId, userId }: PostDetailContentProps) {
         mentions: [],
         visibility: "public"
       }
-
+      
       const response = await fetch("/api/posts", {
         method: "POST",
         headers: {
@@ -214,15 +224,15 @@ export function PostDetailContent({ postId, userId }: PostDetailContentProps) {
         },
         body: JSON.stringify(requestBody),
       })
-
+      
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}))
         throw new Error(errorData.error || `HTTP ${response.status}: Failed to post comment`)
       }
-
+      
       const result = await response.json()
       console.log("Comment posted successfully:", result)
-
+      
       // Reset comment box and refresh replies
       setCommentState({
         text: "",
@@ -240,7 +250,7 @@ export function PostDetailContent({ postId, userId }: PostDetailContentProps) {
       setIsPosting(false)
     }
   }
-
+  
   const handleLike = async (id: string, isLiked: boolean) => {
     try {
       const response = await fetch(`/api/posts/${id}/like`, {
@@ -248,19 +258,19 @@ export function PostDetailContent({ postId, userId }: PostDetailContentProps) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ liked: !isLiked }),
       })
-
+      
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}))
         throw new Error(errorData.error || "Failed to toggle like")
       }
-
+      
       await fetchPostAndReplies()
     } catch (error) {
       console.error("Error toggling like:", error)
       setError("Failed to update like")
     }
   }
-
+  
   const handleRepost = async (id: string, isReposted: boolean) => {
     try {
       const response = await fetch(`/api/posts/${id}/repost`, {
@@ -268,20 +278,20 @@ export function PostDetailContent({ postId, userId }: PostDetailContentProps) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ reposted: !isReposted }),
       })
-
+      
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}))
         throw new Error(errorData.error || "Failed to toggle repost")
       }
-
+      
       await fetchPostAndReplies()
     } catch (error) {
       console.error("Error toggling repost:", error)
       setError("Failed to update repost")
     }
   }
-
-  const handleReplyCreated = (reply?: Reply) => {
+  
+  const handleReplyCreated = (reply ? : Reply) => {
     if (reply) {
       // Set reply state to reply to this reply
       setCommentState({
@@ -299,7 +309,7 @@ export function PostDetailContent({ postId, userId }: PostDetailContentProps) {
       })
     }
   }
-
+  
   // Helper: render the reply input box
   const renderReplyInput = () => (
     <div className="flex items-center gap-2 px-4 py-3 box-border w-full border-b">
@@ -357,7 +367,7 @@ export function PostDetailContent({ postId, userId }: PostDetailContentProps) {
       </Button>
     </div>
   )
-
+  
   // Loading state
   if (isLoading) {
     return (
@@ -366,7 +376,7 @@ export function PostDetailContent({ postId, userId }: PostDetailContentProps) {
       </div>
     )
   }
-
+  
   // Error state
   if (error || !post) {
     return (
@@ -385,7 +395,7 @@ export function PostDetailContent({ postId, userId }: PostDetailContentProps) {
       </div>
     )
   }
-
+  
   return (
     <div className="min-h-screen bg-white">
       <div className="max-w-2xl mx-auto border-x min-h-screen">
@@ -435,7 +445,9 @@ export function PostDetailContent({ postId, userId }: PostDetailContentProps) {
         <div ref={commentHeaderRef} className='text-md px-4 py-3 flex flex-row items-center justify-between'>
           <>
           {`${replies.length} ${replies.length === 1 ? 'Comment' : 'Comments'}`}</>
-          
+          <span>
+            <Filter className='w-4 h-4'/>
+          </span>
         </div>
         
         {/* Replies Section */}
