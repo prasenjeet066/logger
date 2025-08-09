@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 
 import { ReplyCard } from "@/components/reply/reply-card"
 import { useRouter } from "next/navigation"
@@ -49,14 +49,6 @@ interface Reply extends Post {
   parentPost?: Post
 }
 
-interface CurrentUser {
-  _id: string
-  username: string
-  displayName: string
-  avatarUrl?: string
-  email: string
-}
-
 type CommentState = {
   text: string
   replyingTo: string | null
@@ -66,27 +58,29 @@ type CommentState = {
 export function PostDetailContent({ postId, userId }: PostDetailContentProps) {
   const [post, setPost] = useState<Post | null>(null)
   const [replies, setReplies] = useState<Reply[]>([])
-  
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [isPosting, setIsPosting] = useState(false)
+  const [headerTitle, setHeaderTitle] = useState("Post")
+  
   const router = useRouter()
+  const dispatch = useAppDispatch()
+  const authState = useAppSelector((state) => state.auth)
+  const { currentUser = null } = authState || {}
+  
+  const commentHeaderRef = useRef<HTMLDivElement | null>(null)
 
   const [commentState, setCommentState] = useState<CommentState>({
     text: "",
     replyingTo: null,
     replyParentId: postId,
   })
-  const dispatch = useAppDispatch()
-  const authState = useAppSelector((state) => state.auth)
-  const { currentUser = null } = authState || {}
-  const [isPosting, setIsPosting] = useState(false)
-  const [headerTitle, setHeaderTitle] = useState("Post")
-  const commentHeaderRef = useRef<HTMLDivElement | null>(null)
 
+  // IntersectionObserver effect for header title
   useEffect(() => {
     if (!commentHeaderRef.current) return
 
-   const observer = new IntersectionObserver(
+    const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
@@ -105,30 +99,33 @@ export function PostDetailContent({ postId, userId }: PostDetailContentProps) {
     observer.observe(commentHeaderRef.current)
 
     return () => {
-      if (commentHeaderRef.current) {
-        observer.unobserve(commentHeaderRef.current)
-      }
+      observer.disconnect()
     }
   }, [])
 
+  // Main data fetching effect
   useEffect(() => {
-    const fetchCurrentUserData=  async () => {
+    const fetchCurrentUserData = async () => {
       try {
         dispatch(fetchCurrentUser())
       } catch (e) {
-        setError(e)
+        console.error('Error fetching current user:', e)
+        setError(e instanceof Error ? e.message : 'Failed to fetch user data')
       }
     }
+
     fetchPostAndReplies()
     updateWatch()
+    
     // Reset comment state when postId changes
     setCommentState({
       text: "",
       replyingTo: null,
       replyParentId: postId,
     })
+    
     fetchCurrentUserData()
-  }, [postId, userId , dispatch])
+  }, [postId, userId, dispatch])
   
   const updateWatch = async () => {
     try {
@@ -148,24 +145,9 @@ export function PostDetailContent({ postId, userId }: PostDetailContentProps) {
       // Don't set this as a critical error since it's not essential
     }
   }
-  
-  /**const fetchCurrentUser = async () => {
-    try {
-      const response = await fetch(`/api/users/current`)
-      if (!response.ok) {
-        throw new Error("Failed to fetch current user")
-      }
-      const data = await response.json()
-      setCurrentUser(data)
-    } catch (error) {
-      console.error("Error fetching current user:", error)
-      setError("Failed to load user data")
-    }
-  }**/
 
   const fetchPostAndReplies = async () => {
     try {
-      //setIsLoading(true)
       setError(null)
 
       // Fetch main post
@@ -177,7 +159,6 @@ export function PostDetailContent({ postId, userId }: PostDetailContentProps) {
           throw new Error("Failed to fetch post")
         }
         setPost(null)
-        //setIsLoading(false) // Fixed: was setIsLoadingPost
         return
       }
 
@@ -319,34 +300,6 @@ export function PostDetailContent({ postId, userId }: PostDetailContentProps) {
     }
   }
 
-  // Loading state
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <Spinner />
-      </div>
-    )
-  }
-
-  // Error state
-  if (error || !post) {
-    return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <div className="text-center">
-          <h2 className="text-xl font-semibold mb-2">
-            {error === "Post not found" ? "Post not found" : "Something went wrong"}
-          </h2>
-          <p className="text-gray-500 mb-4">
-            {error === "Post not found"
-              ? "This post may have been deleted or doesn't exist."
-              : error || "Failed to load post data"}
-          </p>
-          <Button onClick={() => router.back()}>Go Back</Button>
-        </div>
-      </div>
-    )
-  }
-
   // Helper: render the reply input box
   const renderReplyInput = () => (
     <div className="flex items-center gap-2 px-4 py-3 box-border w-full border-b">
@@ -405,6 +358,34 @@ export function PostDetailContent({ postId, userId }: PostDetailContentProps) {
     </div>
   )
 
+  // Loading state
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <Spinner />
+      </div>
+    )
+  }
+
+  // Error state
+  if (error || !post) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-xl font-semibold mb-2">
+            {error === "Post not found" ? "Post not found" : "Something went wrong"}
+          </h2>
+          <p className="text-gray-500 mb-4">
+            {error === "Post not found"
+              ? "This post may have been deleted or doesn't exist."
+              : error || "Failed to load post data"}
+          </p>
+          <Button onClick={() => router.back()}>Go Back</Button>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen bg-white">
       <div className="max-w-2xl mx-auto border-x min-h-screen">
@@ -450,13 +431,15 @@ export function PostDetailContent({ postId, userId }: PostDetailContentProps) {
 
         {/* Reply Input - Always show at top */}
         {!commentState.replyingTo && renderReplyInput()}
-        <div ref={commentHeaderRef} className='text-md px-4 py-2'>
-          {`${replies.length} ${replies.length === 1 ? 'Comment' : 'Comments'}`}
+        
+        <div ref={commentHeaderRef} className='text-md px-4 py-3 flex flex-row items-center justify-between'>
+          <>
+          {`${replies.length} ${replies.length === 1 ? 'Comment' : 'Comments'}`}</>
+          
         </div>
         
         {/* Replies Section */}
         <div className="divide-y ease-in">
-          
           {replies.length > 0 ? (
             replies.map((reply) => (
               <div key={reply._id}>
