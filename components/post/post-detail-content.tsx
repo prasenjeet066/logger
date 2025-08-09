@@ -194,7 +194,7 @@ export function PostDetailContent({
       setError("Failed to load post data")
       setPost(null)
     } finally {
-      //setIsLoading(false)
+      setIsLoading(false)
     }
   }
 
