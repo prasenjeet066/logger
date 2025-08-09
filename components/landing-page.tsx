@@ -1,6 +1,10 @@
-import React from 'react';
-import { MotionValue, motion, useSpring, useTransform } from "motion/react";
+"use client";
+
+import React from "react";
+import { motion, MotionValue, useSpring, useTransform } from "framer-motion";
 export const LandingPage = () => {
+  // your variants...
+  
   // Animation variants
   const fadeInUp = {
     initial: { opacity: 0, y: 60 },
