@@ -80,6 +80,36 @@ export function PostDetailContent({ postId, userId }: PostDetailContentProps) {
   const authState = useAppSelector((state) => state.auth)
   const { currentUser = null } = authState || {}
   const [isPosting, setIsPosting] = useState(false)
+  const [headerTitle, setHeaderTitle] = useState("Post")
+  const commentHeaderRef = useRef<HTMLDivElement | null>(null)
+
+  useEffect(() => {
+    if (!commentHeaderRef.current) return
+
+   const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setHeaderTitle("Post")
+          } else {
+            setHeaderTitle("Comments")
+          }
+        })
+      },
+      {
+        root: null, // viewport
+        threshold: 0.1, // adjust if you want earlier/later trigger
+      }
+    )
+
+    observer.observe(commentHeaderRef.current)
+
+    return () => {
+      if (commentHeaderRef.current) {
+        observer.unobserve(commentHeaderRef.current)
+      }
+    }
+  }, [])
 
   useEffect(() => {
     const fetchCurrentUserData=  async () => {
@@ -384,7 +414,7 @@ export function PostDetailContent({ postId, userId }: PostDetailContentProps) {
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <div className="flex flex-col">
-            <h1 className="text-xl font-semibold">Post</h1>
+            <h1 className="text-xl font-semibold">{headerTitle}</h1>
             <span className="text-xs text-gray-500">
               {replies.length} {replies.length === 1 ? "reply" : "replies"}
             </span>
@@ -420,7 +450,7 @@ export function PostDetailContent({ postId, userId }: PostDetailContentProps) {
 
         {/* Reply Input - Always show at top */}
         {!commentState.replyingTo && renderReplyInput()}
-        <div className='text-md px-4 py-2'>
+        <div ref={commentHeaderRef} className='text-md px-4 py-2'>
           {`${replies.length} ${replies.length === 1 ? 'Comment' : 'Comments'}`}
         </div>
         
