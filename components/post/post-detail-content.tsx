@@ -210,7 +210,7 @@ export function PostDetailContent({
     setIsPosting(true)
     try {
       const requestBody = {
-        content: commentState.text,
+        content: `@${post.author.username} ${commentState.text}`,
         parentPostId: commentState.replyParentId,
         authorId: currentUser._id,
         mediaUrls: [],
