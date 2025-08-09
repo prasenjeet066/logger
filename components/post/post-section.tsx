@@ -532,14 +532,14 @@ export function PostSection({ post, onLike, onRepost, onReply, isMobile = false 
           {renderMedia(post.mediaUrls, post.mediaType)}
           
           {post.watch && (
-            <span className="text-xs text-gray-600">
+            <span className="text-xs text-gray-600 flex flex-row items-center">
               <Counter
                 value={post.watch || 0}
                 gap={0}
                 places={[1]}
                 containerClassName="bg-none"
                 counterClassName="text-xs lg:text-sm"
-              /> watched
+              /> <small>watched</small>
             </span>
           )}
           
