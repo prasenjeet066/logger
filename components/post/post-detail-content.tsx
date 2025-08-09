@@ -1,21 +1,23 @@
 "use client"
 
 import { useState, useEffect, useRef } from "react"
+import { useRouter } from "next/navigation"
+import Image from "next/image"
 
 import { ReplyCard } from "@/components/reply/reply-card"
-import { useRouter } from "next/navigation"
 import { Spinner } from "@/components/loader/spinner"
 import { PostSection } from "@/components/post/post-section"
 import { Button } from "@/components/ui/button"
-import { ArrowLeft, Loader2, Paperclip, Filter, ListFilter } from "lucide-react"
-import Image from "next/image"
+import { ArrowLeft, Loader2, Paperclip, ListFilter } from "lucide-react"
+
 import { fetchCurrentUser } from "@/store/slices/authSlice"
 import { useAppDispatch, useAppSelector } from "@/store/main"
 
 interface PostDetailContentProps {
   postId: string
   userId: string
-  algorithm ? : 'relevant' | 'recently' | 'forceView'
+  algorithm?: "relevant" | "recently" | "forceView"
+  _id?: string | null
 }
 
 interface Post {
@@ -26,28 +28,28 @@ interface Post {
     _id: string
     username: string
     displayName: string
-    avatarUrl ? : string
+    avatarUrl?: string
     isVerified: boolean
   }
-  mediaUrls ? : string[]
-  mediaType ? : "image" | "video" | "gif"
+  mediaUrls?: string[]
+  mediaType?: "image" | "video" | "gif"
   likesCount: number
   repostsCount: number
   repliesCount: number
   isRepost: boolean
-  originalPostId ? : string
-  parentPostId ? : string
+  originalPostId?: string
+  parentPostId?: string
   hashtags: string[]
   mentions: string[]
   isPinned: boolean
   createdAt: string
   updatedAt: string
-  isLiked ? : boolean
-  isReposted ? : boolean
+  isLiked?: boolean
+  isReposted?: boolean
 }
 
 interface Reply extends Post {
-  parentPost ? : Post
+  parentPost?: Post
 }
 
 type CommentState = {
@@ -56,106 +58,110 @@ type CommentState = {
   replyParentId: string | null
 }
 
-export function PostDetailContent({ postId, userId, algorithm = 'relevant', _id = null }: PostDetailContentProps) {
-  const [post, setPost] = useState < Post | null > (null)
-  const [replies, setReplies] = useState < Reply[] > ([])
+export function PostDetailContent({
+  postId,
+  userId,
+  algorithm = "relevant",
+  _id = null,
+}: PostDetailContentProps) {
+  const [post, setPost] = useState<Post | null>(null)
+  const [replies, setReplies] = useState<Reply[]>([])
   const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState < string | null > (null)
+  const [error, setError] = useState<string | null>(null)
   const [isPosting, setIsPosting] = useState(false)
   const [headerTitle, setHeaderTitle] = useState("Post")
-  
+
   const router = useRouter()
   const dispatch = useAppDispatch()
   const authState = useAppSelector((state) => state.auth)
   const { currentUser = null } = authState || {}
-  
-  const commentHeaderRef = useRef < HTMLDivElement | null > (null)
-  
-  const [commentState, setCommentState] = useState < CommentState > ({
+
+  const commentHeaderRef = useRef<HTMLDivElement | null>(null)
+
+  const [commentState, setCommentState] = useState<CommentState>({
     text: "",
     replyingTo: null,
     replyParentId: postId,
   })
-  const [Algorithm, setAlgorithm] = useState(algorithm || 'relevant')
+
+  // Algorithm state internally managed to allow toggling/filtering
+  const [algorithmState, setAlgorithmState] = useState<"relevant" | "recently" | "forceView">(algorithm)
+
+  // Sync prop algorithm changes with internal state
   useEffect(() => {
-    if (_id === null || (algorithm !== 'forceView' && _id !== null)) {
-      setAlgorithm('relevant')
+    setAlgorithmState(algorithm)
+  }, [algorithm])
+
+  // Reset algorithm to 'relevant' if _id or algorithm prop changes with certain conditions
+  useEffect(() => {
+    if (_id === null || (algorithm !== "forceView" && _id !== null)) {
+      setAlgorithmState("relevant")
     }
-  }, [algorithm, _id])
-  // IntersectionObserver effect for header title
+  }, [_id, algorithm])
+
+  // IntersectionObserver to change header title based on scroll
   useEffect(() => {
     if (!commentHeaderRef.current) return
-    
+
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            setHeaderTitle("Post")
-          } else {
-            setHeaderTitle("Comments")
-          }
+          setHeaderTitle(entry.isIntersecting ? "Post" : "Comments")
         })
       },
-      {
-        root: null, // viewport
-        threshold: 0.1, // adjust if you want earlier/later trigger
-      }
+      { root: null, threshold: 0.1 }
     )
-    
     observer.observe(commentHeaderRef.current)
-    
-    return () => {
-      observer.disconnect()
-    }
+
+    return () => observer.disconnect()
   }, [])
-  
-  // Main data fetching effect
+
+  // Fetch current user, post, replies on relevant dependencies
   useEffect(() => {
     const fetchCurrentUserData = async () => {
       try {
-        dispatch(fetchCurrentUser())
+        await dispatch(fetchCurrentUser())
       } catch (e) {
-        console.error('Error fetching current user:', e)
-        setError(e instanceof Error ? e.message : 'Failed to fetch user data')
+        console.error("Error fetching current user:", e)
+        setError(e instanceof Error ? e.message : "Failed to fetch user data")
       }
     }
-    
+
     fetchPostAndReplies()
     updateWatch()
-    
-    // Reset comment state when postId changes
+
+    // Reset comment input state when postId changes
     setCommentState({
       text: "",
       replyingTo: null,
       replyParentId: postId,
     })
-    
+
     fetchCurrentUserData()
-  }, [postId, userId, dispatch, Algorithm])
-  
+  }, [postId, userId, dispatch, algorithmState])
+
+  // Update view count (non-critical)
   const updateWatch = async () => {
     try {
-      const response = await fetch('/api/viewUpdate', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ 'postId': postId })
+      const response = await fetch("/api/viewUpdate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ postId }),
       })
-      
       if (!response.ok) {
-        console.warn('Failed to update view count:', response.statusText)
+        console.warn("Failed to update view count:", response.statusText)
       }
     } catch (error) {
-      console.warn('Error updating view count:', error)
-      // Don't set this as a critical error since it's not essential
+      console.warn("Error updating view count:", error)
     }
   }
-  
+
+  // Fetch post and its replies based on current filter
   const fetchPostAndReplies = async () => {
     try {
+      setIsLoading(true)
       setError(null)
-      
+
       // Fetch main post
       const postResponse = await fetch(`/api/posts/${postId}`)
       if (!postResponse.ok) {
@@ -167,22 +173,20 @@ export function PostDetailContent({ postId, userId, algorithm = 'relevant', _id 
         setPost(null)
         return
       }
-      
       const postData = await postResponse.json()
       setPost(postData)
-      
-      // Fetch replies
+
+      // Fetch replies with filter and optional _id param
       const repliesResponse = await fetch(
-        `/api/posts/${postId}/replies?filter=${Algorithm}${
-    Algorithm === 'forceView' ? `&_id=${_id}` : ''
-  }`
-      );
+        `/api/posts/${postId}/replies?filter=${algorithmState}${
+          algorithmState === "forceView" && _id ? `&_id=${_id}` : ""
+        }`
+      )
       if (!repliesResponse.ok) {
         console.warn("Failed to fetch replies")
         setReplies([])
         return
       }
-      
       const repliesData = await repliesResponse.json()
       setReplies(Array.isArray(repliesData) ? repliesData : [])
     } catch (error) {
@@ -193,56 +197,47 @@ export function PostDetailContent({ postId, userId, algorithm = 'relevant', _id 
       setIsLoading(false)
     }
   }
-  
+
+  // Handle posting a new comment or reply
   const handlePostComment = async () => {
     if (!commentState.text.trim() || isPosting) return
-    
-    // Validate required data
+
     if (!currentUser) {
       setError("User session not found. Please refresh and try again.")
       return
     }
-    
+
     setIsPosting(true)
     try {
       const requestBody = {
         content: commentState.text,
         parentPostId: commentState.replyParentId,
         authorId: currentUser._id,
-        // Add default values to prevent API errors
         mediaUrls: [],
         mediaType: null,
         hashtags: [],
         mentions: [],
-        visibility: "public"
+        visibility: "public",
       }
-      
       const response = await fetch("/api/posts", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(requestBody),
       })
-      
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}))
         throw new Error(errorData.error || `HTTP ${response.status}: Failed to post comment`)
       }
-      
       const result = await response.json()
       console.log("Comment posted successfully:", result)
-      
-      // Reset comment box and refresh replies
+
+      // Reset comment input & refresh replies
       setCommentState({
         text: "",
         replyingTo: null,
         replyParentId: postId,
       })
-      
-      // Refresh the post and replies data
       await fetchPostAndReplies()
-      
     } catch (error) {
       console.error("Error posting comment:", error)
       setError(error instanceof Error ? error.message : "Failed to post comment")
@@ -250,7 +245,8 @@ export function PostDetailContent({ postId, userId, algorithm = 'relevant', _id 
       setIsPosting(false)
     }
   }
-  
+
+  // Toggle like state
   const handleLike = async (id: string, isLiked: boolean) => {
     try {
       const response = await fetch(`/api/posts/${id}/like`, {
@@ -258,19 +254,18 @@ export function PostDetailContent({ postId, userId, algorithm = 'relevant', _id 
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ liked: !isLiked }),
       })
-      
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}))
         throw new Error(errorData.error || "Failed to toggle like")
       }
-      
       await fetchPostAndReplies()
     } catch (error) {
       console.error("Error toggling like:", error)
       setError("Failed to update like")
     }
   }
-  
+
+  // Toggle repost state
   const handleRepost = async (id: string, isReposted: boolean) => {
     try {
       const response = await fetch(`/api/posts/${id}/repost`, {
@@ -278,22 +273,20 @@ export function PostDetailContent({ postId, userId, algorithm = 'relevant', _id 
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ reposted: !isReposted }),
       })
-      
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}))
         throw new Error(errorData.error || "Failed to toggle repost")
       }
-      
       await fetchPostAndReplies()
     } catch (error) {
       console.error("Error toggling repost:", error)
       setError("Failed to update repost")
     }
   }
-  
-  const handleReplyCreated = (reply ? : Reply) => {
+
+  // When user clicks reply on a reply or main post
+  const handleReplyCreated = (reply?: Reply) => {
     if (reply) {
-      // Set reply state to reply to this reply
       setCommentState({
         text: "",
         replyingTo: reply.author.username,
@@ -301,7 +294,6 @@ export function PostDetailContent({ postId, userId, algorithm = 'relevant', _id 
       })
       router.push(`/post/${reply._id}`)
     } else {
-      // Replying to main post
       setCommentState({
         text: "",
         replyingTo: post?.author.username || null,
@@ -309,11 +301,10 @@ export function PostDetailContent({ postId, userId, algorithm = 'relevant', _id 
       })
     }
   }
-  
-  // Helper: render the reply input box
+
+  // Reply input box UI
   const renderReplyInput = () => (
     <div className="flex items-center gap-2 px-4 py-3 box-border w-full border-b">
-      {/* Avatar */}
       {currentUser?.avatarUrl ? (
         <Image
           src={currentUser.avatarUrl || "/placeholder.svg"}
@@ -330,19 +321,20 @@ export function PostDetailContent({ postId, userId, algorithm = 'relevant', _id 
         </div>
       )}
 
-      {/* Input container */}
       <div className="flex-1 flex items-center border rounded-full px-3 py-1">
         <input
           type="text"
           value={commentState.text}
           onChange={(e) => setCommentState((prev) => ({ ...prev, text: e.target.value }))}
-          placeholder={commentState.replyingTo ? `Replying to @${commentState.replyingTo}...` : "Write a reply..."}
+          placeholder={
+            commentState.replyingTo ? `Replying to @${commentState.replyingTo}...` : "Write a reply..."
+          }
           className="bg-transparent w-full outline-none px-2 py-1 text-sm"
           disabled={isPosting}
           autoFocus
           maxLength={280}
           onKeyPress={(e) => {
-            if (e.key === 'Enter' && !e.shiftKey && commentState.text.trim()) {
+            if (e.key === "Enter" && !e.shiftKey && commentState.text.trim()) {
               e.preventDefault()
               handlePostComment()
             }
@@ -351,7 +343,6 @@ export function PostDetailContent({ postId, userId, algorithm = 'relevant', _id 
         <button
           type="button"
           className="text-gray-400 hover:text-gray-600 flex items-center ml-2"
-          tabIndex={-1}
           aria-label="Attach file"
         >
           <Paperclip className="w-4 h-4" />
@@ -367,8 +358,8 @@ export function PostDetailContent({ postId, userId, algorithm = 'relevant', _id 
       </Button>
     </div>
   )
-  
-  // Loading state
+
+  // Loading UI
   if (isLoading) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
@@ -376,8 +367,8 @@ export function PostDetailContent({ postId, userId, algorithm = 'relevant', _id 
       </div>
     )
   }
-  
-  // Error state
+
+  // Error UI
   if (error || !post) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
@@ -395,7 +386,8 @@ export function PostDetailContent({ postId, userId, algorithm = 'relevant', _id 
       </div>
     )
   }
-  
+
+  // Main UI
   return (
     <div className="min-h-screen bg-white">
       <div className="max-w-2xl mx-auto border-x min-h-screen">
@@ -412,15 +404,15 @@ export function PostDetailContent({ postId, userId, algorithm = 'relevant', _id 
           </div>
         </div>
 
-        {/* Error banner */}
+        {/* Error Banner */}
         {error && (
           <div className="bg-red-50 border-l-4 border-red-400 p-4 mx-4 mt-4">
             <div className="flex">
               <div className="ml-3">
                 <p className="text-sm text-red-700">{error}</p>
               </div>
-              <button 
-                onClick={() => setError(null)} 
+              <button
+                onClick={() => setError(null)}
                 className="ml-auto text-red-400 hover:text-red-600 text-xl leading-none"
               >
                 ×
@@ -439,31 +431,31 @@ export function PostDetailContent({ postId, userId, algorithm = 'relevant', _id 
           onReply={() => handleReplyCreated()}
         />
 
-        {/* Reply Input - Always show at top */}
+        {/* Reply Input */}
         {!commentState.replyingTo && renderReplyInput()}
-        
-        <div ref={commentHeaderRef} className='text-md px-4 py-3 flex flex-row items-center justify-between'>
-          <>
-          {`${replies.length} ${replies.length === 1 ? 'Comment' : 'Comments'}`}</>
+
+        {/* Comments header with algorithm toggle */}
+        <div
+          ref={commentHeaderRef}
+          className="text-md px-4 py-3 flex flex-row items-center justify-between"
+        >
+          <>{`${replies.length} ${replies.length === 1 ? "Comment" : "Comments"}`}</>
           <span
-  className="text-xs text-gray-800"
-  onClick={() => {
-    if (Algorithm === 'forceView') return; // forceView হলে কিছুই হবে না
-    
-    const algorithmList = ['relevant', 'recently'];
-    // বর্তমান Algorithm ছাড়া অন্য একটা বেছে নাও
-    const newAlgorithm = algorithmList.find(a => a !== Algorithm);
-    
-    // এখানে Algorithm সেট করার লজিক, ধরো setAlgorithm ফাংশন আছে:
-    setAlgorithm(newAlgorithm);
-  }}
->
-            <ListFilter className='w-4 h-4'/>
-            {Algorithm!=='forceView' ? Algorithm : ''}
+            className="text-xs text-gray-800 cursor-pointer flex items-center gap-1 select-none"
+            onClick={() => {
+              if (algorithmState === "forceView") return
+
+              const algorithmList = ["relevant", "recently"]
+              const newAlgorithm = algorithmList.find((a) => a !== algorithmState)
+              if (newAlgorithm) setAlgorithmState(newAlgorithm)
+            }}
+          >
+            <ListFilter className="w-4 h-4" />
+            {algorithmState !== "forceView" ? algorithmState : ""}
           </span>
         </div>
-        
-        {/* Replies Section */}
+
+        {/* Replies List */}
         <div className="divide-y ease-in">
           {replies.length > 0 ? (
             replies.map((reply) => (
@@ -475,7 +467,6 @@ export function PostDetailContent({ postId, userId, algorithm = 'relevant', _id 
                   onLike={handleLike}
                   onRepost={handleRepost}
                 />
-                {/* Show reply input under the reply if replying to it */}
                 {commentState.replyParentId === reply._id && renderReplyInput()}
               </div>
             ))
