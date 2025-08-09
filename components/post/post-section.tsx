@@ -534,7 +534,14 @@ export function PostSection({ post, onLike, onRepost, onReply, isMobile = false 
           
           {post.watch && (
             <span className="text-xs text-gray-600">
-              {post.watch} watched
+              <Counter
+  value={post.watch || 0}
+  gap={0}
+  places={[1]}
+  
+  containerClassName='bg-none'
+  counterClassName='text-xs lg:text-sm'
+/> watched
             </span>
           )}
           
@@ -584,7 +591,15 @@ export function PostSection({ post, onLike, onRepost, onReply, isMobile = false 
               ) : (
                 <Repeat2 className={`h-4 w-4 mr-1 ${post.isReposted ? "fill-current" : ""}`} />
               )}
-              <span className="text-xs lg:text-sm">{post.repostsCount || 0}</span>
+              <Counter
+  value={post.repostsCount || 0}
+  gap={0}
+  places={[1]}
+  
+  containerClassName='bg-none'
+  counterClassName='text-xs lg:text-sm'
+/>
+             
             </Button>
 
             <Button
@@ -600,7 +615,15 @@ export function PostSection({ post, onLike, onRepost, onReply, isMobile = false 
               aria-label={`${post.isLiked ? "Unlike" : "Like"} post. ${post.likesCount} likes`}
             >
               <Heart className={`h-4 w-4 mr-1 ${post.isLiked ? "fill-current" : ""}`} />
-              <span className="text-xs lg:text-sm">{post.likesCount}</span>
+              <Counter
+  value={post.likesCount || 0}
+  gap={0}
+  places={[1]}
+  
+  containerClassName='bg-none'
+  counterClassName='text-xs lg:text-sm'
+/>
+
             </Button>
 
             <Button
