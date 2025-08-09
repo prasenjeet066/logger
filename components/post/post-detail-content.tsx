@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation"
 import { Spinner } from "@/components/loader/spinner"
 import { PostSection } from "@/components/post/post-section"
 import { Button } from "@/components/ui/button"
-import { ArrowLeft, Loader2, Paperclip, Filter } from "lucide-react"
+import { ArrowLeft, Loader2, Paperclip, Filter, ListFilter } from "lucide-react"
 import Image from "next/image"
 import { fetchCurrentUser } from "@/store/slices/authSlice"
 import { useAppDispatch, useAppSelector } from "@/store/main"
@@ -56,7 +56,7 @@ type CommentState = {
   replyParentId: string | null
 }
 
-export function PostDetailContent({ postId, userId, algorithm = 'relevant' , _id = null}: PostDetailContentProps) {
+export function PostDetailContent({ postId, userId, algorithm = 'relevant', _id = null }: PostDetailContentProps) {
   const [post, setPost] = useState < Post | null > (null)
   const [replies, setReplies] = useState < Reply[] > ([])
   const [isLoading, setIsLoading] = useState(true)
@@ -76,12 +76,12 @@ export function PostDetailContent({ postId, userId, algorithm = 'relevant' , _id
     replyingTo: null,
     replyParentId: postId,
   })
-  const [Algorithm, setAlgorithm ] = useState(algorithm || 'relevant')
-  useEffect(()=>{
-    if (_id === null || (algorithm!== 'forceView' && _id!==null)) {
+  const [Algorithm, setAlgorithm] = useState(algorithm || 'relevant')
+  useEffect(() => {
+    if (_id === null || (algorithm !== 'forceView' && _id !== null)) {
       setAlgorithm('relevant')
     }
-  },[algorithm , _id])
+  }, [algorithm, _id])
   // IntersectionObserver effect for header title
   useEffect(() => {
     if (!commentHeaderRef.current) return
@@ -131,7 +131,7 @@ export function PostDetailContent({ postId, userId, algorithm = 'relevant' , _id
     })
     
     fetchCurrentUserData()
-  }, [postId, userId, dispatch])
+  }, [postId, userId, dispatch, Algorithm])
   
   const updateWatch = async () => {
     try {
@@ -445,8 +445,21 @@ export function PostDetailContent({ postId, userId, algorithm = 'relevant' , _id
         <div ref={commentHeaderRef} className='text-md px-4 py-3 flex flex-row items-center justify-between'>
           <>
           {`${replies.length} ${replies.length === 1 ? 'Comment' : 'Comments'}`}</>
-          <span>
-            <Filter className='w-4 h-4'/>
+          <span
+  className="text-xs text-gray-800"
+  onClick={() => {
+    if (Algorithm === 'forceView') return; // forceView হলে কিছুই হবে না
+    
+    const algorithmList = ['relevant', 'recently'];
+    // বর্তমান Algorithm ছাড়া অন্য একটা বেছে নাও
+    const newAlgorithm = algorithmList.find(a => a !== Algorithm);
+    
+    // এখানে Algorithm সেট করার লজিক, ধরো setAlgorithm ফাংশন আছে:
+    setAlgorithm(newAlgorithm);
+  }}
+>
+            <ListFilter className='w-4 h-4'/>
+            {Algorithm!=='forceView' ? Algorithm : ''}
           </span>
         </div>
         
