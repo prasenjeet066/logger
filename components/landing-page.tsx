@@ -1,7 +1,6 @@
 import React from 'react';
-import { motion } from 'motion/react';
-
-const LandingPage = () => {
+import { MotionValue, motion, useSpring, useTransform } from "motion/react";
+export const LandingPage = () => {
   // Animation variants
   const fadeInUp = {
     initial: { opacity: 0, y: 60 },
@@ -207,5 +206,3 @@ const LandingPage = () => {
     </div>
   );
 };
-
-export default LandingPage;
