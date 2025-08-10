@@ -18,22 +18,22 @@ interface Bookmarks {
 }
 
 interface BookmarksProps {
-  datas?: Bookmarks | null;
+  datas ? : Bookmarks | null;
   user: any;
 }
 
 const Bookmarks = ({ datas, user }: BookmarksProps) => {
-  const [bookmarks, setBookmarks] = useState<Bookmarks | null>(null);
+  const [bookmarks, setBookmarks] = useState < Bookmarks | null > (null);
   const [isLoading, setIsLoading] = useState(false);
   const [showNewCollectionForm, setShowNewCollectionForm] = useState(false);
   const [newCollectionName, setNewCollectionName] = useState('');
-  const [editingCollection, setEditingCollection] = useState<string | null>(null);
+  const [editingCollection, setEditingCollection] = useState < string | null > (null);
   const [editingName, setEditingName] = useState('');
-  const [activeCollection, setActiveCollection] = useState<string | undefined>(undefined);
-  const [posts, setPosts] = useState<any[]>([]);
-
+  const [activeCollection, setActiveCollection] = useState < string | undefined > (undefined);
+  const [posts, setPosts] = useState < any[] > ([]);
+  
   const router = useRouter();
-
+  
   // Initialize bookmarks and activeCollection
   useEffect(() => {
     if (datas) {
@@ -45,7 +45,7 @@ const Bookmarks = ({ datas, user }: BookmarksProps) => {
       }
     }
   }, [datas]);
-
+  
   // Load posts whenever activeCollection or bookmarks changes
   useEffect(() => {
     async function loadPosts() {
@@ -53,13 +53,13 @@ const Bookmarks = ({ datas, user }: BookmarksProps) => {
         setPosts([]);
         return;
       }
-
+      
       const store = bookmarks.store.find(s => s.storeName === activeCollection);
       if (!store) {
         setPosts([]);
         return;
       }
-
+      
       setIsLoading(true);
       try {
         const postDatas = await Promise.all(
@@ -79,14 +79,14 @@ const Bookmarks = ({ datas, user }: BookmarksProps) => {
         setIsLoading(false);
       }
     }
-
+    
     loadPosts();
   }, [activeCollection, bookmarks]);
-
+  
   // Create new collection
   const handleNewCollection = async () => {
     if (!newCollectionName.trim()) return;
-
+    
     setIsLoading(true);
     try {
       const response = await fetch('/api/users/current/collection', {
@@ -99,7 +99,7 @@ const Bookmarks = ({ datas, user }: BookmarksProps) => {
           }]
         }),
       });
-
+      
       if (response.ok) {
         const updatedBookmarks = await response.json();
         setBookmarks(updatedBookmarks);
@@ -115,11 +115,11 @@ const Bookmarks = ({ datas, user }: BookmarksProps) => {
       setIsLoading(false);
     }
   };
-
+  
   // Delete collection
   const handleDeleteCollection = async (storeName: string) => {
     if (!confirm(`Are you sure you want to delete "${storeName}" collection?`)) return;
-
+    
     setIsLoading(true);
     try {
       const response = await fetch('/api/users/current/collection', {
@@ -127,7 +127,7 @@ const Bookmarks = ({ datas, user }: BookmarksProps) => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ removeStores: [storeName] }),
       });
-
+      
       if (response.ok) {
         const updatedBookmarks = await response.json();
         setBookmarks(updatedBookmarks);
@@ -149,7 +149,7 @@ const Bookmarks = ({ datas, user }: BookmarksProps) => {
       setIsLoading(false);
     }
   };
-
+  
   // Rename collection
   const handleRenameCollection = async (oldName: string) => {
     if (!editingName.trim() || editingName.trim() === oldName) {
@@ -157,7 +157,7 @@ const Bookmarks = ({ datas, user }: BookmarksProps) => {
       setEditingName('');
       return;
     }
-
+    
     setIsLoading(true);
     try {
       const response = await fetch('/api/users/current/collection', {
@@ -170,7 +170,7 @@ const Bookmarks = ({ datas, user }: BookmarksProps) => {
           }]
         }),
       });
-
+      
       if (response.ok) {
         const updatedBookmarks = await response.json();
         setBookmarks(updatedBookmarks);
@@ -189,11 +189,11 @@ const Bookmarks = ({ datas, user }: BookmarksProps) => {
       setIsLoading(false);
     }
   };
-
+  
   // Remove item from collection
   const handleRemoveItem = async (storeName: string, item: string) => {
     if (!confirm('Are you sure you want to remove this item?')) return;
-
+    
     setIsLoading(true);
     try {
       const response = await fetch('/api/users/current/collection', {
@@ -206,7 +206,7 @@ const Bookmarks = ({ datas, user }: BookmarksProps) => {
           }]
         }),
       });
-
+      
       if (response.ok) {
         const updatedBookmarks = await response.json();
         setBookmarks(updatedBookmarks);
@@ -219,12 +219,12 @@ const Bookmarks = ({ datas, user }: BookmarksProps) => {
       setIsLoading(false);
     }
   };
-
+  
   const startEditingCollection = (storeName: string) => {
     setEditingCollection(storeName);
     setEditingName(storeName);
   };
-
+  
   return (
     <div className="min-h-screen bg-white">
       <div className="sticky top-0 z-50 bg-white border-b border-gray-200">
@@ -293,7 +293,15 @@ const Bookmarks = ({ datas, user }: BookmarksProps) => {
         ) : (
           <div className="space-y-4">
             {/* Collection Tabs */}
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-row items-center justify-between gap-2 text-sm">
+                            <Button
+                variant="outline"
+                onClick={() => setShowNewCollectionForm(true)}
+                className="flex items-center gap-1 border-dashed"
+              >
+                <Plus className="w-4 h-4" /> New Collection
+              </Button>
+              
               {bookmarks.store.map((store, index) => (
                 <div key={index} className="flex items-center gap-1">
                   <Button
@@ -340,27 +348,9 @@ const Bookmarks = ({ datas, user }: BookmarksProps) => {
                       </span>
                     )}
                   </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleDeleteCollection(store.storeName);
-                    }}
-                    className="h-8 w-8 text-red-500 hover:text-red-700 hover:bg-red-50"
-                    title={`Delete collection ${store.storeName}`}
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </Button>
                 </div>
               ))}
-              <Button
-                variant="outline"
-                onClick={() => setShowNewCollectionForm(true)}
-                className="flex items-center gap-1 border-dashed"
-              >
-                <Plus className="w-4 h-4" /> New Collection
-              </Button>
+
             </div>
 
             {/* Posts Display */}
