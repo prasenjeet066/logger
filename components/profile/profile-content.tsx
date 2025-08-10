@@ -463,12 +463,12 @@ export function ProfileContent({ username }: ProfileContentProps) {
                 <div className='flex flex-row items-center gap-2'> {currentProfile?.displayName}
                   
                   {isOwnProfile &&  !profileData?.isVerified && (
-                    <span className='rounded-full bg-gray-100 px-2 py-1 flex items-center gap-2 text-xs text-gray-800' onClick={()=>{
+                    <span className='rounded-full bg-gray-100 px-2 py-1 flex items-center gap-1 text-xs text-gray-800' onClick={()=>{
                       // handle verification request....
                       router.push('/settings/')
                     }}>
                                           <VerificationBadge verified={true} size={20} className="h-8 w-8 z-10 bg-white rounded-full text-gray-800" />
-                        <small>Get Verified </small>                  
+                        <small>Get Verified! </small>                  
                     </span>
                   )
                   }
