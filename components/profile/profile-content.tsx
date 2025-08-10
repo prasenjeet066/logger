@@ -364,6 +364,15 @@ export function ProfileContent({ username }: ProfileContentProps) {
                       {currentProfile?.displayName?.charAt(0)?.toUpperCase() || (profileType === 'bot' ? "B" : "U")}
                     </AvatarFallback>
                   </Avatar>
+                  {isOwnProfile &&  !profileData?.isVerified && (
+                    <span className='rounded-full bg-gray-100 px-2 py-1 flex items-center gap-2 text-xs text-gray-800' onClick={()=>{
+                      // handle verification request....
+                      router.push('/settings/')
+                    }}>
+                                          <VerificationBadge verified={true} size={20} className="h-8 w-8 z-10 -mt-4 bg-white rounded-full text-gray-800" />
+                        <small>Get Verified </small>                  
+                    </span>
+                  )}
                   {profileType === 'user' && profileData?.isVerified && (
                     <VerificationBadge verified={true} size={20} className="h-8 w-8 z-10 -mt-4 bg-white rounded-full" />
                   )}

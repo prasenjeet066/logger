@@ -62,7 +62,7 @@ export function DashboardContent({ user, typesOfAlg }: DashboardContentProps) {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <Spinner />
+        <Spinner withLabel={false}/>
       </div>
     )
   }
