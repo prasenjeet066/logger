@@ -100,14 +100,14 @@ export function PostCard({ post, onLike, onRepost, onReply }: PostCardProps) {
   const [mentionsPeoples, setMentions] = useState < Mention[] | null > (null);
   const isReplise = post.originalPostId !== null ? true : false
   
-const addUniqueMention = (newMention: Mention) =>
-  setMentions(prev =>
-    prev?.some(m => m.username === newMention.username)
-      ? prev
-      : [...(prev ?? []), newMention]
-  );
-
-
+  const addUniqueMention = (newMention: Mention) =>
+    setMentions(prev =>
+      prev?.some(m => m.username === newMention.username) ?
+      prev :
+      [...(prev ?? []), newMention]
+    );
+  
+  
   
   
   
@@ -172,19 +172,19 @@ const addUniqueMention = (newMention: Mention) =>
   }, [])
   
   const checkTrueMentions = async (username: string): Promise < boolean > => {
-  try {
-    const res = await fetch('/api/users/' + encodeURIComponent(username));
-    if (!res.ok) return false;
-    const data = await res.json();
-    if (data.user) {
-      addUniqueMention({ username, displayName: data.user.displayName });
-      return true;
+    try {
+      const res = await fetch('/api/users/' + encodeURIComponent(username));
+      if (!res.ok) return false;
+      const data = await res.json();
+      if (data.user) {
+        addUniqueMention({ username, displayName: data.user.displayName });
+        return true;
+      }
+      return false;
+    } catch (e) {
+      return false;
     }
-    return false;
-  } catch (e) {
-    return false;
-  }
-};
+  };
   // Enhanced content formatting with better security
   const formatContent = useCallback((content: string) => {
     if (repliesTo !== null) {

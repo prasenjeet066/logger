@@ -108,7 +108,7 @@ export const SettingsContent: React.FC < SettingsContentProps > = ({ user, slug 
   const handleSettingClick = (setting: SettingsMenuItem) => {
     
     // Update URL
-    const slugName = setting.name.toLowerCase().replace(/ /g, '_')
+    const slugName = setting.name.toLowerCase().replace(' ', '_')
     router.push(`/settings/${slugName}`)
   }
   
