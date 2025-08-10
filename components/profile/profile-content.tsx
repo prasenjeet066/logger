@@ -447,7 +447,8 @@ export function ProfileContent({ username }: ProfileContentProps) {
 
               <div className="space-y-3 mb-2">
                 <h1 className="text-xl font-semibold flex flex-col items-start justify-center">
-                  {currentProfile?.displayName}
+                <div className='flex flex-row items-center gap-2'> {currentProfile?.displayName}
+                  
                   {isOwnProfile &&  !profileData?.isVerified && (
                     <span className='rounded-full bg-gray-100 px-2 py-1 flex items-center gap-2 text-xs text-gray-800' onClick={()=>{
                       // handle verification request....
@@ -458,6 +459,7 @@ export function ProfileContent({ username }: ProfileContentProps) {
                     </span>
                   )
                   }
+                  </div>
                   <p className="text-gray-500 text-sm font-normal">
                     @{currentProfile?.username}
                   </p>
