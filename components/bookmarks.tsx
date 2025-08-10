@@ -335,7 +335,7 @@ const Bookmarks = ({ datas, user }: BookmarksProps) => {
                   </div>
                 ) : (
                   posts.map((post) => (
-                    <div key={post._id} className=" overflow-hidden">
+                    <div key={post._id} className=" overflow-hidden p-4">
                     {post.content}
                       <div className="px-4 py-3">
                         <Button
