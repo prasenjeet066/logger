@@ -207,7 +207,7 @@ export function PostCard({ post, onLike, onRepost, onReply }: PostCardProps) {
         /@([a-zA-Z0-9_]+)/g, (match, m1) => {
           checkTrueMentions(m1)
           return `<span className="text-blue-600 hover:underline cursor-pointer font-medium transition-colors after:content-['\\2197'] after:ml-1 after:font-bold">
-  @{m1}
+  @${m1}
 </span>`;
           
         }

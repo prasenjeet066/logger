@@ -223,10 +223,12 @@ export function ProfileContent({ username }: ProfileContentProps) {
             // Date label (sticky)
             <span
               key={`date-${postIndex}`}
-              className="col-span-full text-sm font-medium bg-gray-100 p-2 sticky top-0 z-10"
+              className="col-span-full text-xs font-medium  p-2 sticky divide-y divide-dashed top-0 z-10"
             >
               {format(new Date(_post.createdAt), "do MMMM, yyyy")}
-            </span>,
+            </span>
+            
+            ,
 
             // Media images
             ..._post.mediaUrls.map((_url, urlIndex) => (
