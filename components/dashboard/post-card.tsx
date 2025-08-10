@@ -16,13 +16,13 @@ import { useAppDispatch, useAppSelector } from "@/store/main"
 import {
   nsfwMedia
 } from "@/store/slices/postsSlice"
-import { useState, useCallback, useMemo, useEffect } from "react"
+import { useState, useCallback, useMemo,useEffect } from "react"
 import { formatDistanceToNow } from "date-fns"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { useMobile } from "@/hooks/use-mobile"
 import { AspectRatio } from "@/components/ui/aspect-ratio"
 import { Button } from "@/components/ui/button"
-import { Loader2, Languages, Repeat2, Share, Pin, AlertCircle, Heart, MessageCircle, Bookmark } from "lucide-react"
+import { Loader2, Languages, Repeat2, Share, Pin, AlertCircle, Heart, MessageCircle ,Bookmark} from "lucide-react"
 import Link from "next/link"
 import { PostActionsMenu } from "./post-actions-menu"
 import { VerificationBadge } from "@/components/badge/verification-badge"
@@ -96,29 +96,30 @@ export function PostCard({ post, onLike, onRepost, onReply }: PostCardProps) {
   const router = useRouter()
   const pathname = usePathname()
   const [mentionsPeoples, setMentions] = useState < string[] | null > (null);
-  const isReplise = post.originalPostId !== null ? true : false
-  const addUniqueMention = (newMention: string) =>
-    setMentions(prev =>
-      prev?.includes(newMention) ?
-      prev : [...(prev ?? []), newMention]
-    );
+const isReplise = post.originalPostId!==null ? true : false
+const addUniqueMention = (newMention: string) =>
+  setMentions(prev =>
+    prev?.includes(newMention) ?
+    prev :
+    [...(prev ?? []), newMention]
+  );
   
   
   
-  
+
   
   
   // Memoized values
   const postUrl = useMemo(() => extractFirstUrl(post.content), [post.content])
   const hasMedia = useMemo(() => post.mediaUrls && post.mediaUrls.length > 0, [post.mediaUrls])
   const isPostPage = useMemo(() => pathname.startsWith("/post"), [pathname])
-  const [repliesTo, setRepliesTo] = useState(null)
+  const [repliesTo , setRepliesTo ]=  useState(null)
   const MAX_LENGTH = 100
   const shouldTrim = !isPostPage && post.content.length > MAX_LENGTH
   const displayContent = shouldTrim ? smartTruncate(post.content, MAX_LENGTH) : post.content
-  const repliesOf = async function() {
+  const repliesOf = async function(){
     try {
-      const __user = await fetch('/api/posts/' + post.originalPostId);
+      const __user = await fetch('/api/posts/'+ post.originalPostId);
       const __data = await __user.json()
       setRepliesTo(__data.author.username)
     } catch (e) {
@@ -126,13 +127,13 @@ export function PostCard({ post, onLike, onRepost, onReply }: PostCardProps) {
     }
   }
   const nsfwResults = post?.imageNSFW
-  /**
-  useEffect(() => {
-    // Fixed condition: > 0 instead of > 1
-    if (post.mediaUrls.length > 0 && post.mediaType === 'image') {
-      dispatch(nsfwMedia({ postId: post._id, mediaUrls: post.mediaUrls }))
-    }
-  }, [post._id, post.mediaUrls, post.mediaType, dispatch])**/
+/**
+useEffect(() => {
+  // Fixed condition: > 0 instead of > 1
+  if (post.mediaUrls.length > 0 && post.mediaType === 'image') {
+    dispatch(nsfwMedia({ postId: post._id, mediaUrls: post.mediaUrls }))
+  }
+}, [post._id, post.mediaUrls, post.mediaType, dispatch])**/
   // Translation function with better error handling
   const translateText = useCallback(async (text: string, targetLang = "bn"): Promise < string > => {
     try {
@@ -163,26 +164,26 @@ export function PostCard({ post, onLike, onRepost, onReply }: PostCardProps) {
       throw new Error("Translation service unavailable")
     }
   }, [])
-  
+
   const checkTrueMentions = async (username) => {
-    try {
-      const res = await fetch('/api/users/' + encodeURIComponent(username));
-      if (!res.ok) return false; // return false if request failed
-      const data = await res.json();
-      if (data.user) {
-        addUniqueMention(username);
-        return true;
-      }
-      return false;
-    } catch (e) {
-      return false;
+  try {
+    const res = await fetch('/api/users/' + encodeURIComponent(username));
+    if (!res.ok) return false; // return false if request failed
+    const data = await res.json();
+    if (data.user) {
+      addUniqueMention({username,displayName: data.user?.displayName});
+      return true;
     }
-  };
-  
+    return false;
+  } catch (e) {
+    return false;
+  }
+};
+ 
   // Enhanced content formatting with better security
   const formatContent = useCallback((content: string) => {
-    if (repliesTo !== null) {
-      content = '@' + repliesTo + ' ' + content
+    if (repliesTo!==null) {
+      content = '@'+repliesTo + ' ' + content
     }
     const urlRegex = /(https?:\/\/[^\s]+)/g
     
@@ -204,12 +205,10 @@ export function PostCard({ post, onLike, onRepost, onReply }: PostCardProps) {
         }
       )
       .replace(
-        /@([a-zA-Z0-9_]+)/g, (match, m1) => {
-          checkTrueMentions(m1)
-          return `<span className="text-blue-600 hover:underline cursor-pointer font-medium transition-colors after:content-['\\2197'] after:ml-1 after:font-bold">
-  @${m1}
-</span>`;
-          
+        /@([a-zA-Z0-9_]+)/g,(match,m1) =>{
+        return checkTrueMentions(m1) ? 
+        `<span class="text-blue-600 hover:underline cursor-pointer font-medium transition-colors">@${m1}</span>` :<span class=" cursor-pointer font-medium transition-colors">${m1}</span> ;
+        
         }
       )
   }, [])
@@ -289,7 +288,7 @@ export function PostCard({ post, onLike, onRepost, onReply }: PostCardProps) {
     try {
       const response = await fetch(`/api/users/profile`, {
         method: "POST",
-        body: JSON.stringify({ pinnedPostId: post._id })
+        body: JSON.stringify({pinnedPostId:post._id})
       })
       
       if (!response.ok) {
@@ -301,23 +300,23 @@ export function PostCard({ post, onLike, onRepost, onReply }: PostCardProps) {
       console.error("Error pinning post:", error)
     }
   }, [post._id, currentUserId, onReply])
-  useEffect(() => {
-    if (isReplise) {
-      repliesOf()
+  useEffect(()=>{
+    if(isReplise){
+    repliesOf()
     }
-  }, [isReplise])
+  },[isReplise])
   // Enhanced media rendering with loading states
   const renderMedia = useCallback((mediaUrls: string[] | null, mediaType: string | null) => {
-    if (!mediaUrls || mediaUrls.length === 0) return null
-    
-    const handleMediaClick = (url: string, e: React.MouseEvent) => {
-      e.stopPropagation()
-      window.open(url, "_blank", "noopener,noreferrer")
-    }
-    
-    if (mediaType === "video") {
-      return (
-        <div className="mt-3 rounded-lg overflow-hidden border">
+  if (!mediaUrls || mediaUrls.length === 0) return null
+  
+  const handleMediaClick = (url: string, e: React.MouseEvent) => {
+    e.stopPropagation()
+    window.open(url, "_blank", "noopener,noreferrer")
+  }
+  
+  if (mediaType === "video") {
+    return (
+      <div className="mt-3 rounded-lg overflow-hidden border">
         <video
           src={mediaUrls[0]}
           className="aspect-video object-cover"
@@ -328,12 +327,12 @@ export function PostCard({ post, onLike, onRepost, onReply }: PostCardProps) {
           }}
         />
       </div>
-      )
-    }
-    
-    if (mediaType === "gif") {
-      return (
-        <div className={`mt-3 grid gap-2 ${mediaUrls.length === 1 ? "grid-cols-1" : "grid-cols-2"}`}>
+    )
+  }
+  
+  if (mediaType === "gif") {
+    return (
+      <div className={`mt-3 grid gap-2 ${mediaUrls.length === 1 ? "grid-cols-1" : "grid-cols-2"}`}>
         {mediaUrls.slice(0, 4).map((url, index) => (
           <div key={index} className="relative group">
             <img
@@ -354,15 +353,15 @@ export function PostCard({ post, onLike, onRepost, onReply }: PostCardProps) {
           </div>
         ))}
       </div>
-      )
-    }
-    
-    // Fixed NSFW logic for images
-    const currentPostNsfwResult = nsfwResults
-    const isNsfw = currentPostNsfwResult?.label && currentPostNsfwResult.label !== "normal" && currentPostNsfwResult !== null
-    
-    return (
-      <div className={`mt-3 grid gap-2 ${mediaUrls.length === 1 ? "grid-cols-1" : "grid-cols-2"}`}>
+    )
+  }
+
+  // Fixed NSFW logic for images
+  const currentPostNsfwResult = nsfwResults
+  const isNsfw = currentPostNsfwResult?.label && currentPostNsfwResult.label !== "normal" && currentPostNsfwResult!==null
+  
+  return (
+    <div className={`mt-3 grid gap-2 ${mediaUrls.length === 1 ? "grid-cols-1" : "grid-cols-2"}`}>
       {mediaUrls.slice(0, 4).map((url, index) => (
         <div key={index} className={`relative group ${isNsfw ? "backdrop-blur-lg flex flex-col items-center justify-center" : ""}`}>
           {isNsfw && (
@@ -402,11 +401,12 @@ export function PostCard({ post, onLike, onRepost, onReply }: PostCardProps) {
         </div>
       ))}
     </div>
-    )
-  }, [post._id, nsfwResults])
-  
+  )
+}, [post._id, nsfwResults])
+
   const reviewResults = post?.reviewResults?.content ?
-    JSON.parse(post.reviewResults.content) : [];
+  JSON.parse(post.reviewResults.content) :
+  [];
   // Enhanced post click handler
   const handlePostClick = useCallback(() => {
     const pathParts = pathname.split("/")
@@ -478,7 +478,7 @@ export function PostCard({ post, onLike, onRepost, onReply }: PostCardProps) {
                 <div className='flex flex-row items-center gap-2'>
                   <small className='text-xs text-gray-500'>{"with"}</small>
                 
-                      <small>@{mentionsPeoples[0]}</small>
+                      <small>@{mentionsPeoples[0].displayName}</small>
                       
               {mentionsPeoples.length > 1 && (<small> and more {mentionsPeoples.length - 1 }</small>
                 
