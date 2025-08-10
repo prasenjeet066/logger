@@ -214,30 +214,40 @@ export function ProfileContent({ username }: ProfileContentProps) {
   <div class="col-span-2 row-span-2 ...">03</div>
 </div>
      */
-    if (type && type === 'media') {
-      return (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 p-2">
+  if (type === 'media') {
+  return (
+    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 p-2">
       {safePosts.flatMap((_post, postIndex) => {
-       <span className ='text-sm w-full bg-gray-100 p-2 sticky top-0'>{format(new Date(_post.createdAt), "do MMMM, yyyy")}</span>
         if (_post.mediaType === 'image' && Array.isArray(_post.mediaUrls)) {
-          return _post.mediaUrls.map((_url, urlIndex) => (
-            <div
-              key={`${postIndex}-${urlIndex}`}
-              className="relative aspect-square overflow-hidden rounded-lg group"
+          return [
+            // Date label (sticky)
+            <span
+              key={`date-${postIndex}`}
+              className="col-span-full text-sm font-medium bg-gray-100 p-2 sticky top-0 z-10"
             >
-              <img
-                src={_url}
-                alt={`media-${postIndex}-${urlIndex}`}
-                className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-              />
-            </div>
-          ));
+              {format(new Date(_post.createdAt), "do MMMM, yyyy")}
+            </span>,
+
+            // Media images
+            ..._post.mediaUrls.map((_url, urlIndex) => (
+              <div
+                key={`${postIndex}-${urlIndex}`}
+                className="relative aspect-square overflow-hidden rounded-lg group"
+              >
+                <img
+                  src={_url}
+                  alt={`media-${postIndex}-${urlIndex}`}
+                  className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                />
+              </div>
+            ))
+          ];
         }
         return [];
       })}
     </div>
-      );
-    }
+  );
+}
     return (
       <div>
         {/* Show pinned post only in posts tab */}
