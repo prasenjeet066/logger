@@ -9,6 +9,7 @@ interface Store {
   storeName: string;
   _store: string[];
 }
+
 interface Bookmarks {
   userId: string;
   store: Store[] | null;
@@ -28,8 +29,10 @@ export default async function BookmarksPage() {
     
     const bookmarksList = await BookmarksModel.find({ userId: session.user.id }).lean();
     
-    return <BookmarksComponent datas={bookmarksList ?? []} user = {session.user}/>;
+    // Pass the first bookmark document or null if empty
+    const bookmarksData = bookmarksList.length > 0 ? bookmarksList[0] : null;
     
+    return <BookmarksComponent datas={bookmarksData} user={session.user} />;
     
   } catch (e) {
     console.error(e);

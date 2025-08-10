@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/auth-config";
 import { connectDB } from "@/lib/mongodb/connection";
-import Bookmarks from "@/lib/mongodb/models/Bookmarks";
+import BookmarksModel from "@/lib/mongodb/models/Bookmarks"; // Fixed import name
 
 export async function GET() {
   const session = await getServerSession(authOptions);
@@ -77,12 +77,6 @@ export async function PATCH(request: Request) {
   
   try {
     const body = await request.json();
-    // Body may include any of:
-    // {
-    //   removeStores?: string[],
-    //   removeItems?: { storeName: string; items: string[] }[],
-    //   renameStores?: { oldName: string; newName: string }[]
-    // }
     
     await connectDB();
     const bookmarkDoc = await BookmarksModel.findOne({ userId: session.user.id });
