@@ -377,7 +377,7 @@ const Bookmarks = ({ datas, user }: BookmarksProps) => {
                 ) : (
                   posts.map((post) => (
                     <div key={post._id} className="border border-gray-200 rounded-lg overflow-hidden">
-                      <PostCard post={post} user={user} />
+                      {post.content}
                       <div className="px-4 py-3 border-t border-gray-100 bg-gray-50">
                         <Button
                           variant="ghost"
