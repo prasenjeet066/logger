@@ -227,13 +227,13 @@ const Bookmarks = ({ datas, user }: BookmarksProps) => {
   
   return (
     <div className="min-h-screen bg-white">
-      <div className="sticky top-0 z-50 bg-white border-b border-gray-200">
+      <div className="sticky top-0 z-50 bg-white/50">
         <div className="max-w-2xl mx-auto px-4 py-3 flex justify-start items-center">
           <div className="flex items-center gap-3">
             <Button variant="ghost" size="icon" onClick={() => router.back()}>
               <X className="h-5 w-5" />
             </Button>
-            <h1 className="text-lg font-semibold">Saved Collections</h1>
+            <h1 className="text-lg font-semibold">Collections</h1>
           </div>
         </div>
       </div>
@@ -355,7 +355,7 @@ const Bookmarks = ({ datas, user }: BookmarksProps) => {
 
             {/* Posts Display */}
             {isLoading ? (
-              <div className="flex items-center justify-center py-12">
+              <div className="flex items-center justify-center bg-white py-12">
                 <Spinner />
               </div>
             ) : activeCollection ? (
@@ -367,7 +367,7 @@ const Bookmarks = ({ datas, user }: BookmarksProps) => {
                 ) : (
                   posts.map((post) => (
                     <div key={post._id} className="border border-gray-200 rounded-lg overflow-hidden">
-                      {post.content}
+                    {post.content}
                       <div className="px-4 py-3 border-t border-gray-100 bg-gray-50">
                         <Button
                           variant="ghost"
