@@ -56,22 +56,22 @@ export function ProfileContent({ username }: ProfileContentProps) {
   // Destructure with defaults to prevent undefined errors
   const {
     profileData = null,
-    botData = null,
-    profileType = 'user',
-    mutualFollowers = [],
-    mutualFollowersCount = 0,
-    isLoading: profileLoading = false,
-    error: profileError = null,
-    isUpdating = false
+      botData = null,
+      profileType = 'user',
+      mutualFollowers = [],
+      mutualFollowersCount = 0,
+      isLoading: profileLoading = false,
+      error: profileError = null,
+      isUpdating = false
   } = profileState || {}
   
   const {
     posts = [],
-    replies = [],
-    reposts = [],
-    media = [],
-    pinnedPost = null,
-    isLoading: postsLoading = false
+      replies = [],
+      reposts = [],
+      media = [],
+      pinnedPost = null,
+      isLoading: postsLoading = false
   } = postsState || {}
   
   const { currentUser = null } = authState || {}
@@ -81,7 +81,7 @@ export function ProfileContent({ username }: ProfileContentProps) {
   const isMobile = useMobile()
   const [editDialogOpen, setEditDialogOpen] = useState(false)
   const [activeTab, setActiveTab] = useState("posts")
-  const [imageViewerOpen, setImageViewerOpen] = useState<string | null>(null)
+  const [imageViewerOpen, setImageViewerOpen] = useState < string | null > (null)
   
   // Fetch data on component mount with error handling
   useEffect(() => {
@@ -196,7 +196,7 @@ export function ProfileContent({ username }: ProfileContentProps) {
   const currentProfile = profileType === 'user' ? profileData : botData
   const isOwnProfile = profileType === 'user' && profileData && currentUser && profileData._id === currentUser._id
   
-  const renderTabContent = (tabPosts: any[], emptyMessage: string) => {
+  const renderTabContent = (tabPosts: any[], emptyMessage: string, type ? : string) => {
     // Ensure tabPosts is an array
     const safePosts = Array.isArray(tabPosts) ? tabPosts : []
     
@@ -207,7 +207,36 @@ export function ProfileContent({ username }: ProfileContentProps) {
         </div>
       );
     }
-    
+    /**
+     * <div class="grid grid-flow-col grid-rows-3 gap-4">
+  <div class="row-span-3 ...">01</div>
+  <div class="col-span-2 ...">02</div>
+  <div class="col-span-2 row-span-2 ...">03</div>
+</div>
+     */
+    if (type && type === 'media') {
+      return (
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2">
+      {safePosts.flatMap((_post, postIndex) => {
+        if (_post.mediaType === 'image' && Array.isArray(_post.mediaUrls)) {
+          return _post.mediaUrls.map((_url, urlIndex) => (
+            <div
+              key={`${postIndex}-${urlIndex}`}
+              className="relative aspect-square overflow-hidden rounded-lg group"
+            >
+              <img
+                src={_url}
+                alt={`media-${postIndex}-${urlIndex}`}
+                className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+              />
+            </div>
+          ));
+        }
+        return [];
+      })}
+    </div>
+      );
+    }
     return (
       <div>
         {/* Show pinned post only in posts tab */}
@@ -540,7 +569,7 @@ export function ProfileContent({ username }: ProfileContentProps) {
               <TabsContent value="media" className="mt-0">
                 {renderTabContent(media, 
                   profileType === 'bot' ? "This bot hasn't shared any media yet" : "No media yet"
-                )}
+                , 'media')}
               </TabsContent>
             </Tabs>
           </div>
