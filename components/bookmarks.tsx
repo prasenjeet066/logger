@@ -267,7 +267,7 @@ const Bookmarks = ({ datas, user }: BookmarksProps) => {
                 onClick={() => setShowNewCollectionForm(true)}
                 className="flex items-center gap-1 border-dashed"
               >
-                <Plus className="w-4 h-4" /> New Collection
+                <Plus className="w-4 h-4" /> Create New
               </Button>
               <div className='flex flex-row items-center justify-between overflow-x-scroll gap-2 px-2 w-full'>
               {bookmarks.store.map((store, index) => (
