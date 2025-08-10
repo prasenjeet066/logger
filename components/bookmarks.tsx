@@ -225,6 +225,7 @@ const Bookmarks = ({ datas, user }: BookmarksProps) => {
     setEditingName(storeName);
   };
   
+  
   return (
     <div className="min-h-screen bg-white">
       <div className="sticky top-0 z-50 bg-white/50">
@@ -301,8 +302,8 @@ const Bookmarks = ({ datas, user }: BookmarksProps) => {
               >
                 <Plus className="w-4 h-4" /> New Collection
               </Button>
-              
-              {bookmarks.store.map((store, index) => (
+              <div className='flex flex-row items-center justify-between overflow-x-scroll w-full'>
+              {bookmarkSstore.map((store, index) => (
                 <div key={index} className="flex items-center gap-1">
                   <Button
                     variant={activeCollection === store.storeName ? "default" : "outline"}
@@ -349,8 +350,9 @@ const Bookmarks = ({ datas, user }: BookmarksProps) => {
                     )}
                   </Button>
                 </div>
+                
               ))}
-
+</div>
             </div>
 
             {/* Posts Display */}
