@@ -269,6 +269,7 @@ const Bookmarks = ({ datas, user }: BookmarksProps) => {
               >
                 <Plus className="w-4 h-4" /> Create New
               </Button>
+              <div className='relative'>
               <div className='flex flex-row items-center justify-between overflow-x-scroll gap-2 px-2 w-full'>
               {bookmarks.store.map((store, index) => (
                 <div key={index} className="flex items-center gap-1">
@@ -324,6 +325,7 @@ const Bookmarks = ({ datas, user }: BookmarksProps) => {
   {/* Right gradient overlay */}
   <div className="pointer-events-none absolute right-0 top-0 h-full w-10 bg-gradient-to-l from-white to-transparent"></div>
 </div>
+            </div>
             </div>
 
             {/* Posts Display */}
