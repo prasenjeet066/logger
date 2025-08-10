@@ -271,7 +271,8 @@ const Bookmarks = ({ datas, user }: BookmarksProps) => {
               </Button>
 
   {/* Scrollable buttons row */}
-  <div className="flex flex-row items-center gap-2 px-2 w-full overflow-x-scroll scrollbar-hide relative">
+  <div className ='relative overflow-hidden w-full'>
+  <div className="flex flex-row items-center gap-2 px-2 w-full overflow-x-scroll scrollbar-hide relative text-xs lg:text-sm">
     {bookmarks.store.map((store, index) => (
       <div key={index} className="flex items-center gap-1">
         <Button
@@ -328,7 +329,7 @@ const Bookmarks = ({ datas, user }: BookmarksProps) => {
   {/* Right gradient overlay */}
   <div className="pointer-events-none absolute right-0 top-0 h-full w-10 bg-gradient-to-l from-white to-transparent"></div>
 </div>
-
+</div>
 
             {/* Posts Display */}
             {isLoading ? (
