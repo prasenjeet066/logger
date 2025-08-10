@@ -6,7 +6,7 @@ import { useState, useEffect, useCallback, useMemo } from "react"
 import { formatDistanceToNow } from "date-fns"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
-import { Heart, Loader2, MessageCircle,Bookmark, Repeat2, Share } from "lucide-react"
+import { Heart, Loader2, MessageCircle, Bookmark, Repeat2, Share } from "lucide-react"
 import Link from "next/link"
 import { VerificationBadge } from "@/components/badge/verification-badge"
 import LinkPreview from "@/components/link-preview"
@@ -193,27 +193,36 @@ export function ReplyCard({ post, onLike, onRepost }: PostCardProps) {
         '<span class="text-blue-600 hover:underline cursor-pointer font-medium transition-colors">@$1</span>',
       )
   }, [])
-  const [isSaved , setSaved]= useState(false)
+  const [isSaved, setSaved] = useState(false);
+  
   const onSave = async (_postId) => {
-    if (_postId) {
-      try {
-        const saveCollection = await fetch('/api/users/current/collection',{
-          method: 'POST',
-          body : JSON.stringify({
-            store : {
-              storeName : 'Saved Posts',
-              _store: _postId
-            }
-          })
+    if (!_postId) return;
+    
+    try {
+      const saveCollection = await fetch('/api/users/current/collection', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          store: [
+          {
+            storeName: 'Saved Posts',
+            _store: [_postId] // must be array
+          }]
         })
-        if (saveCollection.ok) {
-          setSaved(true)
-        }
-      } catch (e) {
-        setSaved(false)
+      });
+      
+      if (saveCollection.ok) {
+        setSaved(true);
+      } else {
+        setSaved(false);
       }
+    } catch (e) {
+      console.error('Error saving post:', e);
+      setSaved(false);
     }
-  }
+  };
   // Media rendering
   const renderMedia = useCallback((mediaUrls: string[] | null, mediaType: string | null) => {
     if (!mediaUrls || mediaUrls.length === 0) return null
