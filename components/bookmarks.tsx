@@ -303,7 +303,7 @@ const Bookmarks = ({ datas, user }: BookmarksProps) => {
                 <Plus className="w-4 h-4" /> New Collection
               </Button>
               <div className='flex flex-row items-center justify-between overflow-x-scroll w-full'>
-              {bookmarkSstore.map((store, index) => (
+              {bookmarks.store.map((store, index) => (
                 <div key={index} className="flex items-center gap-1">
                   <Button
                     variant={activeCollection === store.storeName ? "default" : "outline"}
