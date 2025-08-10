@@ -150,7 +150,7 @@ export function Timeline(userId: string, typesOfAlg: string) {
   if (loading) {
     return (
       <div className="flex justify-center items-center py-8">
-        <Spinner />
+        <Spinner withLabel={false}/>
       </div>
     )
   }
