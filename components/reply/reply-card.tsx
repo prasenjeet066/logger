@@ -193,17 +193,25 @@ export function ReplyCard({ post, onLike, onRepost }: PostCardProps) {
         '<span class="text-blue-600 hover:underline cursor-pointer font-medium transition-colors">@$1</span>',
       )
   }, [])
+  const [isSaved , setSaved]= useState(false)
   const onSave = async (_postId) => {
     if (_postId) {
       try {
         const saveCollection = await fetch('/api/users/current/collection',{
           method: 'POST',
           body : JSON.stringify({
-            store : 'Saved Posts',
-            items : [_postId]
+            store : {
+              storeName : 'Saved Posts',
+              _store: _postId
+            }
           })
         })
-      } catch (e) {}
+        if (saveCollection.ok) {
+          setSaved(true)
+        }
+      } catch (e) {
+        setSaved(false)
+      }
     }
   }
   // Media rendering
@@ -398,7 +406,7 @@ export function ReplyCard({ post, onLike, onRepost }: PostCardProps) {
               <Button
                 variant="ghost"
                 size="sm"
-                className="text-gray-500 hover:text-blue-600  rounded-full transition-colors"
+                className={!isSaved ?" text-gray-500 hover:text-blue-600  rounded-full transition-colors":"text-gray-500 hover:text-blue-600  rounded-full transition-colors"}
                 onClick={(e) => {
                   e.stopPropagation()
                   onSave(post._id)
@@ -406,7 +414,7 @@ export function ReplyCard({ post, onLike, onRepost }: PostCardProps) {
                 }}
                 aria-label="Share post"
               >
-                <Bookmark className="h-4 w-4" />
+                <Bookmark className={`h-4 w-4 ${isSaved && 'fill-current'}`} />
               </Button>
             </div>
             {replies.length ?(
