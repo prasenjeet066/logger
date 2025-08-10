@@ -48,6 +48,7 @@ interface Post {
     displayName: string
     avatarUrl ? : string
     isVerified: boolean
+    isFollowing: boolean
   }
   isLiked: boolean
   isReposted: boolean
