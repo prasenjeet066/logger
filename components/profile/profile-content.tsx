@@ -218,6 +218,7 @@ export function ProfileContent({ username }: ProfileContentProps) {
       return (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 p-2">
       {safePosts.flatMap((_post, postIndex) => {
+       <span className ='text-sm w-full bg-gray-100 p-2 sticky top-0'>{format(new Date(_post.createdAt), "do MMMM, yyyy")}</span>
         if (_post.mediaType === 'image' && Array.isArray(_post.mediaUrls)) {
           return _post.mediaUrls.map((_url, urlIndex) => (
             <div
