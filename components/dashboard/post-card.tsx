@@ -411,11 +411,12 @@ export function PostCard({ post, onLike, onRepost, onReply }: PostCardProps) {
   
   const reviewResults = post?.reviewResults?.content ?
     JSON.parse(post.reviewResults.content) : [];
+  
   const names = mentionsPeoples
   .map(person => person?.displayName)
   .filter(Boolean);
   const joinedSpans = names
-  .map(name => `<span>${name}</span>`)
+  .map(name => `<span className='font-bold'>${name}</span>`)
   .join('<span>, </span>');
   // Enhanced post click handler
   const handlePostClick = useCallback(() => {
