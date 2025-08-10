@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { X, Plus, Trash2 } from 'lucide-react';
+import { X, Plus, Trash2,MoreHorizontal } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/loader/spinner"
 import PostCard from '@/components/dashboard/post-card';
@@ -241,40 +241,7 @@ const Bookmarks = ({ datas, user }: BookmarksProps) => {
 
       <div className="max-w-2xl mx-auto px-4 py-6">
         {/* New Collection Form */}
-        {showNewCollectionForm && (
-          <div className="mb-6 p-4 border rounded-lg bg-gray-50">
-            <h3 className="text-md font-medium mb-3">Create New Collection</h3>
-            <div className="flex gap-2">
-              <input
-                type="text"
-                value={newCollectionName}
-                onChange={(e) => setNewCollectionName(e.target.value)}
-                placeholder="Collection name..."
-                className="flex-1 px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') handleNewCollection();
-                  if (e.key === 'Escape') {
-                    setShowNewCollectionForm(false);
-                    setNewCollectionName('');
-                  }
-                }}
-                autoFocus
-              />
-              <Button onClick={handleNewCollection} disabled={isLoading || !newCollectionName.trim()}>
-                Create
-              </Button>
-              <Button
-                variant="ghost"
-                onClick={() => {
-                  setShowNewCollectionForm(false);
-                  setNewCollectionName('');
-                }}
-              >
-                Cancel
-              </Button>
-            </div>
-          </div>
-        )}
+        
 
         {/* Collections Display */}
         {!bookmarks?.store || bookmarks.store.length === 0 ? (
@@ -288,7 +255,7 @@ const Bookmarks = ({ datas, user }: BookmarksProps) => {
               onClick={() => setShowNewCollectionForm(true)}
               className="bg-gray-800 text-white hover:bg-gray-700"
             >
-              Create Collection
+              Create New
             </Button>
           </div>
         ) : (
@@ -368,17 +335,17 @@ const Bookmarks = ({ datas, user }: BookmarksProps) => {
                   </div>
                 ) : (
                   posts.map((post) => (
-                    <div key={post._id} className="border border-gray-200 rounded-lg overflow-hidden">
+                    <div key={post._id} className=" overflow-hidden">
                     {post.content}
-                      <div className="px-4 py-3 border-t border-gray-100 bg-gray-50">
+                      <div className="px-4 py-3">
                         <Button
                           variant="ghost"
                           size="sm"
-                          className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                          className="text-gray-800 bg-none border-none"
                           onClick={() => handleRemoveItem(activeCollection!, post._id)}
                         >
-                          Remove from collection
-                        </Button>
+                          
+                      <MoreHorizontal className='h-4 w-4'/>  </Button>
                       </div>
                     </div>
                   ))
@@ -391,5 +358,40 @@ const Bookmarks = ({ datas, user }: BookmarksProps) => {
     </div>
   );
 };
-
+/**
+ * showNewCollectionForm && (
+          <div className="mb-6 p-4 border rounded-lg bg-gray-50">
+            <h3 className="text-md font-medium mb-3">Create New Collection</h3>
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={newCollectionName}
+                onChange={(e) => setNewCollectionName(e.target.value)}
+                placeholder="Collection name..."
+                className="flex-1 px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') handleNewCollection();
+                  if (e.key === 'Escape') {
+                    setShowNewCollectionForm(false);
+                    setNewCollectionName('');
+                  }
+                }}
+                autoFocus
+              />
+              <Button onClick={handleNewCollection} disabled={isLoading || !newCollectionName.trim()}>
+                Create
+              </Button>
+              <Button
+                variant="ghost"
+                onClick={() => {
+                  setShowNewCollectionForm(false);
+                  setNewCollectionName('');
+                }}
+              >
+                Cancel
+              </Button>
+            </div>
+          </div>
+        )
+ */
 export default Bookmarks;
