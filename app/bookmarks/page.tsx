@@ -1,20 +1,38 @@
-import { redirect } from "next/navigation"
-import { getServerSession } from "next-auth"
-import { authOptions } from "@/lib/auth/auth-config"
+import { redirect } from "next/navigation";
+import { getServerSession } from "next-auth";
+import { connectDB } from "@/lib/mongodb/connection";
+import BookmarksModel from "@/lib/mongodb/models/Bookmarks";
+import { authOptions } from "@/lib/auth/auth-config";
+import BookmarksComponent from '@/components/bookmarks';
+
+interface Store {
+  storeName: string;
+  _store: string[];
+}
+interface Bookmarks {
+  userId: string;
+  store: Store[] | null;
+}
+
+export const revalidate = 60;
 
 export default async function BookmarksPage() {
-  const session = await getServerSession(authOptions)
-
+  const session = await getServerSession(authOptions);
+  
   if (!session?.user) {
-    redirect("/auth/sign-in")
+    redirect("/auth/sign-in");
   }
-
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 bengali-font">
-      <div className="text-center">
-        <h1 className="text-2xl font-semibold mb-4">বুকমার্ক</h1>
-        <p className="text-gray-600">এই বৈশিষ্ট্যটি শীঘ্রই আসছে...</p>
-      </div>
-    </div>
-  )
+  
+  try {
+    await connectDB();
+    
+    const bookmarksList = await BookmarksModel.find({ userId: session.user.id }).lean();
+    
+    return <BookmarksComponent datas={bookmarksList ?? []} user = {session.user}/>;
+    
+    
+  } catch (e) {
+    console.error(e);
+    return <div>Failed to load bookmarks.</div>;
+  }
 }

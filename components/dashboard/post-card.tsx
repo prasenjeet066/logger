@@ -211,7 +211,7 @@ export function PostCard({ post, onLike, onRepost, onReply }: PostCardProps) {
       .replace(
         /@([a-zA-Z0-9_]+)/g, (match, m1) => {
           return checkTrueMentions(m1) ?
-            `<span class="text-blue-600 hover:underline cursor-pointer font-medium transition-colors">@${m1}</span>` : <span class=" cursor-pointer font-medium transition-colors">${m1}</span>;
+            `<span class="text-blue-600 hover:underline cursor-pointer font-medium transition-colors ">@${m1}</span>` : <span class=" cursor-pointer font-medium transition-colors">${m1}</span>;
           
         }
       )
