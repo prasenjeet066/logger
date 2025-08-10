@@ -36,9 +36,9 @@ const Bookmarks = ({ datas, user }: BookmarksProps) => {
 
   // Initialize bookmarks and activeCollection
   useEffect(() => {
-    if (datas) {
+    if (datas &&  datas!==[]) {
       setBookmarks(datas);
-      if (datas.store && datas.store.length > 0) {
+      if (datas?.store && datas?.store.length > 0) {
         setActiveCollection(datas.store[0].storeName);
       } else {
         setActiveCollection(undefined);
