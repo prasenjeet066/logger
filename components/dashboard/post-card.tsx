@@ -411,6 +411,12 @@ export function PostCard({ post, onLike, onRepost, onReply }: PostCardProps) {
   
   const reviewResults = post?.reviewResults?.content ?
     JSON.parse(post.reviewResults.content) : [];
+  const names = mentionsPeoples
+  .map(person => person?.displayName)
+  .filter(Boolean);
+  const joinedSpans = names
+  .map(name => `<span>${name}</span>`)
+  .join('<span>, </span>');
   // Enhanced post click handler
   const handlePostClick = useCallback(() => {
     const pathParts = pathname.split("/")
@@ -541,7 +547,11 @@ export function PostCard({ post, onLike, onRepost, onReply }: PostCardProps) {
                 <span className='border-l pl-1 text-gray-800  underline font-semibold' onClick = {()=>{router.push('fact-check?post=' + post._id)}}>{"Fact Check"}</span>
               </div>
             ):<></>}
-            
+            {mentionsPeoples.length && (
+              <div className = 'flex flex-row items-center justify-start gap-2'>
+                {joinedSpans}
+              </div>
+            )}
             {post.watch ?  (
               <span className='text-xs text-gray-600'>
                 {post.watch} watched
