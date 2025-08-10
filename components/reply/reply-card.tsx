@@ -193,7 +193,19 @@ export function ReplyCard({ post, onLike, onRepost }: PostCardProps) {
         '<span class="text-blue-600 hover:underline cursor-pointer font-medium transition-colors">@$1</span>',
       )
   }, [])
-  
+  const onSave = async (_postId) => {
+    if (_postId) {
+      try {
+        const saveCollection = await fetch('/api/users/current/collection',{
+          method: 'POST',
+          body : JSON.stringify({
+            store : 'Saved Posts',
+            items : [_postId]
+          })
+        })
+      } catch (e) {}
+    }
+  }
   // Media rendering
   const renderMedia = useCallback((mediaUrls: string[] | null, mediaType: string | null) => {
     if (!mediaUrls || mediaUrls.length === 0) return null
@@ -389,6 +401,7 @@ export function ReplyCard({ post, onLike, onRepost }: PostCardProps) {
                 className="text-gray-500 hover:text-blue-600  rounded-full transition-colors"
                 onClick={(e) => {
                   e.stopPropagation()
+                  onSave(post._id)
                   // Share functionality
                 }}
                 aria-label="Share post"
