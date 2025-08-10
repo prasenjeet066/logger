@@ -328,6 +328,7 @@ const Bookmarks = ({ datas, user }: BookmarksProps) => {
   {/* Right gradient overlay */}
   <div className="pointer-events-none absolute right-0 top-0 h-full w-10 bg-gradient-to-l from-white to-transparent"></div>
 </div>
+</div>
 
             {/* Posts Display */}
             {isLoading ? (
