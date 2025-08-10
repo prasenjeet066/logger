@@ -103,8 +103,7 @@ export function PostCard({ post, onLike, onRepost, onReply }: PostCardProps) {
   const addUniqueMention = (newMention: Mention) =>
     setMentions(prev =>
       prev?.some(m => m.username === newMention.username) ?
-      prev :
-      [...(prev ?? []), newMention]
+      prev : [...(prev ?? []), newMention]
     );
   
   
@@ -412,12 +411,7 @@ export function PostCard({ post, onLike, onRepost, onReply }: PostCardProps) {
   const reviewResults = post?.reviewResults?.content ?
     JSON.parse(post.reviewResults.content) : [];
   
-  const names = mentionsPeoples
-  .map(person => person?.displayName)
-  .filter(Boolean);
-  const joinedSpans = names
-  .map(name => `<span className='font-bold'>${name}</span>`)
-  .join('<span>, </span>');
+  
   // Enhanced post click handler
   const handlePostClick = useCallback(() => {
     const pathParts = pathname.split("/")
@@ -426,10 +420,19 @@ export function PostCard({ post, onLike, onRepost, onReply }: PostCardProps) {
       router.push(`/post/${post._id}`)
     }
   }, [pathname, post._id, router])
-  
+  const [joinedSpan, setJoinedSpan] = useState(null)
   // Determine what content to display
   const contentToDisplay = translation.translatedText || displayContent
-  
+  useEffect(() => {
+    if (mentionsPeoples.length && mentionsPeoples) {
+      const names = mentionsPeoples.map(person => person?.displayName)
+        .filter(Boolean);
+      const joinedSpans = names
+        .map(name => `<span className='font-bold'>${name}</span>`)
+        .join('<span>, </span>');
+        setJoinedSpan(joinedSpans)
+    }
+  }, [mentionsPeoples, post])
   return (
     <article
       className={isMobile==true ? "border-b hover:bg-gray-50 transition-colors h-auto cursor-pointer":"space-y-2 hover:bg-gray-50 transition-colors cursor-pointer h-auto rounded-md border-2 border-gray-50 "}
@@ -548,9 +551,9 @@ export function PostCard({ post, onLike, onRepost, onReply }: PostCardProps) {
                 <span className='border-l pl-1 text-gray-800  underline font-semibold' onClick = {()=>{router.push('fact-check?post=' + post._id)}}>{"Fact Check"}</span>
               </div>
             ):<></>}
-            {mentionsPeoples.length && (
+            {joinedSpan!=null && (
               <div className = 'flex flex-row items-center justify-start gap-2'>
-                {joinedSpans}
+                {joinedSpan}
               </div>
             )}
             {post.watch ?  (
