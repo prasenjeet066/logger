@@ -423,8 +423,9 @@ export function PostCard({ post, onLike, onRepost, onReply }: PostCardProps) {
   const [joinedSpan, setJoinedSpan] = useState(null)
   // Determine what content to display
   const contentToDisplay = translation.translatedText || displayContent
+  
   useEffect(() => {
-    if (mentionsPeoples.length && mentionsPeoples) {
+    if (mentionsPeoples.length || mentionsPeoples!== null) {
       const names = mentionsPeoples.map(person => person?.displayName)
         .filter(Boolean);
       const joinedSpans = names
