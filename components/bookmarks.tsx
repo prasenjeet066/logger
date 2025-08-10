@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { X, Plus, Trash2 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/loader/spinner"
-import PostCard from '@/components/PostCard';
+import PostCard from '@/components/dashboard/post-card';
 
 interface Store {
   storeName: string;
