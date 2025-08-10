@@ -363,7 +363,7 @@ const Bookmarks = ({ datas, user }: BookmarksProps) => {
             )}
             {posts.map((post) => (
               <div key={post._id} className="p-4 pt-2 border-b border-gray-200">
-                <PostCard post={post} />
+                {JSON.stringify(post)}
                 <Button
                   variant="ghost"
                   size="sm"
