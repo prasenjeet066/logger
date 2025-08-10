@@ -11,6 +11,7 @@ interface Store {
 }
 
 interface Bookmarks {
+  _id?: string;
   userId: string;
   store: Store[] | null;
 }
@@ -20,22 +21,27 @@ export const revalidate = 60;
 export default async function BookmarksPage() {
   const session = await getServerSession(authOptions);
   
-  if (!session?.user) {
+  if (!session?.user?.id) {
     redirect("/auth/sign-in");
   }
   
   try {
     await connectDB();
     
-    const bookmarksList = await BookmarksModel.find({ userId: session.user.id }).lean();
-    
-    // Pass the first bookmark document or null if empty
-    const bookmarksData = bookmarksList.length > 0 ? bookmarksList[0] : null;
+    // Find single bookmark document for the user
+    const bookmarksData = await BookmarksModel.findOne({ userId: session.user.id }).lean();
     
     return <BookmarksComponent datas={bookmarksData} user={session.user} />;
     
   } catch (e) {
-    console.error(e);
-    return <div>Failed to load bookmarks.</div>;
+    console.error("BookmarksPage error:", e);
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-lg font-semibold text-gray-900 mb-2">Failed to load bookmarks</h2>
+          <p className="text-gray-600">Please try again later.</p>
+        </div>
+      </div>
+    );
   }
 }

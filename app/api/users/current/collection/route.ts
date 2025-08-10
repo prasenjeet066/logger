@@ -2,27 +2,27 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/auth-config";
 import { connectDB } from "@/lib/mongodb/connection";
-import BookmarksModel from "@/lib/mongodb/models/Bookmarks"; // Fixed import name
+import BookmarksModel from "@/lib/mongodb/models/Bookmarks";
 
 export async function GET() {
   const session = await getServerSession(authOptions);
-  if (!session?.user) {
+  if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
   
   try {
     await connectDB();
-    const bookmarks = await BookmarksModel.find({ userId: session.user.id }).lean();
-    return NextResponse.json(bookmarks ?? []);
+    const bookmarks = await BookmarksModel.findOne({ userId: session.user.id }).lean();
+    return NextResponse.json(bookmarks);
   } catch (e) {
-    console.error(e);
+    console.error("GET /api/users/current/collection error:", e);
     return NextResponse.json({ error: "Failed to fetch bookmarks" }, { status: 500 });
   }
 }
 
 export async function POST(request: Request) {
   const session = await getServerSession(authOptions);
-  if (!session?.user) {
+  if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
   
@@ -48,8 +48,9 @@ export async function POST(request: Request) {
         } else {
           // Merge _store arrays without duplicates
           const existingItems = mergedStores[index]._store || [];
-          const itemsToAdd = newStore._store.filter(item => !existingItems.includes(item));
-          mergedStores[index]._store = existingItems.concat(itemsToAdd);
+          const newItems = newStore._store || [];
+          const itemsToAdd = newItems.filter(item => !existingItems.includes(item));
+          mergedStores[index]._store = [...existingItems, ...itemsToAdd];
         }
       });
       
@@ -64,14 +65,14 @@ export async function POST(request: Request) {
     
     return NextResponse.json(bookmarkDoc);
   } catch (e) {
-    console.error(e);
+    console.error("POST /api/users/current/collection error:", e);
     return NextResponse.json({ error: "Failed to create/update bookmarks" }, { status: 500 });
   }
 }
 
 export async function PATCH(request: Request) {
   const session = await getServerSession(authOptions);
-  if (!session?.user) {
+  if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
   
@@ -85,7 +86,7 @@ export async function PATCH(request: Request) {
       return NextResponse.json({ error: "No bookmarks found" }, { status: 404 });
     }
     
-    let updatedStores = bookmarkDoc.store ?? [];
+    let updatedStores = [...(bookmarkDoc.store ?? [])];
     
     // Remove whole stores by name
     if (Array.isArray(body.removeStores)) {
@@ -97,7 +98,8 @@ export async function PATCH(request: Request) {
       body.removeItems.forEach(({ storeName, items }) => {
         const storeIndex = updatedStores.findIndex(s => s.storeName === storeName);
         if (storeIndex !== -1 && Array.isArray(items)) {
-          updatedStores[storeIndex]._store = updatedStores[storeIndex]._store.filter(
+          const currentItems = updatedStores[storeIndex]._store || [];
+          updatedStores[storeIndex]._store = currentItems.filter(
             item => !items.includes(item)
           );
         }
@@ -107,9 +109,15 @@ export async function PATCH(request: Request) {
     // Rename stores by oldName -> newName
     if (Array.isArray(body.renameStores)) {
       body.renameStores.forEach(({ oldName, newName }) => {
+        if (!oldName || !newName || oldName === newName) return;
+        
         const storeIndex = updatedStores.findIndex(s => s.storeName === oldName);
         if (storeIndex !== -1) {
-          updatedStores[storeIndex].storeName = newName;
+          // Check if newName already exists
+          const existingIndex = updatedStores.findIndex(s => s.storeName === newName);
+          if (existingIndex === -1) {
+            updatedStores[storeIndex].storeName = newName;
+          }
         }
       });
     }
@@ -119,7 +127,7 @@ export async function PATCH(request: Request) {
     
     return NextResponse.json(bookmarkDoc);
   } catch (e) {
-    console.error(e);
+    console.error("PATCH /api/users/current/collection error:", e);
     return NextResponse.json({ error: "Failed to update bookmarks" }, { status: 500 });
   }
 }
