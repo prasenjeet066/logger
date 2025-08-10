@@ -269,64 +269,65 @@ const Bookmarks = ({ datas, user }: BookmarksProps) => {
               >
                 <Plus className="w-4 h-4" /> Create New
               </Button>
-              <div className='relative w-full'>
-              <div className='flex flex-row items-center justify-between overflow-x-scroll gap-2 px-2 w-full'>
-              {bookmarks.store.map((store, index) => (
-                <div key={index} className="flex items-center gap-1">
-                  <Button
-                    variant={activeCollection === store.storeName ? "default" : "outline"}
-                    className={`${
-                      activeCollection === store.storeName 
-                        ? 'bg-indigo-600 text-white hover:bg-indigo-700' 
-                        : 'bg-indigo-50 text-gray-800 hover:bg-indigo-100'
-                    } transition-colors`}
-                    onClick={() => {
-                      if (activeCollection !== store.storeName) {
-                        setActiveCollection(store.storeName);
-                      }
-                    }}
-                  >
-                    {editingCollection === store.storeName ? (
-                      <input
-                        type="text"
-                        value={editingName}
-                        onChange={(e) => setEditingName(e.target.value)}
-                        onBlur={() => handleRenameCollection(store.storeName)}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter') {
-                            handleRenameCollection(store.storeName);
-                          }
-                          if (e.key === 'Escape') {
-                            setEditingCollection(null);
-                            setEditingName('');
-                          }
-                        }}
-                        autoFocus
-                        className="px-2 py-1 text-sm rounded border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white text-gray-900"
-                        onClick={(e) => e.stopPropagation()}
-                      />
-                    ) : (
-                      <span
-                        onDoubleClick={(e) => {
-                          e.stopPropagation();
-                          startEditingCollection(store.storeName);
-                        }}
-                        className="cursor-pointer select-none"
-                      >
-                        {store.storeName}
-                      </span>
-                    )}
-                  </Button>
-                </div>
-                
-              ))}
-              <div className="pointer-events-none absolute left-0 top-0 h-full w-10 bg-gradient-to-r from-white to-transparent"></div>
+<div className="relative w-full">
+  {/* Scrollable buttons row */}
+  <div className="flex flex-row items-center gap-2 px-2 w-full overflow-x-scroll scrollbar-hide">
+    {bookmarks.store.map((store, index) => (
+      <div key={index} className="flex items-center gap-1">
+        <Button
+          variant={activeCollection === store.storeName ? "default" : "outline"}
+          className={`${
+            activeCollection === store.storeName
+              ? "bg-indigo-600 text-white hover:bg-indigo-700"
+              : "bg-indigo-50 text-gray-800 hover:bg-indigo-100"
+          } transition-colors`}
+          onClick={() => {
+            if (activeCollection !== store.storeName) {
+              setActiveCollection(store.storeName);
+            }
+          }}
+        >
+          {editingCollection === store.storeName ? (
+            <input
+              type="text"
+              value={editingName}
+              onChange={(e) => setEditingName(e.target.value)}
+              onBlur={() => handleRenameCollection(store.storeName)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  handleRenameCollection(store.storeName);
+                }
+                if (e.key === "Escape") {
+                  setEditingCollection(null);
+                  setEditingName("");
+                }
+              }}
+              autoFocus
+              className="px-2 py-1 text-sm rounded border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white text-gray-900"
+              onClick={(e) => e.stopPropagation()}
+            />
+          ) : (
+            <span
+              onDoubleClick={(e) => {
+                e.stopPropagation();
+                startEditingCollection(store.storeName);
+              }}
+              className="cursor-pointer select-none"
+            >
+              {store.storeName}
+            </span>
+          )}
+        </Button>
+      </div>
+    ))}
+  </div>
+
+  {/* Left gradient overlay */}
+  <div className="pointer-events-none absolute left-0 top-0 h-full w-10 bg-gradient-to-r from-white to-transparent"></div>
 
   {/* Right gradient overlay */}
   <div className="pointer-events-none absolute right-0 top-0 h-full w-10 bg-gradient-to-l from-white to-transparent"></div>
 </div>
-            </div>
-            </div>
 
             {/* Posts Display */}
             {isLoading ? (
