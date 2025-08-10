@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { X, Plus, Trash2,MoreHorizontal } from 'lucide-react';
+import { X, Plus, Trash2, MoreHorizontal } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/loader/spinner"
 import PostCard from '@/components/dashboard/post-card';
@@ -319,6 +319,10 @@ const Bookmarks = ({ datas, user }: BookmarksProps) => {
                 </div>
                 
               ))}
+              <div className="pointer-events-none absolute left-0 top-0 h-full w-10 bg-gradient-to-r from-white to-transparent"></div>
+
+  {/* Right gradient overlay */}
+  <div className="pointer-events-none absolute right-0 top-0 h-full w-10 bg-gradient-to-l from-white to-transparent"></div>
 </div>
             </div>
 
