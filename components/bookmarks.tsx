@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { X, Plus, Trash2 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
-import Spinner from '@/components/Spinner';
+import { Spinner } from "@/components/loader/spinner"
 import PostCard from '@/components/PostCard';
 
 interface Store {
