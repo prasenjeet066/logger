@@ -2,10 +2,10 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { X, Plus } from 'lucide-react';
+import { X, Plus, Trash2 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
-import Spinner from '@/components/Spinner'; // assuming you have this component
-import PostCard from '@/components/PostCard'; // assuming you have this component
+import Spinner from '@/components/Spinner';
+import PostCard from '@/components/PostCard';
 
 interface Store {
   storeName: string;
@@ -291,89 +291,108 @@ const Bookmarks = ({ datas, user }: BookmarksProps) => {
             </Button>
           </div>
         ) : (
-          <div className="flex flex-wrap gap-2 mb-6">
-            {bookmarks.store.map((store, index) => (
-              <Button
-                key={index}
-                className={activeCollection === store.storeName ? 'bg-indigo-600 text-white' : 'bg-indigo-50 text-gray-800'}
-                onClick={() => {
-                  if (activeCollection !== store.storeName) {
-                    setActiveCollection(store.storeName);
-                  }
-                }}
-              >
-                {editingCollection === store.storeName ? (
-                  <input
-                    type="text"
-                    value={editingName}
-                    onChange={(e) => setEditingName(e.target.value)}
-                    onBlur={() => handleRenameCollection(store.storeName)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') {
-                        handleRenameCollection(store.storeName);
-                      }
-                      if (e.key === 'Escape') {
-                        setEditingCollection(null);
-                        setEditingName('');
+          <div className="space-y-4">
+            {/* Collection Tabs */}
+            <div className="flex flex-wrap gap-2">
+              {bookmarks.store.map((store, index) => (
+                <div key={index} className="flex items-center gap-1">
+                  <Button
+                    variant={activeCollection === store.storeName ? "default" : "outline"}
+                    className={`${
+                      activeCollection === store.storeName 
+                        ? 'bg-indigo-600 text-white hover:bg-indigo-700' 
+                        : 'bg-indigo-50 text-gray-800 hover:bg-indigo-100'
+                    } transition-colors`}
+                    onClick={() => {
+                      if (activeCollection !== store.storeName) {
+                        setActiveCollection(store.storeName);
                       }
                     }}
-                    autoFocus
-                    className="px-2 py-1 rounded border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                  />
-                ) : (
-                  <span
-                    onDoubleClick={() => startEditingCollection(store.storeName)}
-                    className="cursor-pointer select-none"
                   >
-                    {store.storeName}
-                  </span>
-                )}
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleDeleteCollection(store.storeName);
-                  }}
-                  title={`Delete collection ${store.storeName}`}
-                >
-                  <Trash2 className="w-4 h-4 text-red-500" />
-                </Button>
+                    {editingCollection === store.storeName ? (
+                      <input
+                        type="text"
+                        value={editingName}
+                        onChange={(e) => setEditingName(e.target.value)}
+                        onBlur={() => handleRenameCollection(store.storeName)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            handleRenameCollection(store.storeName);
+                          }
+                          if (e.key === 'Escape') {
+                            setEditingCollection(null);
+                            setEditingName('');
+                          }
+                        }}
+                        autoFocus
+                        className="px-2 py-1 text-sm rounded border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white text-gray-900"
+                        onClick={(e) => e.stopPropagation()}
+                      />
+                    ) : (
+                      <span
+                        onDoubleClick={(e) => {
+                          e.stopPropagation();
+                          startEditingCollection(store.storeName);
+                        }}
+                        className="cursor-pointer select-none"
+                      >
+                        {store.storeName}
+                      </span>
+                    )}
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDeleteCollection(store.storeName);
+                    }}
+                    className="h-8 w-8 text-red-500 hover:text-red-700 hover:bg-red-50"
+                    title={`Delete collection ${store.storeName}`}
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                </div>
+              ))}
+              <Button
+                variant="outline"
+                onClick={() => setShowNewCollectionForm(true)}
+                className="flex items-center gap-1 border-dashed"
+              >
+                <Plus className="w-4 h-4" /> New Collection
               </Button>
-            ))}
-            <Button
-              variant="outline"
-              onClick={() => setShowNewCollectionForm(true)}
-              className="flex items-center gap-1"
-            >
-              <Plus className="w-4 h-4" /> New Collection
-            </Button>
-          </div>
-        )}
+            </div>
 
-        {/* Posts Display */}
-        {isLoading ? (
-          <div className="min-h-screen flex items-center justify-center">
-            <Spinner />
-          </div>
-        ) : (
-          <div>
-            {posts.length === 0 && (
-              <p className="text-center text-gray-500">No posts in this collection.</p>
-            )}
-            {posts.map((post) => (
-              <div key={post._id} className="p-4 pt-2 border-b border-gray-200">
-                {JSON.stringify(post)}
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="mt-2 text-red-600"
-                  onClick={() => handleRemoveItem(activeCollection!, post._id)}
-                >
-                  Remove from collection
-                </Button>
+            {/* Posts Display */}
+            {isLoading ? (
+              <div className="flex items-center justify-center py-12">
+                <Spinner />
               </div>
-            ))}
+            ) : activeCollection ? (
+              <div className="space-y-4">
+                {posts.length === 0 ? (
+                  <div className="text-center py-12">
+                    <p className="text-gray-500">No posts in this collection.</p>
+                  </div>
+                ) : (
+                  posts.map((post) => (
+                    <div key={post._id} className="border border-gray-200 rounded-lg overflow-hidden">
+                      <PostCard post={post} user={user} />
+                      <div className="px-4 py-3 border-t border-gray-100 bg-gray-50">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                          onClick={() => handleRemoveItem(activeCollection!, post._id)}
+                        >
+                          Remove from collection
+                        </Button>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            ) : null}
           </div>
         )}
       </div>
