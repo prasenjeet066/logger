@@ -22,121 +22,132 @@ interface BookmarksProps {
 
 
 const Bookmarks = ({ datas, user }: BookmarksProps) => {
-  const [bookmarks, setBookmarks] = useState < Bookmarks | null > (null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [showNewCollectionForm, setShowNewCollectionForm] = useState(false);
-  const [newCollectionName, setNewCollectionName] = useState('');
-  const [editingCollection, setEditingCollection] = useState < string | null > (null);
-  const [editingName, setEditingName] = useState('');
-  const router = useRouter();
-  const [activeCollection,setActiveCollection] = useState()
-  useEffect(() => {
-    if (datas) {
-      setBookmarks(datas);
-      if (datas.store!==null) {
-        setActiveCollection(datas.store[0].storeName)
+    const [bookmarks, setBookmarks] = useState < Bookmarks | null > (null);
+    const [isLoading, setIsLoading] = useState(false);
+    const [showNewCollectionForm, setShowNewCollectionForm] = useState(false);
+    const [newCollectionName, setNewCollectionName] = useState('');
+    const [editingCollection, setEditingCollection] = useState < string | null > (null);
+    const [editingName, setEditingName] = useState('');
+    const router = useRouter();
+    const [activeCollection, setActiveCollection] = useState()
+    useEffect(() => {
+      if (datas) {
+        setBookmarks(datas);
+        if (datas.store !== null) {
+          setActiveCollection(datas.store[0].storeName)
+        }
       }
-    }
-  }, [datas]);
-  
-  const handleNewCollection = async () => {
-    if (!newCollectionName.trim()) return;
+    }, [datas]);
     
-    setIsLoading(true);
-    try {
-      const response = await fetch('/api/users/current/collection', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          store: [{
-            storeName: newCollectionName.trim(),
-            _store: []
-          }]
-        }),
-      });
+    const handleNewCollection = async () => {
+      if (!newCollectionName.trim()) return;
       
-      if (response.ok) {
-        const updatedBookmarks = await response.json();
-        setBookmarks(updatedBookmarks);
-        setNewCollectionName('');
-        setShowNewCollectionForm(false);
-      } else {
-        console.error('Failed to create collection');
+      setIsLoading(true);
+      try {
+        const response = await fetch('/api/users/current/collection', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            store: [{
+              storeName: newCollectionName.trim(),
+              _store: []
+            }]
+          }),
+        });
+        
+        if (response.ok) {
+          const updatedBookmarks = await response.json();
+          setBookmarks(updatedBookmarks);
+          setNewCollectionName('');
+          setShowNewCollectionForm(false);
+        } else {
+          console.error('Failed to create collection');
+        }
+      } catch (error) {
+        console.error('Error creating collection:', error);
+      } finally {
+        setIsLoading(false);
       }
-    } catch (error) {
-      console.error('Error creating collection:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-  
-  const handleDeleteCollection = async (storeName: string) => {
-    if (!confirm(`Are you sure you want to delete "${storeName}" collection?`)) return;
+    };
     
-    setIsLoading(true);
-    try {
-      const response = await fetch('/api/users/current/collection', {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          removeStores: [storeName]
-        }),
-      });
+    const handleDeleteCollection = async (storeName: string) => {
+      if (!confirm(`Are you sure you want to delete "${storeName}" collection?`)) return;
       
-      if (response.ok) {
-        const updatedBookmarks = await response.json();
-        setBookmarks(updatedBookmarks);
-      } else {
-        console.error('Failed to delete collection');
+      setIsLoading(true);
+      try {
+        const response = await fetch('/api/users/current/collection', {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            removeStores: [storeName]
+          }),
+        });
+        
+        if (response.ok) {
+          const updatedBookmarks = await response.json();
+          setBookmarks(updatedBookmarks);
+        } else {
+          console.error('Failed to delete collection');
+        }
+      } catch (error) {
+        console.error('Error deleting collection:', error);
+      } finally {
+        setIsLoading(false);
       }
-    } catch (error) {
-      console.error('Error deleting collection:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-  
-  const handleRenameCollection = async (oldName: string) => {
-    if (!editingName.trim() || editingName.trim() === oldName) {
-      setEditingCollection(null);
-      setEditingName('');
-      return;
-    }
+    };
     
-    setIsLoading(true);
-    try {
-      const response = await fetch('/api/users/current/collection', {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          renameStores: [{
-            oldName,
-            newName: editingName.trim()
-          }]
-        }),
-      });
-      
-      if (response.ok) {
-        const updatedBookmarks = await response.json();
-        setBookmarks(updatedBookmarks);
+    const handleRenameCollection = async (oldName: string) => {
+      if (!editingName.trim() || editingName.trim() === oldName) {
         setEditingCollection(null);
         setEditingName('');
-      } else {
-        console.error('Failed to rename collection');
+        return;
       }
-    } catch (error) {
-      console.error('Error renaming collection:', error);
-    } finally {
-      setIsLoading(false);
+      
+      setIsLoading(true);
+      try {
+        const response = await fetch('/api/users/current/collection', {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            renameStores: [{
+              oldName,
+              newName: editingName.trim()
+            }]
+          }),
+        });
+        
+        if (response.ok) {
+          const updatedBookmarks = await response.json();
+          setBookmarks(updatedBookmarks);
+          setEditingCollection(null);
+          setEditingName('');
+        } else {
+          console.error('Failed to rename collection');
+        }
+      } catch (error) {
+        console.error('Error renaming collection:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    const fetchPost = async (id) => {
+          const post = await fetch('/api/posts/' + id)
+          if (post.ok) {
+            const postdata = await post.json()
+            return (<PostCard
+                        key = { id }
+                        post = { postdata }
+                        
+                        // onReply is not directly handled by Timeline, but by PostCard itself
+                        />)
     }
-  };
-  
+  }
   const handleRemoveItem = async (storeName: string, item: string) => {
     if (!confirm('Are you sure you want to remove this item?')) return;
     
@@ -257,7 +268,7 @@ const Bookmarks = ({ datas, user }: BookmarksProps) => {
           {
             datas.store.find((n)=>n.storeName == activeCollection)._store.map((dt)=>(
               <div className='p-4 pt-2'>
-                feat....
+                {fetchPost(dt)}
               </div>
             ))
           }
@@ -266,8 +277,7 @@ const Bookmarks = ({ datas, user }: BookmarksProps) => {
         <Spinner />
       </div>)}
       </div>
-    </div>
-  );
-};
-
-export default Bookmarks;
+    </div>);
+          };
+          
+          export default Bookmarks;
