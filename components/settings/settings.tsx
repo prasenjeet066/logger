@@ -151,7 +151,7 @@ export const SettingsContent: React.FC < SettingsContentProps > = ({ user, slug 
                 key={index}
                 variant="ghost"
                 className="w-full rounded-none divide-y justify-start text-gray-800 hover:bg-gray-100 p-4 h-auto"
-                onClick={() => handleSettingClick(setting)}
+                onClick={() => router.push(setting.name.toLowerCase().replace(' ', '_'))}
               >
                 <setting.icon className="h-5 w-5 mr-3" />
                 <span className="font-semibold">{setting.name}</span>
