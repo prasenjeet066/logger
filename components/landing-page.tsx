@@ -51,7 +51,7 @@ export const LandingPage = () => {
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.2, duration: 0.6 }}
           >
-            Logger
+            logger
           </motion.h1>
           
           <motion.nav

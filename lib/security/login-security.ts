@@ -1,7 +1,7 @@
 // ===== lib/security/login-security.ts =====
 import { User } from "@/lib/mongodb/models/User";
 import { connectDB } from "@/lib/mongodb/connection";
-import { AuditLogger } from "./audit-logger";
+import { Auditlogger } from "./audit-logger";
 
 interface LoginAttempt {
   email: string;
@@ -29,7 +29,7 @@ export async function validateLoginAttempt(
     };
     
     // Log attempt to audit system
-    await AuditLogger.log({
+    await Auditlogger.log({
       action: success ? 'SUCCESSFUL_LOGIN' : 'FAILED_LOGIN',
       ip,
       userAgent: userAgent || '',
@@ -58,7 +58,7 @@ export async function validateLoginAttempt(
       await user.incrementLoginAttempts();
       
       // Log to user's security events
-      await AuditLogger.log({
+      await Auditlogger.log({
         userId: user._id.toString(),
         action: 'FAILED_LOGIN_ATTEMPT',
         ip,

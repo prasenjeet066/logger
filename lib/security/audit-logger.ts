@@ -13,7 +13,7 @@ export interface AuditEvent {
   timestamp?: Date;
 }
 
-export class AuditLogger {
+export class Auditlogger {
   static async log(event: AuditEvent): Promise<void> {
     try {
       const logEntry = {
