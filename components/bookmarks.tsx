@@ -342,16 +342,16 @@ const Bookmarks = ({ datas, user }: BookmarksProps) => {
                   </div>
                 ) : (
                   posts.map((post) => (
-                    <div key={post._id} className="overflow-hidden p-4 border rounded-lg">
+                    <div key={post._id} className="overflow-hidden">
                       <PostCardReadOnly post={post}/>
                       <div className="px-4 py-3 flex justify-end">
                         <Button
                           variant="ghost"
                           size="sm"
-                          className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                          className="text-gray-500 hover:text-red-700"
                           onClick={() => handleRemoveItem(activeCollection!, post._id)}
                         >
-                          <Trash2 className="h-4 w-4" />
+                          <Trash2 className="h-4 w-4"/>
                         </Button>
                       </div>
                     </div>
