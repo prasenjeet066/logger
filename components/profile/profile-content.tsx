@@ -420,7 +420,7 @@ export function ProfileContent({ username }: ProfileContentProps) {
                   {isOwnProfile ? (
                     <Button variant="outline"
                     className='rounded-full'
-                    onClick={() => setEditDialogOpen(true)}>
+                    onClick={() => router.push('/settings/edit-profile')}>
                       Edit Profile
                     </Button>
                   ) : profileType === 'user' && session?.user && profileData?.public_send_message ? (
