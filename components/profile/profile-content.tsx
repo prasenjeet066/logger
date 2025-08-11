@@ -14,7 +14,7 @@ import { Sidebar } from "@/components/dashboard/sidebar"
 import { MutualFollowers } from "@/components/profile/mutual-follow"
 import { PostCard } from "@/components/dashboard/post-card"
 import { EditProfileDialog } from "./edit-profile-dialog"
-import { Menu, X, UserPlus, UserCheck, Calendar, MapPin, LinkIcon, Plus, Search, Bot, Code, Terminal, User } from "lucide-react"
+import { Menu, X, UserPlus, UserCheck, Calendar, MapPin, LinkIcon, Plus, Search, Bot, Code, Terminal, User ,MessageSquareShare} from "lucide-react"
 import { formatDistanceToNow,format } from "date-fns"
 import Link from "next/link"
 import { ImageViewer } from "@/components/media/image-viewer"
@@ -425,7 +425,7 @@ export function ProfileContent({ username }: ProfileContentProps) {
                     </Button>
                   ) : profileType === 'user' && session?.user && profileData?.public_send_message ? (
                     <>
-                      <Button className='rounded-full' variant="outline">Message</Button>
+                      <Button className='rounded-full' variant="outline"><MessageSquareShare className='w-4 h-4'/></Button>
                       <Button
                       className='rounded-full'
                       variant={profileData?.isFollowing ? "outline" : "default"} onClick={handleFollow}>
