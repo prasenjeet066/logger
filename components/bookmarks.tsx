@@ -240,7 +240,7 @@ const Bookmarks = ({ datas, user }: BookmarksProps) => {
         </div>
       </div>
 
-      <div className="max-w-2xl mx-auto px-4 py-6">
+      <div className="max-w-2xl mx-auto px-4 py-2">
         {/* Collections Display */}
         {!bookmarks?.store || bookmarks.store.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12 text-center">
@@ -257,7 +257,7 @@ const Bookmarks = ({ datas, user }: BookmarksProps) => {
             </Button>
           </div>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-2">
             {/* Collection Tabs */}
             <div className="flex flex-row items-center justify-between gap-2 text-sm">
               <Button
