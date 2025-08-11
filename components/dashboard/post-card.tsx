@@ -550,7 +550,7 @@ export function PostCard({ post, onLike, onRepost, onReply }: PostCardProps) {
               </span>
             ): <></>}
             {/* Action buttons */}
-            {onRepost &&  onLike && onReply && (
+          
             <div className="flex items-center justify-between max-w-sm lg:max-w-md mt-3">
               <Button
                 variant="ghost"
@@ -623,7 +623,7 @@ export function PostCard({ post, onLike, onRepost, onReply }: PostCardProps) {
                 onPostDeleted={onReply}
                 onPinPost={handlePinPost}
               />
-            </div>)}
+            </div>
           
         </div>
       </div>

@@ -178,7 +178,7 @@ export default function SignUpPage() {
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
       <Card className="w-full max-w-md shadow-none border-none bg-gray-50">
         <CardHeader className="text-center">
-          <CardTitle className="text-sm font-semibold logo-font">Logger</CardTitle>
+          <CardTitle className="text-sm logo-font">Logger</CardTitle>
           <div className="mt-4">
             <div className="flex justify-between text-xs text-gray-500 mb-2">
               <span>Step {currentStepIndex + 1} / {signupSteps.length}</span>
