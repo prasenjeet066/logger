@@ -103,7 +103,7 @@ export default function SignInPage() {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 px-4">
-      <h1 className='logo-font text-sm'>Zeeta</h1>
+      <h1 className='logo-font text-sm'>Logger</h1>
       <Card className="w-full max-w-md border-none shadow-none bg-gray-50">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl font-semibold">Welcome Back</CardTitle>
