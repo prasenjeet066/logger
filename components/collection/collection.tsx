@@ -2,49 +2,89 @@ import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { X, Plus, Trash2, MoreHorizontal } from 'lucide-react';
 import { Button } from "@/components/ui/button";
-import { Spinner } from "@/components/loader/spinner"
+import { Spinner } from "@/components/loader/spinner";
+
+interface NewCollectionProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  newCollectionName: string;
+  setNewCollectionName: (name: string) => void;
+  handleNewCollection: () => void;
+  isLoading: boolean;
+}
 
 const Collection = {
-  NewCollection: ({ open, onOpenChange , newCollectionName, setNewCollectionName,handleNewCollection,isLoading}) => {
+  NewCollection: ({ 
+    open, 
+    onOpenChange, 
+    newCollectionName, 
+    setNewCollectionName, 
+    handleNewCollection, 
+    isLoading 
+  }: NewCollectionProps) => {
+    const handleCancel = () => {
+      setNewCollectionName('');
+      onOpenChange(false);
+    };
+
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+      if (e.key === 'Enter') {
+        handleNewCollection();
+      }
+      if (e.key === 'Escape') {
+        handleCancel();
+      }
+    };
+
     return (
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent>
+        <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>New Collection</DialogTitle>
+            <DialogTitle>Create New Collection</DialogTitle>
           </DialogHeader>
-          <div className =''>
-            <div className="mb-6 p-4 border rounded-lg bg-gray-50">
-            <h3 className="text-md font-medium mb-3">Create New Collection</h3>
-            <div className="flex gap-2">
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <label htmlFor="collection-name" className="text-sm font-medium">
+                Collection Name
+              </label>
               <input
+                id="collection-name"
                 type="text"
                 value={newCollectionName}
                 onChange={(e) => setNewCollectionName(e.target.value)}
-                placeholder="Collection name..."
-                className="flex-1 px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') handleNewCollection();
-                  if (e.key === 'Escape') {
-                    setShowNewCollectionForm(false);
-                    setNewCollectionName('');
-                  }
-                }}
+                placeholder="Enter collection name..."
+                className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                onKeyDown={handleKeyDown}
                 autoFocus
+                disabled={isLoading}
               />
-              <Button onClick={handleNewCollection} disabled={isLoading || !newCollectionName.trim()}>
-                Create
-              </Button>
+            </div>
+            <div className="flex gap-2 justify-end">
               <Button
-                variant="ghost"
-                onClick={() => {
-                  setShowNewCollectionForm(false);
-                  setNewCollectionName('');
-                }}
+                variant="outline"
+                onClick={handleCancel}
+                disabled={isLoading}
               >
                 Cancel
               </Button>
+              <Button 
+                onClick={handleNewCollection} 
+                disabled={isLoading || !newCollectionName.trim()}
+                className="bg-blue-600 hover:bg-blue-700"
+              >
+                {isLoading ? (
+                  <>
+                    <Spinner className="w-4 h-4 mr-2" />
+                    Creating...
+                  </>
+                ) : (
+                  <>
+                    <Plus className="w-4 h-4 mr-2" />
+                    Create
+                  </>
+                )}
+              </Button>
             </div>
-          </div>
           </div>
         </DialogContent>
       </Dialog>
@@ -52,5 +92,4 @@ const Collection = {
   }
 };
 
-
-export default Collection
+export default Collection;

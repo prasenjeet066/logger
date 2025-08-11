@@ -6,7 +6,7 @@ import { X, Plus, Trash2, MoreHorizontal } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/loader/spinner"
 import PostCard from '@/components/dashboard/post-card';
-import Collection from ' @/components/collection/collection'
+import Collection from '@/components/collection/collection'
 
 interface Store {
   storeName: string;
@@ -19,19 +19,19 @@ interface Bookmarks {
 }
 
 interface BookmarksProps {
-  datas ? : Bookmarks | null;
+  datas?: Bookmarks | null;
   user: any;
 }
 
 const Bookmarks = ({ datas, user }: BookmarksProps) => {
-  const [bookmarks, setBookmarks] = useState < Bookmarks | null > (null);
+  const [bookmarks, setBookmarks] = useState<Bookmarks | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [showNewCollectionForm, setShowNewCollectionForm] = useState(false);
   const [newCollectionName, setNewCollectionName] = useState('');
-  const [editingCollection, setEditingCollection] = useState < string | null > (null);
+  const [editingCollection, setEditingCollection] = useState<string | null>(null);
   const [editingName, setEditingName] = useState('');
-  const [activeCollection, setActiveCollection] = useState < string | undefined > (undefined);
-  const [posts, setPosts] = useState < any[] > ([]);
+  const [activeCollection, setActiveCollection] = useState<string | undefined>(undefined);
+  const [posts, setPosts] = useState<any[]>([]);
   
   const router = useRouter();
   
@@ -241,9 +241,6 @@ const Bookmarks = ({ datas, user }: BookmarksProps) => {
       </div>
 
       <div className="max-w-2xl mx-auto px-4 py-6">
-        {/* New Collection Form */}
-        
-
         {/* Collections Display */}
         {!bookmarks?.store || bookmarks.store.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12 text-center">
@@ -263,7 +260,7 @@ const Bookmarks = ({ datas, user }: BookmarksProps) => {
           <div className="space-y-4">
             {/* Collection Tabs */}
             <div className="flex flex-row items-center justify-between gap-2 text-sm">
-                            <Button
+              <Button
                 variant="outline"
                 onClick={() => setShowNewCollectionForm(true)}
                 className="flex items-center gap-1 border-dashed"
@@ -271,66 +268,66 @@ const Bookmarks = ({ datas, user }: BookmarksProps) => {
                 <Plus className="w-4 h-4" /> Create New
               </Button>
 
-  {/* Scrollable buttons row */}
-  <div className ='relative overflow-hidden w-full'>
-  <div className="flex flex-row items-center gap-2 px-2 w-full overflow-x-scroll scrollbar-hide relative text-xs lg:text-sm">
-    {bookmarks.store.map((store, index) => (
-      <div key={index} className="flex items-center gap-1">
-        <Button
-          variant={activeCollection === store.storeName ? "default" : "outline"}
-          className={`${
-            activeCollection === store.storeName
-              ? "bg-indigo-600 text-white hover:bg-indigo-700 text-xs lg:text-sm"
-              : "bg-indigo-50 text-gray-800 hover:bg-indigo-100 text-xs lg:text-sm"
-          } transition-colors`}
-          onClick={() => {
-            if (activeCollection !== store.storeName) {
-              setActiveCollection(store.storeName);
-            }
-          }}
-        >
-          {editingCollection === store.storeName ? (
-            <input
-              type="text"
-              value={editingName}
-              onChange={(e) => setEditingName(e.target.value)}
-              onBlur={() => handleRenameCollection(store.storeName)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  handleRenameCollection(store.storeName);
-                }
-                if (e.key === "Escape") {
-                  setEditingCollection(null);
-                  setEditingName("");
-                }
-              }}
-              autoFocus
-              className="px-2 py-1 text-sm rounded border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white text-gray-900"
-              onClick={(e) => e.stopPropagation()}
-            />
-          ) : (
-            <span
-              onDoubleClick={(e) => {
-                e.stopPropagation();
-                startEditingCollection(store.storeName);
-              }}
-              className="cursor-pointer select-none"
-            >
-              {store.storeName}
-            </span>
-          )}
-        </Button>
-      </div>
-    ))}
-  </div>
+              {/* Scrollable buttons row */}
+              <div className="relative overflow-hidden w-full">
+                <div className="flex flex-row items-center gap-2 px-2 w-full overflow-x-scroll scrollbar-hide relative text-xs lg:text-sm">
+                  {bookmarks.store.map((store, index) => (
+                    <div key={index} className="flex items-center gap-1">
+                      <Button
+                        variant={activeCollection === store.storeName ? "default" : "outline"}
+                        className={`${
+                          activeCollection === store.storeName
+                            ? "bg-indigo-600 text-white hover:bg-indigo-700 text-xs lg:text-sm"
+                            : "bg-indigo-50 text-gray-800 hover:bg-indigo-100 text-xs lg:text-sm"
+                        } transition-colors`}
+                        onClick={() => {
+                          if (activeCollection !== store.storeName) {
+                            setActiveCollection(store.storeName);
+                          }
+                        }}
+                      >
+                        {editingCollection === store.storeName ? (
+                          <input
+                            type="text"
+                            value={editingName}
+                            onChange={(e) => setEditingName(e.target.value)}
+                            onBlur={() => handleRenameCollection(store.storeName)}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter") {
+                                handleRenameCollection(store.storeName);
+                              }
+                              if (e.key === "Escape") {
+                                setEditingCollection(null);
+                                setEditingName("");
+                              }
+                            }}
+                            autoFocus
+                            className="px-2 py-1 text-sm rounded border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white text-gray-900"
+                            onClick={(e) => e.stopPropagation()}
+                          />
+                        ) : (
+                          <span
+                            onDoubleClick={(e) => {
+                              e.stopPropagation();
+                              startEditingCollection(store.storeName);
+                            }}
+                            className="cursor-pointer select-none"
+                          >
+                            {store.storeName}
+                          </span>
+                        )}
+                      </Button>
+                    </div>
+                  ))}
+                </div>
 
-  {/* Left gradient overlay */}
-  <div className="pointer-events-none absolute left-0 top-0 h-full w-10 bg-gradient-to-r from-white to-transparent"></div>
+                {/* Left gradient overlay */}
+                <div className="pointer-events-none absolute left-0 top-0 h-full w-10 bg-gradient-to-r from-white to-transparent"></div>
 
-  {/* Right gradient overlay */}
-  <div className="pointer-events-none absolute right-0 top-0 h-full w-10 bg-gradient-to-l from-white to-transparent"></div>
-</div>
-</div>
+                {/* Right gradient overlay */}
+                <div className="pointer-events-none absolute right-0 top-0 h-full w-10 bg-gradient-to-l from-white to-transparent"></div>
+              </div>
+            </div>
 
             {/* Posts Display */}
             {isLoading ? (
@@ -345,17 +342,17 @@ const Bookmarks = ({ datas, user }: BookmarksProps) => {
                   </div>
                 ) : (
                   posts.map((post) => (
-                    <div key={post._id} className=" overflow-hidden p-4">
-                    {post.content}
-                      <div className="px-4 py-3">
+                    <div key={post._id} className="overflow-hidden p-4 border rounded-lg">
+                      <PostCard post={post} user={user} />
+                      <div className="px-4 py-3 flex justify-end">
                         <Button
                           variant="ghost"
                           size="sm"
-                          className="text-gray-800 bg-none border-none"
+                          className="text-red-500 hover:text-red-700 hover:bg-red-50"
                           onClick={() => handleRemoveItem(activeCollection!, post._id)}
                         >
-                          
-                      <MoreHorizontal className='h-4 w-4'/>  </Button>
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
                       </div>
                     </div>
                   ))
@@ -365,48 +362,20 @@ const Bookmarks = ({ datas, user }: BookmarksProps) => {
           </div>
         )}
       </div>
-      {
-        showNewCollectionForm && (
-          <Collection.NewCollection open = {showNewCollectionForm} onOpenChange= {setShowNewCollectionForm(!showNewCollectionForm)} isLoading handleNewCollection newCollectionName setNewCollectionName/>
-        )
-      }
+      
+      {/* New Collection Dialog */}
+      {showNewCollectionForm && (
+        <Collection.NewCollection
+          open={showNewCollectionForm}
+          onOpenChange={setShowNewCollectionForm}
+          isLoading={isLoading}
+          handleNewCollection={handleNewCollection}
+          newCollectionName={newCollectionName}
+          setNewCollectionName={setNewCollectionName}
+        />
+      )}
     </div>
   );
 };
-/**
- * showNewCollectionForm && (
-          <div className="mb-6 p-4 border rounded-lg bg-gray-50">
-            <h3 className="text-md font-medium mb-3">Create New Collection</h3>
-            <div className="flex gap-2">
-              <input
-                type="text"
-                value={newCollectionName}
-                onChange={(e) => setNewCollectionName(e.target.value)}
-                placeholder="Collection name..."
-                className="flex-1 px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') handleNewCollection();
-                  if (e.key === 'Escape') {
-                    setShowNewCollectionForm(false);
-                    setNewCollectionName('');
-                  }
-                }}
-                autoFocus
-              />
-              <Button onClick={handleNewCollection} disabled={isLoading || !newCollectionName.trim()}>
-                Create
-              </Button>
-              <Button
-                variant="ghost"
-                onClick={() => {
-                  setShowNewCollectionForm(false);
-                  setNewCollectionName('');
-                }}
-              >
-                Cancel
-              </Button>
-            </div>
-          </div>
-        )
- */
+
 export default Bookmarks;
