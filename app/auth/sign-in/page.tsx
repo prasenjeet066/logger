@@ -36,7 +36,7 @@ export default function SignInPage() {
       const validatedData = signInSchema.parse(formData)
 
       const result = await signIn("credentials", {
-        redirect: false, // Prevent NextAuth from redirecting automatically
+        redirect: true, // Prevent NextAuth from redirecting automatically
         email: validatedData.email,
         password: validatedData.password,
         rememberMe: rememberMe.toString(), // Pass remember me preference

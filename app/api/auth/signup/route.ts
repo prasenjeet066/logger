@@ -27,6 +27,7 @@ export async function POST(request: NextRequest) {
 
     // Create new user
     const user = new User({
+      ...validatedData,
       email: validatedData.email,
       username: validatedData.username,
       displayName: validatedData.displayName,
