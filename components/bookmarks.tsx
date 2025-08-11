@@ -6,6 +6,7 @@ import { X, Plus, Trash2, MoreHorizontal } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/loader/spinner"
 import PostCard from '@/components/dashboard/post-card';
+import Collection from ' @/components/collection/collection'
 
 interface Store {
   storeName: string;
@@ -279,8 +280,8 @@ const Bookmarks = ({ datas, user }: BookmarksProps) => {
           variant={activeCollection === store.storeName ? "default" : "outline"}
           className={`${
             activeCollection === store.storeName
-              ? "bg-indigo-600 text-white hover:bg-indigo-700"
-              : "bg-indigo-50 text-gray-800 hover:bg-indigo-100"
+              ? "bg-indigo-600 text-white hover:bg-indigo-700 text-xs lg:text-sm"
+              : "bg-indigo-50 text-gray-800 hover:bg-indigo-100 text-xs lg:text-sm"
           } transition-colors`}
           onClick={() => {
             if (activeCollection !== store.storeName) {
@@ -364,6 +365,11 @@ const Bookmarks = ({ datas, user }: BookmarksProps) => {
           </div>
         )}
       </div>
+      {
+        showNewCollectionForm && (
+          <Collection.NewCollection open = {showNewCollectionForm} onOpenChange= {setShowNewCollectionForm(!showNewCollectionForm)} isLoading handleNewCollection newCollectionName setNewCollectionName/>
+        )
+      }
     </div>
   );
 };
