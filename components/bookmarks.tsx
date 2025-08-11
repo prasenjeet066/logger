@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { X, Plus, Trash2, MoreHorizontal } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/loader/spinner"
-import PostCard from '@/components/dashboard/post-card';
+import {PostCardReadOnly} from "@/components/collection/PostCard"
 import Collection from '@/components/collection/collection'
 
 interface Store {
@@ -343,7 +343,7 @@ const Bookmarks = ({ datas, user }: BookmarksProps) => {
                 ) : (
                   posts.map((post) => (
                     <div key={post._id} className="overflow-hidden p-4 border rounded-lg">
-                      <PostCard post={post} user={user} />
+                      <PostCardReadOnly post={post}/>
                       <div className="px-4 py-3 flex justify-end">
                         <Button
                           variant="ghost"
