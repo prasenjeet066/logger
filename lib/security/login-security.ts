@@ -1,13 +1,14 @@
-// lib/security/login-security.ts
-import { User } from "@/lib/mongodb/models/User"
-import { connectDB } from "@/lib/mongodb/connection"
+// ===== lib/security/login-security.ts =====
+import { User } from "@/lib/mongodb/models/User";
+import { connectDB } from "@/lib/mongodb/connection";
+import { AuditLogger } from "./audit-logger";
 
 interface LoginAttempt {
-  email: string
-  success: boolean
-  ip: string
-  userAgent?: string
-  timestamp: Date
+  email: string;
+  success: boolean;
+  ip: string;
+  userAgent?: string;
+  timestamp: Date;
 }
 
 export async function validateLoginAttempt(
@@ -17,7 +18,7 @@ export async function validateLoginAttempt(
   userAgent?: string
 ): Promise<void> {
   try {
-    await connectDB()
+    await connectDB();
     
     const attempt: LoginAttempt = {
       email: email.toLowerCase(),
@@ -25,27 +26,49 @@ export async function validateLoginAttempt(
       ip,
       userAgent,
       timestamp: new Date()
+    };
+    
+    // Log attempt to audit system
+    await AuditLogger.log({
+      action: success ? 'SUCCESSFUL_LOGIN' : 'FAILED_LOGIN',
+      ip,
+      userAgent: userAgent || '',
+      success,
+      details: { email: email.toLowerCase() }
+    });
+    
+    const user = await User.findOne({ email: email.toLowerCase() }).select('+loginAttempts +lockUntil');
+    
+    if (!user) {
+      console.log('Login attempt for non-existent user:', attempt);
+      return;
     }
     
-    // Log attempt (you might want to use a separate collection for this)
-    console.log('Login attempt:', attempt)
-    
-    if (!success) {
-      // Increment failed attempts for user
-      const user = await User.findOne({ email: email.toLowerCase() })
-      if (user) {
-        const failedAttempts = (user.loginAttempts || 0) + 1
-        const lockUntil = failedAttempts >= 5 
-          ? new Date(Date.now() + 30 * 60 * 1000) // 30 minutes
-          : undefined
-        
-        await User.findByIdAndUpdate(user._id, {
-          loginAttempts: failedAttempts,
-          ...(lockUntil && { lockUntil })
-        })
-      }
+    if (success) {
+      // Reset failed attempts on successful login
+      await user.resetLoginAttempts();
+      
+      // Update last login info
+      await User.findByIdAndUpdate(user._id, {
+        lastLoginAt: new Date(),
+        lastLoginIP: ip
+      });
+    } else {
+      // Increment failed attempts
+      await user.incrementLoginAttempts();
+      
+      // Log to user's security events
+      await AuditLogger.log({
+        userId: user._id.toString(),
+        action: 'FAILED_LOGIN_ATTEMPT',
+        ip,
+        userAgent: userAgent || '',
+        success: false,
+        details: { attemptCount: (user.loginAttempts || 0) + 1 }
+      });
     }
+    
   } catch (error) {
-    console.error('Error logging login attempt:', error)
+    console.error('Error logging login attempt:', error);
   }
 }
