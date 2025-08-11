@@ -10,7 +10,7 @@
 // let nsfw = nsfwResult?.label && nsfwResult.label !== "normal"; // Remove this
 
 "use client"
-
+import Image from 'next/image'
 import type React from "react"
 import { useAppDispatch, useAppSelector } from "@/store/main"
 import {
@@ -384,8 +384,9 @@ export function PostCard({ post, onLike, onRepost, onReply }: PostCardProps) {
               </div>
             </>
           )}
-          <img
+          <Image
             src={url || "/placeholder.svg"}
+            placeholder="blur"
             alt={`Post media ${index + 1}`}
             className={`object-cover cursor-pointer hover:opacity-90 aspect-3/2 rounded transition-opacity ${isNsfw ? "blur-xl" : ""}`}
             onClick={(e) => handleMediaClick(url, e)}
