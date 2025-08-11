@@ -1,7 +1,7 @@
 @font-face {
   font-family: 'TikTokSans';
-  src: url("TikTokSans-Medium.ttf") format('truetype');
-  font-weight: 400;
+  src: url("MiguerSans-Regular.otf");
+  
   font-display: swap;
   font-style: normal;
 }
@@ -28,8 +28,8 @@
   font-style: normal;
 }
 @font-face {
-  font-family: 'UbuntS';
-  src: url("Ubuntu-Regular.ttf") format('truetype');
+  font-family: 'logofont';
+  src: url("Harper-Bold Personal Use.otf");
   font-display: swap;
   font-style: normal;
 }
