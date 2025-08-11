@@ -1,6 +1,7 @@
 "use client"
 
 import type React from "react"
+import Image from 'next/image'
 import Counter from '@/components/ui/counter'
 import { useState, useCallback, useMemo, useRef, useEffect } from "react"
 import { formatDistanceToNow } from "date-fns"
@@ -345,9 +346,10 @@ export function PostSection({ post, onLike, onRepost, onReply, isMobile = false 
         <div className={`mt-3 grid gap-2 ${mediaUrls.length === 1 ? "grid-cols-1" : "grid-cols-2"}`}>
           {mediaUrls.slice(0, 4).map((url, index) => (
             <div key={index} className="relative group">
-              <img
+              <Image
                 ref={imageRef}
                 src={url || "/placeholder.svg"}
+                placeholder="blur"
                 alt={`Post media ${index + 1}`}
                 className={`w-full ${imageH ? `h-[${imageH}px]` : "h-32 lg:h-48"} object-cover cursor-pointer hover:opacity-90 rounded transition-opacity`}
                 onClick={(e) => handleMediaClick(url, e)}
