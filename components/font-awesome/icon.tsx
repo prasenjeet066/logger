@@ -51,5 +51,5 @@ export const Icon: React.FC<IconProps> = ({
     .filter(Boolean)
     .join(" ");
 
-  return <span className={classes} onClick={onClick} title={title} aria-hidden="true"></span>;
+  return <i className={classes} onClick={onClick} title={title} aria-hidden="true"/>
 };

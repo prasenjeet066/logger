@@ -97,7 +97,7 @@ export function Sidebar({ isExpand = true, profile, onSignOut, newSidebar, conte
             {item.tabData && (!item.href || item.href === null) ? (
               <Button 
                 variant="ghost" 
-                className="w-full justify-start text-base lg:text-lg py-3 lg:py-6 px-3" 
+                className="w-full justify-start items-center text-base lg:text-lg py-3 lg:py-6 px-3" 
                 onClick={() => {
                   contextChangeTabs?.[1](item.tabData)
                 }}
@@ -109,7 +109,7 @@ export function Sidebar({ isExpand = true, profile, onSignOut, newSidebar, conte
               </Button>
             ) : (
               <Link href={item.href}>
-                <Button variant="ghost" className="w-full justify-start text-base lg:text-lg py-3 px-3">
+                <Button variant="ghost" className="w-full justify-start items-center text-base lg:text-lg py-3 px-3">
                   <Icon prefix='far' name={'fa-'+ item.icon} className="mr-2 h-5 w-5 lg:h-6 lg:w-6" />
 
                   {(isExpand === true || isMobile) && (
