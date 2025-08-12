@@ -42,7 +42,7 @@ export const Icon: React.FC<IconProps> = ({
   const classes = [
     prefix,
     name,
-    'inline-block',
+    'inline-block leading-none',
     size ? `fa-${size}` : "",
     spin ? "fa-spin" : "",
     pulse ? "fa-pulse" : "",
