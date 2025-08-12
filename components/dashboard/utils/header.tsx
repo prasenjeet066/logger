@@ -18,7 +18,7 @@ export const Header = ({profile,handleSignOut}) => {
               <SheetTrigger asChild>
                 <Button variant="ghost" size="icon">
                  
-                  <Icon prefix ='far' name = 'fa-bars' className='w-5 h-5'/>
+                  <Icon prefix ='far' name = 'bars' className='w-5 h-5'/>
                 </Button>
               </SheetTrigger>
               <SheetContent side="left" className="p-0 w-80">
@@ -33,7 +33,7 @@ export const Header = ({profile,handleSignOut}) => {
             
           <Link href="/create">
           <Button size="icon" className="rounded-full h-8 w-8 border-2 bg-[transparent] border-gray-100 text-gray-800 flex flex-row items-center justify-center">
-            <Icon prefix='far' name= 'fa-plus'  className="h-6 w-6" />
+            <Icon prefix='far' name= 'plus'  className="h-6 w-6" />
           </Button>
         </Link>
 
