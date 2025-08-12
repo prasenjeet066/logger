@@ -42,6 +42,7 @@ export const Icon: React.FC<IconProps> = ({
   const classes = [
     prefix,
     name,
+    defClassName='flex flex-row items-center justify-center',
     size ? `fa-${size}` : "",
     spin ? "fa-spin" : "",
     pulse ? "fa-pulse" : "",
@@ -51,5 +52,5 @@ export const Icon: React.FC<IconProps> = ({
     .filter(Boolean)
     .join(" ");
 
-  return <i className={classes} onClick={onClick} title={title} aria-hidden="true" />;
+  return <span className={classes} onClick={onClick} title={title} aria-hidden="true" />;
 };
