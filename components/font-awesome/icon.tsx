@@ -45,7 +45,7 @@ export const Icon: React.FC < IconProps > = ({
   const classes = [
       prefix,
       iconName,
-      'flex flex-row items-center justify-center bg-red-600',
+      'inline-flex items-center justify-center bg-red-600',
       size ? `fa-${size}` : "", // Font Awesome size class
       spin ? "fa-spin" : "",
       pulse ? "fa-pulse" : "",
@@ -64,7 +64,7 @@ export const Icon: React.FC < IconProps > = ({
       style={{ 
         cursor: onClick ? 'pointer' : 'default',
         verticalAlign: 'middle', // এটি আইকনকে middle এ রাখবে
-        display: 'inline-block',   // Proper display for alignment,
+         // Proper display for alignment,
         
       }}
     />
