@@ -32,7 +32,7 @@ export const Header = ({profile,handleSignOut}) => {
             
             
           <Link href="/create">
-          <Button size="icon" className="rounded-full h-8 w-8 border-2 bg-[transparent] border-gray-100 text-gray-800">
+          <Button size="icon" className="rounded-full h-8 w-8 border-2 bg-[transparent] border-gray-100 text-gray-800 flex flex-row items-center justify-center">
             <Icon prefix='far' name= 'fa-plus'  className="h-6 w-6" />
           </Button>
         </Link>
