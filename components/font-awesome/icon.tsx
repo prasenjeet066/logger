@@ -42,8 +42,7 @@ export const Icon: React.FC<IconProps> = ({
   const classes = [
     prefix,
     name,
-    'leading-none flex flex-row items-center justify-center',
-    size ? `fa-${size}` : "",
+    'flex flex-row items-center justify-center',
     spin ? "fa-spin" : "",
     pulse ? "fa-pulse" : "",
     fixedWidth ? "fa-fw" : "",
