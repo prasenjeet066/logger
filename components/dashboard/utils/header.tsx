@@ -3,7 +3,7 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 
 import { Menu, UserIcon, Plus, Search } from "lucide-react"
-
+import {Icon} from '@/components/font-awesome/icon'
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Sidebar } from "@/components/dashboard/sidebar"
@@ -17,7 +17,8 @@ export const Header = ({profile,handleSignOut}) => {
           <Sheet>
               <SheetTrigger asChild>
                 <Button variant="ghost" size="icon">
-                  <Menu className="h-5 w-5" />
+                 
+                  <Icon prefix ='far' name = 'bars' className='w-5 h-5'/>
                 </Button>
               </SheetTrigger>
               <SheetContent side="left" className="p-0 w-80">

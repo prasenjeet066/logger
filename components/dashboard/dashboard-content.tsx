@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+
 import { signOut } from "next-auth/react" // Import signOut from next-auth/react
 import SuggestedUsers from "@/components/dashboard/suggestions"
 import { Spinner } from "@/components/loader/spinner" // Updated import path

@@ -28,6 +28,7 @@ export default function RootLayout({
         <link href = '/fonts/main/main.css' rel = 'stylesheet'/>
         <link href = '/fonts/Nippo_Complete/Fonts/WEB/css/nippo.css' rel = 'stylesheet'/>
         <link href='/fonts/WEB/css/pally.css' rel='stylesheet'/>
+        <link href='/fonts/icon/css/all.main.css' rel='stylesheet'/>
       </head>
       <body>
         <ReduxProvider>
