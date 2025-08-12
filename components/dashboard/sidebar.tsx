@@ -1,6 +1,7 @@
 "use client"
 import { GetStaticProps } from 'next'
 import { useTranslation } from 'react-i18next'
+import {Icon} from '@/components/font-awesome/icon'
 // Remove this import if using client-side only, or keep for SSR pages
 // import { serverSideTranslations } from 'next-i18next/serverSideTranslations'
 import Link from "next/link"
@@ -56,13 +57,13 @@ export function Sidebar({ isExpand = true, profile, onSignOut, newSidebar, conte
   }
 
   const menuItems = [
-    { icon: Home, label: safeT("home", "Home"), href: "/dashboard" },
-    { icon: Search, label: safeT("explore", "Explore"), href: "/explore" },
-    { icon: Bell, label: safeT("notifications", "Notifications"), href: "/notifications" },
-    { icon: Mail, label: safeT("messages", "Messages"), href: "/messages" },
-    { icon: Bookmark, label: safeT("bookmarks", "Bookmarks"), href: "/bookmarks" },
-    { icon: User, label: safeT("profile", "Profile"), href: `/profile/${profile?.username}` },
-    { icon: Settings, label: safeT("settings", "Settings"), href: "/settings" },
+    { icon: 'home', label: safeT("home", "Home"), href: "/dashboard" },
+    { icon: 'search', label: safeT("explore", "Explore"), href: "/explore" },
+    { icon: 'bell', label: safeT("notifications", "Notifications"), href: "/notifications" },
+    { icon: 'employee', label: safeT("messages", "Messages"), href: "/messages" },
+    { icon: 'bookmark', label: safeT("bookmarks", "Bookmarks"), href: "/bookmarks" },
+    { icon: 'user', label: safeT("profile", "Profile"), href: `/profile/${profile?.username}` },
+    { icon: 'setting', label: safeT("settings", "Settings"), href: "/settings" },
   ]
 
   
@@ -101,7 +102,7 @@ export function Sidebar({ isExpand = true, profile, onSignOut, newSidebar, conte
                   contextChangeTabs?.[1](item.tabData)
                 }}
               >
-                <item.icon className="mr-3 h-5 w-5 lg:h-6 lg:w-6" />
+                <Icon prefi='far' name={'fa-'+ item.icon} className="mr-3 h-5 w-5 lg:h-6 lg:w-6" />
                 {(isExpand === true || isMobile) && (
                   <span className="truncate">{item.label}</span>
                 )}
@@ -109,7 +110,8 @@ export function Sidebar({ isExpand = true, profile, onSignOut, newSidebar, conte
             ) : (
               <Link href={item.href}>
                 <Button variant="ghost" className="w-full justify-start text-base lg:text-lg py-3 px-3">
-                  <item.icon className="mr-3 h-5 w-5 lg:h-6 lg:w-6" />
+                  <Icon prefi='far' name={'fa-'+ item.icon} className="mr-3 h-5 w-5 lg:h-6 lg:w-6" />
+
                   {(isExpand === true || isMobile) && (
                     <span className="truncate">{item.label}</span>
                   )}
