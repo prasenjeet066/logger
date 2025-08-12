@@ -45,6 +45,7 @@ export const Icon: React.FC < IconProps > = ({
   const classes = [
       prefix,
       iconName,
+      'flex flex-row items-center justify-center',
       size ? `fa-${size}` : "", // Font Awesome size class
       spin ? "fa-spin" : "",
       pulse ? "fa-pulse" : "",
