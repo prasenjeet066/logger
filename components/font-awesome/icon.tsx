@@ -63,7 +63,8 @@ export const Icon: React.FC < IconProps > = ({
       style={{ 
         cursor: onClick ? 'pointer' : 'default',
         verticalAlign: 'middle', // এটি আইকনকে middle এ রাখবে
-        display: 'inline-block'   // Proper display for alignment
+        display: 'inline-block',   // Proper display for alignment,
+        lineHeight: 'normal'
       }}
     />
   );
