@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-
+import {Icon} from '@/components/font-awesome/icon'
 import { useState, useEffect, useCallback, useMemo } from "react"
 import { formatDistanceToNow } from "date-fns"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -371,7 +371,7 @@ export function ReplyCard({ post, onLike, onRepost }: PostCardProps) {
                 }}
                 aria-label={`Reply to post. ${replies.length || 0} replies`}
               >
-                <MessageCircle className="h-4 w-4 mr-1" />
+             <Icon prefix='far' name='comment-alt' className='h-4 w-4 mr-1'/>
                 <span className="text-xs lg:text-sm">{replies.length || 0}</span>
               </Button>
 
@@ -389,7 +389,7 @@ export function ReplyCard({ post, onLike, onRepost }: PostCardProps) {
                 {repostLoading ? (
                   <Loader2 className="h-4 w-4 mr-1 animate-spin" />
                 ) : (
-                  <Repeat2 className="h-4 w-4 mr-1" />
+                <Icon prefix={`${post.isReposted ? "fad" : "far"}`} name='repeat' className='h-4 w-4 mr-1'/>
                 )}
                 <span className="text-xs lg:text-sm">{post.repostsCount || 0}</span>
               </Button>
@@ -408,7 +408,7 @@ export function ReplyCard({ post, onLike, onRepost }: PostCardProps) {
                 }}
                 aria-label={`Like post. ${post.likesCount || 0} likes`}
               >
-                <Heart className={`h-4 w-4 mr-1 ${post.isLiked ? "fill-current" : ""}`} />
+               <Icon prefix={`${post.isLiked ? "fad" : "far"}`} name='heart' className='h-4 w-4 mr-1'/>
                 <span className="text-xs lg:text-sm">{post.likesCount || 0}</span>
               </Button>
 
@@ -423,7 +423,8 @@ export function ReplyCard({ post, onLike, onRepost }: PostCardProps) {
                 }}
                 aria-label="Share post"
               >
-                <Bookmark className={`h-4 w-4 ${isSaved && 'fill-current'}`} />
+                 <Icon prefix={`${isSaved ? 'fad' : 'far'}`} name='bookmark' className='h-4 w-4 mr-1'/>
+
               </Button>
             </div>
             {replies.length ?(
