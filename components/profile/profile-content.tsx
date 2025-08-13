@@ -2,7 +2,8 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { useRouter } from "next/navigation"
+
+import { useRouter,notFound } from "next/navigation"
 import { useSession } from "next-auth/react"
 import { useMobile } from "@/hooks/use-mobile"
 import { Button } from "@/components/ui/button"
@@ -139,7 +140,11 @@ export function ProfileContent({ username }: ProfileContentProps) {
       console.error('Error following user:', error)
     }
   }
-  
+  useEffect(()=>{
+    if (!profileData || profileData===null) {
+    notFound()
+    }
+  },[profileData])
   const handleLike = async (postId: string, isLiked: boolean) => {
     if (!session?.user) return
     
