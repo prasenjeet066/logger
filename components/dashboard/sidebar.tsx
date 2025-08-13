@@ -60,10 +60,10 @@ export function Sidebar({ isExpand = true, profile, onSignOut, newSidebar, conte
     { icon: 'home', label: safeT("home", "Home"), href: "/dashboard" },
     { icon: 'search', label: safeT("explore", "Explore"), href: "/explore" },
     { icon: 'bell', label: safeT("notifications", "Notifications"), href: "/notifications" },
-    { icon: 'employee', label: safeT("messages", "Messages"), href: "/messages" },
+    { icon: 'comment-alt', label: safeT("messages", "Messages"), href: "/messages" },
     { icon: 'bookmark', label: safeT("bookmarks", "Bookmarks"), href: "/bookmarks" },
     { icon: 'user', label: safeT("profile", "Profile"), href: `/profile/${profile?.username}` },
-    { icon: 'setting', label: safeT("settings", "Settings"), href: "/settings" },
+    { icon: 'gear', label: safeT("settings", "Settings"), href: "/settings" },
   ]
 
   
