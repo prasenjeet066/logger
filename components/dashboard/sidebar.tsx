@@ -102,7 +102,7 @@ export function Sidebar({ isExpand = true, profile, onSignOut, newSidebar, conte
                   contextChangeTabs?.[1](item.tabData)
                 }}
               >
-                <Icon prefi='far' name={item.icon} className="mr-2" />
+                <Icon prefi='far' name={item.icon} className="mr-2 w-5 h-5" />
                 {(isExpand === true || isMobile) && (
                   <span className="truncate">{item.label}</span>
                 )}
@@ -110,7 +110,7 @@ export function Sidebar({ isExpand = true, profile, onSignOut, newSidebar, conte
             ) : (
               <Link href={item.href}>
                 <Button variant="ghost" className="flex flex-row w-full justify-start items-center text-base lg:text-lg py-3 px-3">
-                  <Icon prefix='far' name={item.icon} className="mr-2" />
+                  <Icon prefix='far' name={item.icon} className="mr-2 w-5 h-5" />
 
                   {(isExpand === true || isMobile) && (
                     <span className="truncate">{item.label}</span>
