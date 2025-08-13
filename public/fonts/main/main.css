@@ -5,6 +5,7 @@
   font-display: swap;
   font-style: normal;
 }
+
 @font-face {
   font-family: 'TikTokSansRegular';
   src: url("Intro Regular Alt.otf");
@@ -27,15 +28,24 @@
   font-display: swap;
   font-style: normal;
 }
+
 @font-face {
   font-family: 'logofont';
   src: url("Harper-Bold Personal Use.otf");
   font-display: swap;
   font-style: normal;
 }
+
 @font-face {
   font-family: 'UbuntSB';
   src: url("Ubuntu-Bold.ttf") format('truetype');
+  font-display: swap;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "transforma";
+  src: url("TransformaSans_Trial-Medium-BF660ca8e0964ef.otf");
   font-display: swap;
   font-style: normal;
 }
