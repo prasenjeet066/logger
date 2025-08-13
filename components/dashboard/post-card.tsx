@@ -437,7 +437,7 @@ export function PostCard({ post, onLike, onRepost, onReply }: PostCardProps) {
         {/* Repost header */}
         {post.isRepost && (
           <div className="flex items-center gap-2 mb-3 text-gray-500 text-sm">
-            <Repeat2 className="h-4 w-4" />
+               <Icon prefix='far' name='repeat' className='h-4 w-4'/>
             <span>
               Reposted by{" "}
               <Link
@@ -605,7 +605,8 @@ export function PostCard({ post, onLike, onRepost, onReply }: PostCardProps) {
                 }}
                 aria-label={`${post.isLiked ? "Unlike" : "Like"} post. ${post.likesCount} likes`}
               >
-                <Heart className={`h-4 w-4 mr-1 ${post.isLiked ? "fill-current" : ""}`} />
+                   <Icon prefix={`${post.isLiked ? "fad" : "far"}`} name='heart' className='h-4 w-4 mr-1'/>
+
                 <span className="text-xs lg:text-sm">{post.likesCount}</span>
               </Button>
 
@@ -616,7 +617,8 @@ export function PostCard({ post, onLike, onRepost, onReply }: PostCardProps) {
                 onClick={(e) => e.stopPropagation()}
                 aria-label="Share post"
               >
-                <Bookmark className="h-4 w-4 mr-1" />
+                   <Icon prefix='far' name='bookmark' className='h-4 w-4 mr-1'/>
+               
                 <span className="text-xs lg:text-sm">Save</span>
               </Button>
 
