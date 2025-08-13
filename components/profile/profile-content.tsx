@@ -179,18 +179,6 @@ export function ProfileContent({ username }: ProfileContentProps) {
     )
   }
   
-  if (profileError && !profileData && !botData) {
-    return (
-      <div className="min-h-screen flex items-center justify-center font-english">
-        <div className="text-center">
-          <p className="text-xl mb-4">Profile not found</p>
-          <Link href="/">
-            <Button>Go back home</Button>
-          </Link>
-        </div>
-      </div>
-    )
-  }
   
   // Get current profile data based on type with null safety
   const currentProfile = profileType === 'user' ? profileData : botData

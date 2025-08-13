@@ -8,6 +8,7 @@ export default function ProfilePage({ params }: { params: { username: string } }
   const isMobile = useMobile()
   const { data: session, status } = useSession()
   
+  
 
   // If not logged in, redirect to sign-in page
   // This might be too aggressive if profiles are public.
