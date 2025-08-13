@@ -11,6 +11,7 @@
 
 "use client"
 import Image from 'next/image'
+import {Icon} from '@/components/font-awesome/icon'
 import type React from "react"
 import { useAppDispatch, useAppSelector } from "@/store/main"
 import {
@@ -563,7 +564,8 @@ export function PostCard({ post, onLike, onRepost, onReply }: PostCardProps) {
                 }}
                 aria-label={`Reply to post. ${post.repliesCount || 0} replies`}
               >
-                <MessageCircle className="h-4 w-4 mr-1" />
+                <Icon prefix='far' name='comment-alt' className='h-4 w-4 mr-1'/>
+              
                 <span className="text-xs lg:text-sm">{post.repliesCount || 0}</span>
               </Button>
 
@@ -585,7 +587,8 @@ export function PostCard({ post, onLike, onRepost, onReply }: PostCardProps) {
                 {repostLoading ? (
                   <Loader2 className="h-4 w-4 mr-1 animate-spin" />
                 ) : (
-                  <Repeat2 className={`h-4 w-4 mr-1 ${post.isReposted ? "fill-current" : ""}`} />
+                                <Icon prefix={`${post.isReposted ? "fad" : "far"}`} name='repeat' className='h-4 w-4 mr-1'/>
+
                 )}
                 <span className="text-xs lg:text-sm">{post.repostsCount || 0}</span>
               </Button>
