@@ -140,7 +140,18 @@ export function ProfileContent({ username }: ProfileContentProps) {
       console.error('Error following user:', error)
     }
   }
-  
+  if (profileError && !profileData && !botData) {
+    return (
+      <div className="min-h-screen flex items-center justify-center font-english">
+        <div className="text-center">
+          <p className="text-xl mb-4">Profile not found</p>
+          <Link href="/">
+            <Button>Go back home</Button>
+          </Link>
+        </div>
+      </div>
+    )
+  }
   const handleLike = async (postId: string, isLiked: boolean) => {
     if (!session?.user) return
     
