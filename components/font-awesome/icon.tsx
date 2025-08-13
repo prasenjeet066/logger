@@ -45,7 +45,6 @@ export const Icon: React.FC < IconProps > = ({
   const classes = [
       prefix,
       iconName,
-      'inline-flex items-center justify-center',
       size ? `fa-${size}` : "", // Font Awesome size class
       spin ? "fa-spin" : "",
       pulse ? "fa-pulse" : "",
@@ -63,8 +62,11 @@ export const Icon: React.FC < IconProps > = ({
       aria-hidden="true"
       style={{ 
         cursor: onClick ? 'pointer' : 'default',
-        verticalAlign: 'middle', // এটি আইকনকে middle এ রাখবে
-         // Proper display for alignment,
+        display: 'inline-flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        verticalAlign: 'middle',
+        lineHeight: '1'
       }}
     />
   );
