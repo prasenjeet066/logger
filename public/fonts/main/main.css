@@ -1,13 +1,13 @@
 @font-face {
   font-family: 'TikTokSans';
-  src: url("MiguerSans-Regular.otf");
+  src: url("Intro Regular Alt.otf");
   font-weight: 400;
   font-display: swap;
   font-style: normal;
 }
 @font-face {
   font-family: 'TikTokSansRegular';
-  src: url("TikTokSans-Regular.ttf") format('truetype');
+  src: url("Intro Regular Alt.otf");
   font-display: swap;
   font-style: normal;
 }
