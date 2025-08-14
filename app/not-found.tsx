@@ -1,8 +1,8 @@
 export default function NotFound() {
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center  px-4">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-white px-4">
       
-      <div className="w-full max-w-md border-none shadow-none bg-gray-50 border-b">
+      <div className="w-full max-w-md border-none shadow-none  border-b">
         <div className="text-center" style={{
           fontFamily: 'transforma'
         }}>
@@ -12,7 +12,7 @@ export default function NotFound() {
         <div>
           </div>
           </div>
-          <h1 className='logo-font text-md divide-y p-4'>logger</h1>
+          <h1 className='logo-font text-md divide-y p-4 text-gray-600'>logger</h1>
           </div>
   )
 }
