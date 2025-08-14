@@ -1,3 +1,4 @@
+'use client'
 
 import { ProfileContent } from "@/components/profile/profile-content"
 import { WebProfileContent } from "@/components/profile/web/profile-content"
