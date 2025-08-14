@@ -1,8 +1,7 @@
-// Fixed profile-content.tsx
+// Fixed components/profile/profile-content.tsx
 "use client"
 
 import { useEffect, useState } from "react"
-
 import { useRouter } from "next/navigation"
 import { useSession } from "next-auth/react"
 import { useMobile } from "@/hooks/use-mobile"
@@ -11,12 +10,11 @@ import { Spinner } from "@/components/loader/spinner"
 import { Header } from "@/components/dashboard/utils/header"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Sidebar } from "@/components/dashboard/sidebar"
 import { MutualFollowers } from "@/components/profile/mutual-follow"
 import { PostCard } from "@/components/dashboard/post-card"
 import { EditProfileDialog } from "./edit-profile-dialog"
-import { Menu, X, UserPlus, UserCheck, Calendar, MapPin, LinkIcon, Plus, Search, Bot, Code, Terminal, User ,MessageSquareShare} from "lucide-react"
-import { formatDistanceToNow,format } from "date-fns"
+import { Menu, X, UserPlus, UserCheck, Calendar, MapPin, LinkIcon, Plus, Search, Bot, Code, Terminal, User, MessageSquareShare } from "lucide-react"
+import { formatDistanceToNow, format } from "date-fns"
 import Link from "next/link"
 import { ImageViewer } from "@/components/media/image-viewer"
 import { VerificationBadge } from "@/components/badge/verification-badge"
@@ -57,22 +55,22 @@ export function ProfileContent({ username }: ProfileContentProps) {
   // Destructure with defaults to prevent undefined errors
   const {
     profileData = null,
-      botData = null,
-      profileType = 'user',
-      mutualFollowers = [],
-      mutualFollowersCount = 0,
-      isLoading: profileLoading = false,
-      error: profileError = null,
-      isUpdating = false
+    botData = null,
+    profileType = 'user',
+    mutualFollowers = [],
+    mutualFollowersCount = 0,
+    isLoading: profileLoading = false,
+    error: profileError = null,
+    isUpdating = false
   } = profileState || {}
   
   const {
     posts = [],
-      replies = [],
-      reposts = [],
-      media = [],
-      pinnedPost = null,
-      isLoading: postsLoading = false
+    replies = [],
+    reposts = [],
+    media = [],
+    pinnedPost = null,
+    isLoading: postsLoading = false
   } = postsState || {}
   
   const { currentUser = null } = authState || {}
@@ -82,7 +80,7 @@ export function ProfileContent({ username }: ProfileContentProps) {
   const isMobile = useMobile()
   const [editDialogOpen, setEditDialogOpen] = useState(false)
   const [activeTab, setActiveTab] = useState("posts")
-  const [imageViewerOpen, setImageViewerOpen] = useState < string | null > (null)
+  const [imageViewerOpen, setImageViewerOpen] = useState<string | null>(null)
   
   // Fetch data on component mount with error handling
   useEffect(() => {
@@ -140,18 +138,7 @@ export function ProfileContent({ username }: ProfileContentProps) {
       console.error('Error following user:', error)
     }
   }
-  if (profileError && !profileData && !botData) {
-    return (
-      <div className="min-h-screen flex items-center justify-center font-english">
-        <div className="text-center">
-          <p className="text-xl mb-4">Profile not found</p>
-          <Link href="/">
-            <Button>Go back home</Button>
-          </Link>
-        </div>
-      </div>
-    )
-  }
+  
   const handleLike = async (postId: string, isLiked: boolean) => {
     if (!session?.user) return
     
@@ -191,12 +178,11 @@ export function ProfileContent({ username }: ProfileContentProps) {
     )
   }
   
-  
   // Get current profile data based on type with null safety
   const currentProfile = profileType === 'user' ? profileData : botData
   const isOwnProfile = profileType === 'user' && profileData && currentUser && profileData._id === currentUser._id
   
-  const renderTabContent = (tabPosts: any[], emptyMessage: string, type ? : string) => {
+  const renderTabContent = (tabPosts: any[], emptyMessage: string, type?: string) => {
     // Ensure tabPosts is an array
     const safePosts = Array.isArray(tabPosts) ? tabPosts : []
     
@@ -207,49 +193,42 @@ export function ProfileContent({ username }: ProfileContentProps) {
         </div>
       );
     }
-    /**
-     * <div class="grid grid-flow-col grid-rows-3 gap-4">
-  <div class="row-span-3 ...">01</div>
-  <div class="col-span-2 ...">02</div>
-  <div class="col-span-2 row-span-2 ...">03</div>
-</div>
-     */
-  if (type === 'media') {
-  return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 p-2">
-      {safePosts.flatMap((_post, postIndex) => {
-        if (_post.mediaType === 'image' && Array.isArray(_post.mediaUrls)) {
-          return [
-            // Date label (sticky)
-            <span
-              key={`date-${postIndex}`}
-              className="col-span-full text-xs font-medium  p-2 sticky divide-y divide-dashed top-0 z-10"
-            >
-              {format(new Date(_post.createdAt), "do MMMM, yyyy")}
-            </span>
-            
-            ,
 
-            // Media images
-            ..._post.mediaUrls.map((_url, urlIndex) => (
-              <div
-                key={`${postIndex}-${urlIndex}`}
-                className="relative aspect-square overflow-hidden rounded-lg group"
-              >
-                <img
-                  src={_url}
-                  alt={`media-${postIndex}-${urlIndex}`}
-                  className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                />
-              </div>
-            ))
-          ];
-        }
-        return [];
-      })}
-    </div>
-  );
-}
+    if (type === 'media') {
+      return (
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 p-2">
+          {safePosts.flatMap((post, postIndex) => {
+            if (post.mediaType === 'image' && Array.isArray(post.mediaUrls)) {
+              return [
+                // Date label (sticky)
+                <span
+                  key={`date-${postIndex}`}
+                  className="col-span-full text-xs font-medium p-2 sticky divide-y divide-dashed top-0 z-10"
+                >
+                  {format(new Date(post.createdAt), "do MMMM, yyyy")}
+                </span>,
+                // Media images
+                ...post.mediaUrls.map((url, urlIndex) => (
+                  <div
+                    key={`${postIndex}-${urlIndex}`}
+                    className="relative aspect-square overflow-hidden rounded-lg group cursor-pointer"
+                    onClick={() => setImageViewerOpen(url)}
+                  >
+                    <img
+                      src={url}
+                      alt={`media-${postIndex}-${urlIndex}`}
+                      className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                    />
+                  </div>
+                ))
+              ];
+            }
+            return [];
+          })}
+        </div>
+      );
+    }
+
     return (
       <div>
         {/* Show pinned post only in posts tab */}
@@ -356,7 +335,7 @@ export function ProfileContent({ username }: ProfileContentProps) {
   
   return (
     <div className="min-h-screen bg-gray-50 font-english">
-      <Header profile={currentProfile} handleSignOut={handleSignOut}/>
+      <Header profile={currentProfile} handleSignOut={handleSignOut} />
       
       <div className="flex">
         {/* Main content */}
@@ -382,8 +361,8 @@ export function ProfileContent({ username }: ProfileContentProps) {
               <div
                 className={`w-full h-48 ${
                   profileType === 'bot' 
-                    ? 'bg-gray-100' 
-                    : 'bg-gray-100'
+                    ? 'bg-blue-gradient-to-r from-blue-400 to-purple-500' 
+                    : 'bg-gradient-to-r from-blue-400 to-purple-500'
                 }`}
                 style={{
                   backgroundImage: currentProfile?.coverUrl ? `url(${currentProfile.coverUrl})` : undefined,
@@ -460,18 +439,16 @@ export function ProfileContent({ username }: ProfileContentProps) {
 
               <div className="space-y-3 mb-2">
                 <h1 className="text-xl font-semibold flex flex-col items-start justify-center">
-                <div className='flex flex-row items-center gap-2'> {currentProfile?.displayName}
-                  
-                  {isOwnProfile &&  !profileData?.isVerified && (
-                    <span className='rounded-full bg-gray-100 px-2 py-1 flex items-center gap-1 text-xs text-gray-800' onClick={()=>{
-                      // handle verification request....
-                      router.push('/settings/')
-                    }}>
-                                          <VerificationBadge verified={true} size={20} className="h-8 w-8 z-10 bg-white rounded-full text-gray-800" />
-                        <small>Get Verified! </small>                  
-                    </span>
-                  )
-                  }
+                  <div className='flex flex-row items-center gap-2'> 
+                    {currentProfile?.displayName}
+                    {isOwnProfile && !profileData?.isVerified && (
+                      <span className='rounded-full bg-gray-100 px-2 py-1 flex items-center gap-1 text-xs text-gray-800 cursor-pointer' onClick={() => {
+                        router.push('/settings/')
+                      }}>
+                        <VerificationBadge verified={true} size={20} className="h-8 w-8 z-10 bg-white rounded-full text-gray-800" />
+                        <small>Get Verified!</small>                  
+                      </span>
+                    )}
                   </div>
                   <p className="text-gray-500 text-sm font-normal">
                     @{currentProfile?.username}
@@ -512,7 +489,7 @@ export function ProfileContent({ username }: ProfileContentProps) {
                   {currentProfile?.createdAt && (
                     <div className="flex items-center gap-1">
                       <Calendar className="h-4 w-4" />
-                      {formatDistanceToNow(new Date(currentProfile.createdAt), { addSuffix: true })} joined
+                      Joined {formatDistanceToNow(new Date(currentProfile.createdAt), { addSuffix: true })}
                     </div>
                   )}
                 </div>
@@ -530,8 +507,13 @@ export function ProfileContent({ username }: ProfileContentProps) {
                   </span>
                 </div>
               </div>
+              
               {profileType === 'user' && profileData && (
-                <MutualFollowers targetUsername={profileData.username}/>
+                <MutualFollowers 
+                  targetUsername={profileData.username}
+                  targetUserId={profileData._id}
+                  targetDisplayName={profileData.displayName}
+                />
               )}
             </div>
 
@@ -621,3 +603,4 @@ export function ProfileContent({ username }: ProfileContentProps) {
     </div>
   )
 }
+

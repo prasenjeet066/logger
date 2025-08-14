@@ -1,5 +1,4 @@
-// components/profile/mutual-followers.tsx
-
+// Fixed components/profile/mutual-follow.tsx
 "use client"
 
 import { useEffect, useState } from "react"
@@ -55,70 +54,70 @@ export function MutualFollowers({ targetUsername, targetUserId, targetDisplayNam
     return null
   }
   
-  
   // Always only keep up to 3 followers in displayFollowers
   const displayFollowers = mutualFollowers.length > 3 ?
     mutualFollowers.slice(0, 3) :
     mutualFollowers
   
   const remainingCount = totalCount - displayFollowers.length
+  
   return (
     <div className="flex items-center gap-2">
-      {type!== 'center' ? (
-      <>
-      <div className="flex -space-x-2">
-        {displayFollowers.map((follower) => (
-          <Link key={follower._id} href={`/${follower.username}`}>
-            <Avatar className="w-6 h-6 border-2 border-white hover:scale-110 transition-transform cursor-pointer m-[-2px]">
-              <AvatarImage src={follower.avatarUrl || undefined} />
-              <AvatarFallback className="text-xs">
-                {follower.displayName?.charAt(0)?.toUpperCase() || "U"}
-              </AvatarFallback>
-            </Avatar>
-          </Link>
-        ))}
-      </div>
-      <div className="text-sm text-gray-600">
-        <span className="font-medium">
-          {displayFollowers.map((follower, index) => (
-            <span key={follower._id}>
-              <Link 
-                href={`/${follower.username}`}
-                className="hover:underline font-semibold text-gray-900"
-              >
-                {follower.displayName}
-              </Link>
-              {index < displayFollowers.length - 1 && ", "}
-            </span>
-          ))}
-          {remainingCount > 0 && (
-            <span> and {remainingCount} more</span>
-          )}
-        </span>
-        <span> follow{totalCount === 1 ? 's' : ''} {targetDisplayName}</span>
-      </div></>): (
+      {type !== 'center' ? (
         <>
-          <div className = 'flex flex-col items-center justify-center'>
-            <div className='flrx flex-row items-center justify-center'>
-            {
-              displayFollowers.map((follower)=>(
-                            <Avatar className="w-4 h-4 border-2 border-white hover:scale-110 transition-transform cursor-pointer -m-1 border border-white">
-              <AvatarImage src={follower.avatarUrl || undefined} />
-              <AvatarFallback className="text-xs">
-                {follower.displayName?.charAt(0)?.toUpperCase() || "U"}
-              </AvatarFallback>
-            </Avatar>
-              ))
-          
-            }
-            </div>
-            <small className='text-[7px]'>
-              {displayFollowers.map((followers)=>(
-                <>{followers.displayName + " " } </>
+          <div className="flex -space-x-2">
+            {displayFollowers.map((follower) => (
+              <Link key={follower._id} href={`/${follower.username}`}>
+                <Avatar className="w-6 h-6 border-2 border-white hover:scale-110 transition-transform cursor-pointer">
+                  <AvatarImage src={follower.avatarUrl || undefined} />
+                  <AvatarFallback className="text-xs">
+                    {follower.displayName?.charAt(0)?.toUpperCase() || "U"}
+                  </AvatarFallback>
+                </Avatar>
+              </Link>
+            ))}
+          </div>
+          <div className="text-sm text-gray-600">
+            <span className="font-medium">
+              {displayFollowers.map((follower, index) => (
+                <span key={follower._id}>
+                  <Link 
+                    href={`/${follower.username}`}
+                    className="hover:underline font-semibold text-gray-900"
+                  >
+                    {follower.displayName}
+                  </Link>
+                  {index < displayFollowers.length - 1 && ", "}
+                </span>
               ))}
-            </small>
+              {remainingCount > 0 && (
+                <span> and {remainingCount} more</span>
+              )}
+            </span>
+            <span> follow{totalCount === 1 ? 's' : ''} {targetDisplayName}</span>
           </div>
         </>
+      ) : (
+        <div className='flex flex-col items-center justify-center'>
+          <div className='flex flex-row items-center justify-center -space-x-1'>
+            {displayFollowers.map((follower) => (
+              <Avatar key={follower._id} className="w-4 h-4 border border-white hover:scale-110 transition-transform cursor-pointer">
+                <AvatarImage src={follower.avatarUrl || undefined} />
+                <AvatarFallback className="text-xs">
+                  {follower.displayName?.charAt(0)?.toUpperCase() || "U"}
+                </AvatarFallback>
+              </Avatar>
+            ))}
+          </div>
+          <small className='text-[7px] text-center'>
+            {displayFollowers.map((follower, index) => (
+              <span key={follower._id}>
+                {follower.displayName}
+                {index < displayFollowers.length - 1 ? " " : ""}
+              </span>
+            ))}
+          </small>
+        </div>
       )}
     </div>
   )
