@@ -1,3 +1,4 @@
+
 "use client"
 import { toast } from "sonner"
 import { createPostSchema } from "@/lib/validations/post"
@@ -160,48 +161,109 @@ export default function CreatePostPage({ user }: CreatePostPageProps) {
   const handleRemoveUploadedFile = (urlToRemove: string) => {
     dispatch(removeUploadedFile(urlToRemove))
   }
-  
-  const handleGiphySelect = (gif: any, type: "gif" | "sticker") => {
-    const giphyItem: GiphyMedia = {
-      url: gif.url || "https://media.giphy.com/media/efg1234/giphy.gif",
-      type,
-      id: gif.id || Math.random().toString(36).substr(2, 9),
-    }
+  const performFactCheck = useCallback(async (textContent: string, imageFiles?: File[]) => {
+    if (!textContent.trim() && (!imageFiles || imageFiles.length === 0)) return;
     
-    if (totalMediaCount >= MAX_MEDIA_FILES) {
-      dispatch(setError("You can only add up to 4 media items"))
-      return
-    }
+    setIsFactChecking(true);
+    setFactCheckResult(null);
     
-    dispatch(addGiphyMedia(giphyItem))
-    setShowGiphyPicker(false)
-    dispatch(setError(null))
-  }
-  
-  const handleRemoveGiphyMedia = (id: string) => {
-    dispatch(removeGiphyMedia(id))
-  }
-  
-  const insertText = (text: string) => {
-    if (contentEditableRef.current) {
-      const selection = window.getSelection()
-      if (selection && selection.rangeCount > 0) {
-        const range = selection.getRangeAt(0)
-        range.deleteContents()
-        const textNode = document.createTextNode(text)
-        range.insertNode(textNode)
-        range.setStartAfter(textNode)
-        range.setEndAfter(textNode)
-        selection.removeAllRanges()
-        selection.addRange(range)
+    try {
+      let requestBody: any;
+      let requestOptions: RequestInit;
+
+      if (imageFiles && imageFiles.length > 0) {
+        // Use FormData for image uploads
+        const formData = new FormData();
+        
+        formData.append('messages', JSON.stringify([
+          { role: 'user', content: textContent || 'Please analyze these images.' }
+        ]));
+        
+        // Add image files
+        imageFiles.forEach((file, index) => {
+          formData.append('images', file);
+        });
+
+        requestOptions = {
+          method: 'POST',
+          body: formData,
+        };
       } else {
-        contentEditableRef.current.focus()
-        document.execCommand("insertText", false, text)
+        // Use JSON for text-only requests
+        requestOptions = {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            messages: [
+              { role: 'user', content: textContent }
+            ]
+          }),
+        };
       }
-      setContent(contentEditableRef.current.textContent || "")
+
+      const response = await fetch('/api/context/bots/info/', requestOptions);
+      
+      if (!response.ok) {
+        throw new Error(`Fact-check failed: ${response.status} ${response.statusText}`);
+      }
+      
+      const result = await response.json();
+      setFactCheckResult(result);
+      setShowFactCheckResult(true);
+      
+      // Show warning if content is harmful or needs verification
+      if (result.IsHarmful || result.NeedVerifyWithSearch) {
+        toast.warning("Content flagged for review", {
+          description: result.IsHarmful ? "Potentially harmful content detected" : "Content may need fact verification"
+        });
+      }
+      
+    } catch (error) {
+      console.error('Fact-check error:', error);
+      toast.error("Fact-check failed", {
+        description: "Unable to verify content. Please review manually."
+      });
+    } finally {
+      setIsFactChecking(false);
     }
-  }
-  
+  }, []);
+
+  // Convert uploaded files to File objects for fact-checking
+  const getImageFilesForFactCheck = useCallback(async (): Promise<File[]> => {
+    const imageFiles: File[] = [];
+    
+    for (const uploadedFile of uploadedFiles) {
+      if (uploadedFile.contentType.startsWith('image/')) {
+        try {
+          const response = await fetch(uploadedFile.url);
+          const blob = await response.blob();
+          const file = new File([blob], `image-${Date.now()}.jpg`, { 
+            type: uploadedFile.contentType 
+          });
+          imageFiles.push(file);
+        } catch (error) {
+          console.error('Error converting uploaded file to File object:', error);
+        }
+      }
+    }
+    
+    return imageFiles;
+  }, [uploadedFiles]);
+
+  // Trigger fact-check when content or images change
+  useEffect(() => {
+    const timeoutId = setTimeout(async () => {
+      if (content.trim() || uploadedFiles.length > 0) {
+        const imageFiles = await getImageFilesForFactCheck();
+        await performFactCheck(content, imageFiles);
+      }
+    }, 2000); // Debounce for 2 seconds
+
+    return () => clearTimeout(timeoutId);
+  }, [content, uploadedFiles, performFactCheck, getImageFilesForFactCheck]);
+
   const handlePost = async () => {
     if (!content.trim() && totalMediaCount === 0 && !poll.show) {
       dispatch(setError("Please add some content, media, or a poll to your post."))
@@ -211,6 +273,14 @@ export default function CreatePostPage({ user }: CreatePostPageProps) {
     if (isOverLimit) {
       dispatch(setError(`Please keep your post under ${MAX_CHARACTERS} characters.`))
       return
+    }
+    
+    // Check for harmful content before posting
+    if (factCheckResult?.IsHarmful) {
+      const confirmPost = window.confirm(
+        "This content has been flagged as potentially harmful. Are you sure you want to post it?"
+      );
+      if (!confirmPost) return;
     }
     
     if (poll.show) {
@@ -253,37 +323,7 @@ export default function CreatePostPage({ user }: CreatePostPageProps) {
         }
       }
       
-      // 🔍 Run AI fact-check review
-      let reviewResults = null
-      let formDataImg = new FormData();
-      formDataImg.append('images', _FileList)
-      
-      try {
-        const aiResponse = await fetch("/api/context/ai/factCheck/", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            image:formDataImg, messages: [
-              { role: "user", content: validatedData.content }
-              
-            ],
-          }),
-        })
-        
-        if (aiResponse.ok) {
-          reviewResults = await aiResponse.json()
-        } else {
-          console.warn("AI fact-check failed with status:", aiResponse.status)
-        }
-      } catch (aiError) {
-        console.warn("AI fact-check error:", aiError)
-        // Continue gracefully
-      }
-      
-      // 🔞 Get NSFW detection results from Redux
-      const currentNsfwResults = Object.keys(nsfwResults || {}).length > 0 ? nsfwResults : null
-      
-      // 🚀 Submit post to backend
+      // Include fact-check results in post submission
       const response = await fetch("/api/posts", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -291,7 +331,8 @@ export default function CreatePostPage({ user }: CreatePostPageProps) {
           content: validatedData.content,
           mediaUrls: allMediaUrls,
           mediaType,
-          reviewResults,
+          reviewResults: factCheckResult, // Include fact-check results
+          nsfwResults: Object.keys(nsfwResults || {}).length > 0 ? nsfwResults : null,
           
           ...(poll.show && {
             poll: {
@@ -311,9 +352,11 @@ export default function CreatePostPage({ user }: CreatePostPageProps) {
       
       const postData = await response.json()
       
-      // ✅ Reset state after successful post
+      // Reset state after successful post
       dispatch(resetPostState())
       setContent("")
+      setFactCheckResult(null)
+      setShowFactCheckResult(false)
       if (contentEditableRef.current) {
         contentEditableRef.current.textContent = ""
         contentEditableRef.current.classList.add("placeholder-shown")
@@ -335,6 +378,47 @@ export default function CreatePostPage({ user }: CreatePostPageProps) {
       dispatch(setIsPosting(false))
     }
   }
+  const handleGiphySelect = (gif: any, type: "gif" | "sticker") => {
+    const giphyItem: GiphyMedia = {
+      url: gif.url || "https://media.giphy.com/media/efg1234/giphy.gif",
+      type,
+      id: gif.id || Math.random().toString(36).substr(2, 9),
+    }
+    
+    if (totalMediaCount >= MAX_MEDIA_FILES) {
+      dispatch(setError("You can only add up to 4 media items"))
+      return
+    }
+    
+    dispatch(addGiphyMedia(giphyItem))
+    setShowGiphyPicker(false)
+    dispatch(setError(null))
+  }
+  
+  const handleRemoveGiphyMedia = (id: string) => {
+    dispatch(removeGiphyMedia(id))
+  }
+  
+  const insertText = (text: string) => {
+    if (contentEditableRef.current) {
+      const selection = window.getSelection()
+      if (selection && selection.rangeCount > 0) {
+        const range = selection.getRangeAt(0)
+        range.deleteContents()
+        const textNode = document.createTextNode(text)
+        range.insertNode(textNode)
+        range.setStartAfter(textNode)
+        range.setEndAfter(textNode)
+        selection.removeAllRanges()
+        selection.addRange(range)
+      } else {
+        contentEditableRef.current.focus()
+        document.execCommand("insertText", false, text)
+      }
+      setContent(contentEditableRef.current.textContent || "")
+    }
+  }
+  
   
   const remainingChars = MAX_CHARACTERS - characterCount
   
