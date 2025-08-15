@@ -209,6 +209,14 @@ Prioritize user safety and provide educational, helpful responses.`
                 description: "Type of content being analyzed",
                 enum: ["text", "image", "mixed", "video", "general", "nsfw", "misinformation", "harmless"]
               },
+              AboutThisContentOneLine:{
+                type: 'string',
+                description: 'Say something about this content in one line'
+              },
+              isFalseInfo:{
+                type : "boolean",
+                description: "this content is fake or false information or else other ?"
+              }
             },
             required: [
               "FactCheckInfo",
@@ -216,7 +224,9 @@ Prioritize user safety and provide educational, helpful responses.`
               "ContentTypeOrContextType",
               "NeedVerifyWithSearch",
               "Is18Plus",
-              "headlineOfFactCheckInfo"
+              "headlineOfFactCheckInfo",
+              "AboutThisContentOneLine",
+              "isFalseInfo"
             ],
             additionalProperties: false,
           },
@@ -294,6 +304,8 @@ Prioritize user safety and provide educational, helpful responses.`
       "FactCheckInfo",
       "IsHarmful", 
       "Is18Plus",
+      "isFalseInfo",
+      "AboutThisContentOneLine",
       "headlineOfFactCheckInfo",
       "NeedVerifyWithSearch",
       "ContentTypeOrContextType"
@@ -310,7 +322,9 @@ Prioritize user safety and provide educational, helpful responses.`
     // Sanitize and enhance the response
     const sanitizedResponse = {
       FactCheckInfo: String(parsedResponse.FactCheckInfo || "").substring(0, 2000), // Limit length
+      AboutThisContentOneLine: String(parsedResponse.AboutThisContentOneLine),
       IsHarmful: Boolean(parsedResponse.IsHarmful),
+      isFalseInfo: Boolean(parsedResponse.isFalseInfo),
       Is18Plus: Boolean(parsedResponse.Is18Plus),
       headlineOfFactCheckInfo: Boolean(parsedResponse.headlineOfFactCheckInfo),
       NeedVerifyWithSearch: Boolean(parsedResponse.NeedVerifyWithSearch),

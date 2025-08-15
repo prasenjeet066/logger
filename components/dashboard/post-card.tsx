@@ -11,7 +11,7 @@
 
 "use client"
 import Image from 'next/image'
-import {Icon} from '@/components/font-awesome/icon'
+import { Icon } from '@/components/font-awesome/icon'
 import type React from "react"
 import { useAppDispatch, useAppSelector } from "@/store/main"
 import {
@@ -538,9 +538,9 @@ export function PostCard({ post, onLike, onRepost, onReply }: PostCardProps) {
            
 
            
-            {reviewResults && reviewResults.IsHarmful===true ? (
+            {reviewResults && reviewResults.isFalseInfo ? (
               <div className='bg-gary-50 rounded-md p-2 text-left flex flex-row items-center justify-between border text-xs'>
-                <small className='flex-1 pr-2 text-gray-600'>{reviewResults?.headlineOfFactCheckInfo || "This Post is not correct!"}</small>
+                <small className='flex-1 pr-2 text-gray-600'>{reviewResults?.AboutThisContentOneLine || "This Post is not correct!"}</small>
                 
                 <span className='border-l pl-1 text-gray-800  underline font-semibold' onClick = {()=>{router.push('fact-check?post=' + post._id)}}>{"Fact Check"}</span>
               </div>
