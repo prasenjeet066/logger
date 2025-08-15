@@ -6,7 +6,7 @@ const client = new InferenceClient(process.env.HUGGINGFACE_API_TOKEN || "hf_iMVO
 interface FactCheckMessage {
   role: "user" | "assistant" | "system";
   content: string;
-  images?: string[]; // Base64 encoded images or URLs
+  images?: []; // Base64 encoded images or URLs
 }
 
 interface FactCheckRequest {
@@ -55,7 +55,7 @@ export async function POST(req: NextRequest) {
   try {
     // Handle both JSON and FormData
     let body: FactCheckRequest;
-    let uploadedImages: string[] = [];
+    let uploadedImages = [];
 
     const contentType = req.headers.get('content-type');
     
@@ -76,38 +76,18 @@ export async function POST(req: NextRequest) {
       }
 
       // Extract images from FormData
-      const imageFiles = formData.getAll('images') as File[];
+      const imageFiles = formData.getAll('images');
       for (const file of imageFiles) {
         if (file instanceof File) {
-          // Convert file to base64
-          const buffer = await file.arrayBuffer();
-          const base64 = Buffer.from(buffer).toString('base64');
-          const mimeType = file.type || 'image/jpeg';
-          uploadedImages.push(`data:${mimeType};base64,${base64}`);
+          uploadedImages.push(file)
         }
       }
       
       // Also check for base64 images in form data
-      const base64Images = formData.getAll('base64Images') as string[];
-      for (const img of base64Images) {
-        if (img && isValidImageFormat(img)) {
-          uploadedImages.push(await processImageData(img));
-        }
-      }
       
-    } else {
-      // Handle JSON request
-      body = await req.json();
+    } 
       
-      // Extract images from JSON body
-      if (body.images) {
-        for (const img of body.images) {
-          if (img && isValidImageFormat(img)) {
-            uploadedImages.push(await processImageData(img));
-          }
-        }
-      }
-    }
+    
     
     // Validate required fields
     if (!body.messages || !Array.isArray(body.messages)) {
