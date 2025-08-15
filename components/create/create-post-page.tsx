@@ -66,6 +66,19 @@ interface GiphyMedia {
   id: string
 }
 
+interface FactCheckResult {
+  FactCheckInfo: string;
+  IsHarmful: boolean;
+  Is18Plus: boolean;
+  headlineOfFactCheckInfo: boolean;
+  NeedVerifyWithSearch: boolean;
+  ContentTypeOrContextType: string;
+  timestamp?: string;
+  model?: string;
+  hasImages?: boolean;
+  imageCount?: number;
+}
+
 export default function CreatePostPage({ user }: CreatePostPageProps) {
   const { data: session } = useSession()
   const router = useRouter()
@@ -83,22 +96,29 @@ export default function CreatePostPage({ user }: CreatePostPageProps) {
   const nsfwResults = useAppSelector((state) => state.posts.nsfwResults)
   
   // Local state (UI-specific)
-  const contentEditableRef = useRef < HTMLDivElement > (null)
+  const contentEditableRef = useRef<HTMLDivElement>(null)
   const [content, setContent] = useState("")
-  const [gifs, setGifs] = useState < any[] > ([])
+  const [gifs, setGifs] = useState<any[]>([])
   const [showGiphyPicker, setShowGiphyPicker] = useState(false)
   const [showFileUpload, setShowFileUpload] = useState(false)
   const [showAddOptions, setShowAddOptions] = useState(false)
-  const cursorPositionRef = useRef < { node: Node | null;offset: number } | null > (null)
+  const cursorPositionRef = useRef<{ node: Node | null; offset: number } | null>(null)
+  
+  // Fact-checking state
+  const [isFactChecking, setIsFactChecking] = useState(false)
+  const [factCheckResult, setFactCheckResult] = useState<FactCheckResult | null>(null)
+  const [showFactCheckResult, setShowFactCheckResult] = useState(false)
   
   const characterCount = content.length
   const isOverLimit = characterCount > MAX_CHARACTERS
   const progressPercentage = (characterCount / MAX_CHARACTERS) * 100
   const totalMediaCount = uploadedFiles.length + giphyMedia.length
-  const [_FileList, setFileList] = useState(null)
-  const handleFiles = (files) => {
+  const [_FileList, setFileList] = useState<any>(null)
+  
+  const handleFiles = (files: any) => {
     setFileList(files)
   }
+  
   const getProgressColor = () => {
     if (progressPercentage < 70) return "bg-green-500"
     if (progressPercentage < 90) return "bg-yellow-500"
@@ -161,6 +181,7 @@ export default function CreatePostPage({ user }: CreatePostPageProps) {
   const handleRemoveUploadedFile = (urlToRemove: string) => {
     dispatch(removeUploadedFile(urlToRemove))
   }
+
   const performFactCheck = useCallback(async (textContent: string, imageFiles?: File[]) => {
     if (!textContent.trim() && (!imageFiles || imageFiles.length === 0)) return;
     
@@ -168,7 +189,6 @@ export default function CreatePostPage({ user }: CreatePostPageProps) {
     setFactCheckResult(null);
     
     try {
-      let requestBody: any;
       let requestOptions: RequestInit;
 
       if (imageFiles && imageFiles.length > 0) {
@@ -180,7 +200,7 @@ export default function CreatePostPage({ user }: CreatePostPageProps) {
         ]));
         
         // Add image files
-        imageFiles.forEach((file, index) => {
+        imageFiles.forEach((file) => {
           formData.append('images', file);
         });
 
@@ -378,6 +398,7 @@ export default function CreatePostPage({ user }: CreatePostPageProps) {
       dispatch(setIsPosting(false))
     }
   }
+
   const handleGiphySelect = (gif: any, type: "gif" | "sticker") => {
     const giphyItem: GiphyMedia = {
       url: gif.url || "https://media.giphy.com/media/efg1234/giphy.gif",
@@ -418,7 +439,6 @@ export default function CreatePostPage({ user }: CreatePostPageProps) {
       setContent(contentEditableRef.current.textContent || "")
     }
   }
-  
   
   const remainingChars = MAX_CHARACTERS - characterCount
   
@@ -618,6 +638,40 @@ export default function CreatePostPage({ user }: CreatePostPageProps) {
           `}</style>
         </div>
 
+        {/* Fact Check Result Display */}
+        {isFactChecking && (
+          <Alert className="mb-4">
+            <Loader2 className="h-4 w-4 animate-spin" />
+            <AlertDescription>Checking content...</AlertDescription>
+          </Alert>
+        )}
+
+        {factCheckResult && showFactCheckResult && (
+          <Alert variant={factCheckResult.IsHarmful ? "destructive" : "default"} className="mb-4">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>
+              <div className="space-y-2">
+                <p><strong>Content Analysis:</strong> {factCheckResult.FactCheckInfo}</p>
+                {factCheckResult.IsHarmful && (
+                  <p className="text-red-600"><strong>Warning:</strong> Potentially harmful content detected</p>
+                )}
+                {factCheckResult.NeedVerifyWithSearch && (
+                  <p className="text-yellow-600"><strong>Notice:</strong> Content may need fact verification</p>
+                )}
+                <p className="text-sm text-gray-600">Content Type: {factCheckResult.ContentTypeOrContextType}</p>
+              </div>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={() => setShowFactCheckResult(false)}
+                className="mt-2"
+              >
+                Dismiss
+              </Button>
+            </AlertDescription>
+          </Alert>
+        )}
+
         {/* Poll Creator */}
         {poll.show && (
           <div className="mb-4 p-4 border border-gray-200 rounded-lg bg-gray-50">
@@ -725,6 +779,7 @@ export default function CreatePostPage({ user }: CreatePostPageProps) {
         )}
 
         {/* Character Counter */}
+
         {content.length > 0 && (
           <div className="flex items-center justify-between mt-2 mb-4">
             <div className="flex items-center gap-2">
