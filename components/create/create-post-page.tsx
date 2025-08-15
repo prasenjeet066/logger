@@ -646,7 +646,7 @@ export default function CreatePostPage({ user }: CreatePostPageProps) {
           </Alert>
         )}
 
-        {factCheckResult && showFactCheckResult && (
+        {factCheckResult  && factCheckResult.FactCheckInfo!==null  && showFactCheckResult && (
           <Alert variant={factCheckResult.IsHarmful ? "destructive" : "default"} className="mb-4">
             <AlertCircle className="h-4 w-4" />
             <AlertDescription>
