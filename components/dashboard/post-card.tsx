@@ -410,8 +410,7 @@ export function PostCard({ post, onLike, onRepost, onReply }: PostCardProps) {
     )
   }, [post._id, nsfwResults])
   
-  const reviewResults = post?.reviewResults ?
-    JSON.parse(post.reviewResults.content) : [];
+  const reviewResults = post?.reviewResults || []
   
   
   // Enhanced post click handler
