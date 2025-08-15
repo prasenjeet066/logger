@@ -410,7 +410,7 @@ export function PostCard({ post, onLike, onRepost, onReply }: PostCardProps) {
     )
   }, [post._id, nsfwResults])
   
-  const reviewResults = post?.reviewResults || []
+  const reviewResults = post?.reviewResults &&  post?.reviewResults?.isFalseInfo ? post.reviewResults : []
   
   
   // Enhanced post click handler
@@ -537,7 +537,7 @@ export function PostCard({ post, onLike, onRepost, onReply }: PostCardProps) {
            
 
            
-            {reviewResults && reviewResults.isFalseInfo ? (
+            {reviewResults && reviewResults!==[] && reviewResults.isFalseInfo ? (
               <div className='bg-gary-50 rounded-md p-2 text-left flex flex-row items-center justify-between border text-xs'>
                 <small className='flex-1 pr-2 text-gray-600'>{reviewResults?.AboutThisContentOneLine || "This Post is not correct!"}</small>
                 
