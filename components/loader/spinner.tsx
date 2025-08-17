@@ -17,6 +17,8 @@ const Spinner = ({className = '', withLabel = true}) => {
         <div className="spinner-blade" />
         <div className="spinner-blade" />
         <div className="spinner-blade" />
+        <div className="spinner-blade" />
+        <div className="spinner-blade" />
       </div>
 
       <style jsx>{`
