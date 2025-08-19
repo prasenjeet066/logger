@@ -1,6 +1,6 @@
 // app/api/timeline/route.ts
 import { type NextRequest, NextResponse } from "next/server"
-import { getServerSession } from "next-auth"
+import { getServerSession } from "next-auth/next"
 import { authOptions } from "@/lib/auth/auth-config"
 import connectDB from "@/lib/mongodb/connection"
 import { Post } from "@/lib/mongodb/models/Post"

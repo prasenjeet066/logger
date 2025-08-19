@@ -1,4 +1,4 @@
-import { getServerSession } from "next-auth"
+import { getServerSession } from "next-auth/next"
 import { authOptions } from "@/lib/auth/auth-config"
 import { getTimelinePosts, getUserInteractions } from "@/lib/timeline/timeline-service"
 import { TimelineClient } from "@/components/dashboard/timeline-client"

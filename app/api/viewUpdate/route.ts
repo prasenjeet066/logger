@@ -1,7 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server"
 import connectDB from "@/lib/mongodb/connection"
 import { Post } from "@/lib/mongodb/models/Post"
-import { getServerSession } from "next-auth" // if you use NextAuth
+import { getServerSession } from "next-auth/next" // if you use NextAuth
 import { authOptions } from "@/lib/auth/auth-config" // adjust path to your auth config
 
 export async function POST(req: NextRequest) {

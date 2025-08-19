@@ -8,6 +8,7 @@ export interface Post {
   repliesCount: number
   repostsCount: number
   viewsCount: number
+  watch?: number
   mediaUrls?: string[]
   mediaType?: "image" | "video" | "gif"
   isRepost: boolean
@@ -16,6 +17,10 @@ export interface Post {
   hashtags: string[]
   mentions: string[]
   isPinned: boolean
+  reviewResults?: any
+  visibility?: "public" | "private" | "f-private"
+  restrictions?: any
+  imageNSFW?: any
   author: {
     id: string
     username: string

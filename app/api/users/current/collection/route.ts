@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
+import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth/auth-config";
 import { connectDB } from "@/lib/mongodb/connection";
 import BookmarksModel from "@/lib/mongodb/models/Bookmarks";

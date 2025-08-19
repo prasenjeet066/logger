@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation"
-import { getServerSession } from "next-auth"
+import { getServerSession } from "next-auth/next"
 import { authOptions } from "@/lib/auth/auth-config"
 import { DashboardWrapper } from "./client-wrapper"
 import {Verification} from "@/components/auth/verification/verification"
