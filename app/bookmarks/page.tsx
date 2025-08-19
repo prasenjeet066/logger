@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { getServerSession } from "next-auth";
+import { getServerSession } from "next-auth/next";
 import { connectDB } from "@/lib/mongodb/connection";
 import BookmarksModel from "@/lib/mongodb/models/Bookmarks";
 import { authOptions } from "@/lib/auth/auth-config";

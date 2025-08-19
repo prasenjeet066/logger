@@ -4,7 +4,7 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
 export async function middleware(request: NextRequest) {
-  const token = await getToken({ req: request })
+  const token = await getToken({ req: request as any, secret: process.env.NEXTAUTH_SECRET })
   
   const isAuthPage = request.nextUrl.pathname.startsWith('/auth/')
   

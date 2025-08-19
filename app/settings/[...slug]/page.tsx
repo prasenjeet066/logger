@@ -1,6 +1,6 @@
 // app/settings/[...slug].tsx
 import { redirect } from "next/navigation"
-import { getServerSession } from "next-auth"
+import { getServerSession } from "next-auth/next"
 import { authOptions } from "@/lib/auth/auth-config"
 import { SettingsContent } from "@/components/settings/settings"
 

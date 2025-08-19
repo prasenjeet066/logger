@@ -17,3 +17,6 @@ export const signInSchema = z.object({
 
 export type SignUpInput = z.infer<typeof signUpSchema>
 export type SignInInput = z.infer<typeof signInSchema>
+// Backward-compatible aliases used in app pages
+export type SignUpData = SignUpInput
+export type SignInData = SignInInput

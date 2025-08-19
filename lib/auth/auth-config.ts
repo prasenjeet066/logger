@@ -1,5 +1,4 @@
 // Enhanced auth-config.ts with additional security measures
-import type { NextAuthOptions } from "next-auth"
 import CredentialsProvider from "next-auth/providers/credentials"
 import GoogleProvider from "next-auth/providers/google"
 import { connectDB } from "@/lib/mongodb/connection"
@@ -8,7 +7,7 @@ import bcrypt from "bcryptjs"
 import { rateLimit } from "@/lib/security/rate-limiter"
 import { validateLoginAttempt } from "@/lib/security/login-security"
 
-export const authOptions: NextAuthOptions = {
+export const authOptions = {
   providers: [
     CredentialsProvider({
       name: "Credentials",
@@ -23,7 +22,8 @@ export const authOptions: NextAuthOptions = {
           throw new Error("Email and password are required")
         }
 
-        const clientIP = req.headers?.["x-forwarded-for"] || req.connection?.remoteAddress
+        const xfwd = (req.headers as any)?.["x-forwarded-for"] as string | undefined
+        const clientIP = (xfwd?.split(",")[0]?.trim()) || (req as any)?.ip || "unknown"
         
         try {
           // Rate limiting check
@@ -145,9 +145,9 @@ export const authOptions: NextAuthOptions = {
             })
             
             await newUser.save()
-            user.id = newUser._id.toString()
+            ;(user as any).id = newUser._id.toString()
           } else {
-            user.id = existingUser._id.toString()
+            ;(user as any).id = existingUser._id.toString()
           }
           
           return true
@@ -177,8 +177,8 @@ export const authOptions: NextAuthOptions = {
         
         if (account) {
           token.provider = account.provider
-          token.accessToken = account.access_token
-          token.refreshToken = account.refresh_token
+          token.accessToken = (account as any).access_token
+          token.refreshToken = (account as any).refresh_token
         }
       }
 
@@ -191,24 +191,24 @@ export const authOptions: NextAuthOptions = {
     },
     async session({ session, token }) {
       if (token && session.user) {
-        session.user.id = token.id as string
-        session.user.username = token.username as string
-        session.user.avatarUrl = token.avatarUrl as string
-        session.user.bio = token.bio as string || null
-        session.user.location = token.location as string || null
-        session.user.website = token.website as string || null
-        session.user.isVerified = token.isVerified as boolean
-        session.user.superAccess = token.superAccess as object || null
-        session.user.userType = token.userType as string
-        session.user.displayName = token.name as string
-        session.user.createdAt = token.createdAt as Date
-        session.user.provider = token.provider as string
+        ;(session.user as any).id = token.id as string
+        ;(session.user as any).username = token.username as string
+        ;(session.user as any).avatarUrl = token.avatarUrl as string
+        ;(session.user as any).bio = (token as any).bio as string || null
+        ;(session.user as any).location = (token as any).location as string || null
+        ;(session.user as any).website = (token as any).website as string || null
+        ;(session.user as any).isVerified = token.isVerified as boolean
+        ;(session.user as any).superAccess = (token as any).superAccess as object || null
+        ;(session.user as any).userType = token.userType as string
+        ;(session.user as any).displayName = token.name as string
+        ;(session.user as any).createdAt = token.createdAt as Date
+        ;(session.user as any).provider = (token as any).provider as string
         
         // Add security context
-        session.security = {
-          sessionId: token.jti,
-          issuedAt: token.iat,
-          expiresAt: token.exp
+        ;(session as any).security = {
+          sessionId: (token as any).jti,
+          issuedAt: (token as any).iat,
+          expiresAt: (token as any).exp
         }
       }
       return session
@@ -235,7 +235,7 @@ export const authOptions: NextAuthOptions = {
       // Invalidate session in database if needed
     }
   }
-}
+} as const
 
 // Helper functions
 async function verify2FA(user: any, credentials: any): Promise<boolean> {
