@@ -9,6 +9,7 @@ import { Like } from "@/lib/mongodb/models/Like"
 import { PostHashtag } from '@/lib/mongodb/models/PostHashtag'
 import { z } from "zod"
 import { createPostSchema } from "@/lib/validations/post"
+import Notification from "@/lib/mongodb/models/Notification"
 
 // Helper function to call the cron job
 async function triggerCronJob() {
@@ -249,7 +250,7 @@ export async function POST(request: NextRequest) {
             try {
               return await new PostHashtag({
                 postId: post._id.toString(),
-                hashtagId: hashtag,
+                hashtagName: hashtag,
               }).save()
             } catch (hashtagError) {
               console.warn(`Failed to save hashtag ${hashtag}:`, hashtagError)
@@ -259,6 +260,28 @@ export async function POST(request: NextRequest) {
         )
       } catch (hashtagError) {
         console.warn("Failed to save some hashtags:", hashtagError)
+      }
+    }
+    
+    // Create notifications for mentions
+    if (mentions.length > 0) {
+      try {
+        const mentionedUsers = await User.find({ username: { $in: mentions } }).select('_id').lean()
+        await Promise.all(mentionedUsers.map(async (u) => {
+          try {
+            await Notification.create({
+              userId: u._id.toString(),
+              fromUserId: user._id.toString(),
+              type: 'mention',
+              postId: post._id.toString(),
+              isRead: false,
+            })
+          } catch (e) {
+            console.warn('Failed to create mention notification for', u._id)
+          }
+        }))
+      } catch (e) {
+        console.warn('Failed to create some mention notifications', e)
       }
     }
     
@@ -303,22 +326,22 @@ export async function POST(request: NextRequest) {
     }
     
     // Handle MongoDB errors
-    if (error.name === 'ValidationError') {
-      const firstError = Object.values(error.errors)[0]
+    if ((error as any).name === 'ValidationError') {
+      const firstError = Object.values((error as any).errors)[0] as any
       return NextResponse.json({ 
         error: "Database validation failed: " + (firstError?.message || "Invalid data")
       }, { status: 400 })
     }
     
     // Handle MongoDB duplicate key errors
-    if (error.code === 11000) {
+    if ((error as any).code === 11000) {
       return NextResponse.json({ 
         error: "Duplicate post detected" 
       }, { status: 409 })
     }
 
     // Handle MongoDB connection errors
-    if (error.name === 'MongoNetworkError' || error.name === 'MongoTimeoutError') {
+    if ((error as any).name === 'MongoNetworkError' || (error as any).name === 'MongoTimeoutError') {
       return NextResponse.json({ 
         error: "Database connection failed. Please try again." 
       }, { status: 503 })
@@ -326,7 +349,7 @@ export async function POST(request: NextRequest) {
     
     return NextResponse.json({ 
       error: "Failed to create post. Please try again.",
-      details: process.env.NODE_ENV === 'development' ? error.message : undefined
+      details: process.env.NODE_ENV === 'development' ? (error as any).message : undefined
     }, { status: 500 })
   }
 }

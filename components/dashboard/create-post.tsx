@@ -44,6 +44,10 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
   const contentEditableRef = useRef<HTMLDivElement>(null)
   const cursorPositionRef = useRef<{ offset: number } | null>(null)
 
+  const [mentionQuery, setMentionQuery] = useState("")
+  const [mentionResults, setMentionResults] = useState<Array<{ _id: string; username: string; displayName: string; avatarUrl?: string }>>([])
+  const [showMentionList, setShowMentionList] = useState(false)
+
   const characterCount = content.length
   const isOverLimit = characterCount > MAX_CHARACTERS
   const remainingChars = MAX_CHARACTERS - characterCount
@@ -120,7 +124,6 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
     setError("")
 
     try {
-      // Simulate API call - replace with actual Gemini API
       await new Promise(resolve => setTimeout(resolve, 1500))
       const enhancedText = `${content} ✨ Enhanced with better engagement!`
       setContent(enhancedText)
@@ -133,6 +136,51 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
       setError("Failed to enhance text. Please try again.")
     } finally {
       setIsEnhancingText(false)
+    }
+  }
+
+  const fetchMentionUsers = async (q: string) => {
+    try {
+      const res = await fetch(`/api/users/search?q=${encodeURIComponent(q)}`)
+      if (!res.ok) return
+      const data = await res.json()
+      setMentionResults(data)
+    } catch {}
+  }
+
+  const handleEditorInput = (e: React.FormEvent<HTMLDivElement>) => {
+    if (contentEditableRef.current) {
+      const offset = getCaretCharacterOffset(contentEditableRef.current)
+      cursorPositionRef.current = { offset: offset }
+    }
+    const text = (e.currentTarget.textContent || "")
+    setContent(text)
+
+    const m = text.slice(0, getCaretCharacterOffset(contentEditableRef.current!)).match(/@([a-zA-Z0-9_]{1,20})$/)
+    if (m && m[1]) {
+      setMentionQuery(m[1])
+      setShowMentionList(true)
+      fetchMentionUsers(m[1])
+    } else {
+      setShowMentionList(false)
+      setMentionQuery("")
+    }
+  }
+
+  const insertMention = (username: string) => {
+    if (!contentEditableRef.current) return
+    const caretOffset = getCaretCharacterOffset(contentEditableRef.current)
+    const text = content
+    const upto = text.slice(0, caretOffset)
+    const rest = text.slice(caretOffset)
+    const replaced = upto.replace(/@([a-zA-Z0-9_]{1,20})$/, `@${username} `)
+    const newText = replaced + rest
+    setContent(newText)
+    setShowMentionList(false)
+    // Re-render innerHTML with highlights
+    if (contentEditableRef.current) {
+      contentEditableRef.current.innerHTML = newText ? highlight(newText) : ""
+      setCaretPosition(contentEditableRef.current, replaced.length)
     }
   }
 
@@ -180,7 +228,6 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
           privacy,
           mediaUrls: mediaUrls.length > 0 ? mediaUrls : null,
           mediaType: mediaType,
-          // Include extracted data for potential future use
           hashtags: extract(content).hashtags,
           mentions: extract(content).mentions,
           urls: extract(content).urls,
@@ -194,7 +241,6 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
 
       const newPost = await response.json()
 
-      // Reset form
       setContent("")
       setIsExpanded(false)
       setUploadedFiles([])
@@ -242,7 +288,7 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
 
           <div className="flex-1">
             <div className="flex items-center mb-2">
-              <span className="font-semibold text-gray-900">{session.user.displayName}</span>
+              <span className="font-semibold text-gray-900">{session?.user?.displayName}</span>
             </div>
             
             <div className="flex items-center mb-2 text-xs">
@@ -250,28 +296,35 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
             </div>
             
             <form onSubmit={handleSubmit}>
-              {/* ContentEditable div with highlighting */}
               <div
                 ref={contentEditableRef}
                 className="w-full border-0 resize-none outline-none focus:ring-0 p-0 bg-transparent min-h-[60px] text-lg"
                 style={{ wordWrap: 'break-word' }}
                 contentEditable
                 suppressContentEditableWarning
-                onInput={(e) => {
-                  if (contentEditableRef.current) {
-                    const offset = getCaretCharacterOffset(contentEditableRef.current)
-                    cursorPositionRef.current = { offset: offset }
-                  }
-                  setContent(e.currentTarget.textContent || "")
-                }}
+                onInput={handleEditorInput}
                 onFocus={handleTextareaFocus}
                 data-placeholder="What's on your mind?"
                 dangerouslySetInnerHTML={{ 
                   __html: content ? highlight(content) : ""
                 }}
               />
-              
-              {/* Media Previews */}
+
+              {showMentionList && mentionResults.length > 0 && (
+                <div className="mt-2 border rounded-md bg-white shadow p-2 max-h-40 overflow-auto">
+                  {mentionResults.map(u => (
+                    <button type="button" key={u._id} className="w-full text-left p-2 hover:bg-gray-50 flex items-center gap-2" onClick={() => insertMention(u.username)}>
+                      <Avatar className="h-6 w-6">
+                        <AvatarImage src={u.avatarUrl || undefined} />
+                        <AvatarFallback>{u.displayName?.charAt(0) || 'U'}</AvatarFallback>
+                      </Avatar>
+                      <span className="text-sm font-medium">{u.displayName}</span>
+                      <span className="text-xs text-gray-500">@{u.username}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+
               {uploadedFiles.length > 0 && (
                 <div className="mt-3 grid grid-cols-2 gap-2">
                   {uploadedFiles.map((file) => (
@@ -301,7 +354,6 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
 
               {isExpanded && (
                 <>
-                  {/* Character count and enhance button */}
                   <div className="flex justify-between items-center mt-3">
                     <div className="flex space-x-2">
                       <Button
@@ -320,12 +372,11 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
                         Enhance
                       </Button>
                     </div>
-                    <span className={`text-sm ${isOverLimit ? "text-red-500" : "text-gray-500"}`}>
+                    <span className={`${isOverLimit ? "text-red-500" : "text-gray-500"} text-sm`}>
                       {remainingChars}
                     </span>
                   </div>
 
-                  {/* Action buttons */}
                   <div className="flex justify-between items-center mt-3 pt-3 border-t border-gray-100">
                     <div className="flex space-x-2">
                       <Button
@@ -385,7 +436,6 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
           </div>
         </div>
 
-        {/* Quick action buttons when not expanded */}
         {!isExpanded && content.length === 0 && (
           <div className="mt-3">
             <div className="grid grid-cols-2 gap-2">
@@ -412,7 +462,6 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
         )}
       </CardContent>
 
-      {/* File Upload Modal */}
       {showFileUpload && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <Card className="w-full max-w-2xl">
