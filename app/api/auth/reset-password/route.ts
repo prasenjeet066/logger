@@ -2,15 +2,26 @@ import { type NextRequest, NextResponse } from "next/server"
 import { connectDB } from "@/lib/mongodb/connection"
 import { User } from "@/lib/mongodb/models/User"
 import crypto from "crypto"
+import { validatePassword } from "@/lib/security/password-policy"
+import { rateLimit } from "@/lib/security/rate-limiter"
 
 export async function POST(request: NextRequest) {
   try {
+    const xfwd = request.headers.get('x-forwarded-for') || ''
+    const ip = xfwd.split(',')[0]?.trim() || 'unknown'
+    await rateLimit('reset-password', ip)
+
     await connectDB()
 
     const { token, password } = await request.json()
 
     if (!token || !password) {
       return NextResponse.json({ error: "Token and password are required" }, { status: 400 })
+    }
+
+    const passwordCheck = validatePassword(password)
+    if (!passwordCheck.valid) {
+      return NextResponse.json({ error: passwordCheck.errors[0] || 'Weak password' }, { status: 400 })
     }
 
     // Hash the token to match what's stored in the database
@@ -28,8 +39,8 @@ export async function POST(request: NextRequest) {
 
     // Update password and clear reset token
     user.password = password
-    user.resetPasswordToken = undefined
-    user.resetPasswordExpires = undefined
+    user.resetPasswordToken = undefined as any
+    user.resetPasswordExpires = undefined as any
 
     await user.save()
 
