@@ -89,6 +89,14 @@ export function ExploreContent({params}) {
     fetchSuggestedUsers()
   }, [session,params])
 
+  useEffect(() => {
+    if (!searchQuery) return
+    if (searchQuery.startsWith('#')) {
+      const tag = searchQuery.slice(1)
+      fetchHashtagPosts(tag)
+    }
+  }, [searchQuery])
+
   const fetchCurrentUser = async () => {
     if (!session?.user?.email) return
 
@@ -126,6 +134,20 @@ export function ExploreContent({params}) {
       }
     } catch (error) {
       console.error("Error fetching suggested users:", error)
+    }
+  }
+
+  const fetchHashtagPosts = async (tag: string) => {
+    try {
+      setIsLoading(true)
+      const res = await fetch(`/api/hashtags/${encodeURIComponent(tag)}`)
+      if (!res.ok) throw new Error('Failed to load hashtag posts')
+      const data = await res.json()
+      setPosts(data)
+    } catch (e) {
+      console.error(e)
+    } finally {
+      setIsLoading(false)
     }
   }
 

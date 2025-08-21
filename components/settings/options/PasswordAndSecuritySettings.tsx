@@ -12,47 +12,51 @@ export default function PasswordAndSecuritySettings() {
   const [showNewPassword, setShowNewPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState < string | null > (null)
-  const [success, setSuccess] = useState < string | null > (null)
-  
+  const [error, setError] = useState<string | null>(null)
+  const [success, setSuccess] = useState<string | null>(null)
+
   const [formData, setFormData] = useState({
     currentPassword: "",
     newPassword: "",
     confirmPassword: ""
   })
-  
-  const handleChange = (field: keyof typeof formData) => (e: React.ChangeEvent < HTMLInputElement > ) => {
+
+  const [twoFASecret, setTwoFASecret] = useState<string | null>(null)
+  const [twoFAQr, setTwoFAQr] = useState<string | null>(null)
+  const [twoFACode, setTwoFACode] = useState("")
+  const [sessions, setSessions] = useState<Array<{ sessionId: string }>>([])
+  const [sessionsLoading, setSessionsLoading] = useState(false)
+
+  const handleChange = (field: keyof typeof formData) => (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData(prev => ({ ...prev, [field]: e.target.value }))
-    // Clear messages when user starts typing
     if (error) setError(null)
     if (success) setSuccess(null)
   }
-  
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
     setError(null)
     setSuccess(null)
-    
-    // Validation
+
     if (!formData.currentPassword || !formData.newPassword || !formData.confirmPassword) {
       setError("All fields are required")
       setLoading(false)
       return
     }
-    
+
     if (formData.newPassword !== formData.confirmPassword) {
       setError("New passwords do not match")
       setLoading(false)
       return
     }
-    
+
     if (formData.newPassword.length < 8) {
       setError("New password must be at least 8 characters long")
       setLoading(false)
       return
     }
-    
+
     try {
       const response = await fetch('/api/users/change-password', {
         method: 'POST',
@@ -62,22 +66,74 @@ export default function PasswordAndSecuritySettings() {
           newPassword: formData.newPassword
         })
       })
-      
+
       if (!response.ok) {
         const errorData = await response.json()
         throw new Error(errorData.error || 'Failed to change password')
       }
-      
+
       setSuccess("Password changed successfully!")
       setFormData({ currentPassword: "", newPassword: "", confirmPassword: "" })
-      
+
     } catch (error: any) {
       setError(error.message)
     } finally {
       setLoading(false)
     }
   }
-  
+
+  const setup2FA = async () => {
+    setLoading(true)
+    setError(null)
+    setSuccess(null)
+    try {
+      const res = await fetch('/api/auth/2fa/setup', { method: 'POST' })
+      if (!res.ok) throw new Error('Failed to setup 2FA')
+      const data = await res.json()
+      setTwoFASecret(data.secret)
+      setTwoFAQr(data.otpauth)
+      setSuccess('2FA secret generated. Scan in your authenticator app.')
+    } catch (e: any) {
+      setError(e.message)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const verify2FA = async () => {
+    if (!twoFACode) return
+    setLoading(true)
+    setError(null)
+    setSuccess(null)
+    try {
+      const res = await fetch('/api/auth/2fa/verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: twoFACode })
+      })
+      const data = await res.json()
+      if (!res.ok || !data.verified) throw new Error(data.error || 'Invalid code')
+      setSuccess('2FA verified and enabled!')
+    } catch (e: any) {
+      setError(e.message)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const loadSessions = async () => {
+    setSessionsLoading(true)
+    try {
+      const res = await fetch('/api/users/sessions')
+      if (res.ok) {
+        const data = await res.json()
+        setSessions(data.sessions || [])
+      }
+    } finally {
+      setSessionsLoading(false)
+    }
+  }
+
   const PasswordInput = ({
     id,
     label,
@@ -89,7 +145,7 @@ export default function PasswordAndSecuritySettings() {
     id: string
     label: string
     value: string
-    onChange: (e: React.ChangeEvent < HTMLInputElement > ) => void
+    onChange: (e: React.ChangeEvent<HTMLInputElement>) => void
     show: boolean
     onToggle: () => void
   }) => (
@@ -114,7 +170,7 @@ export default function PasswordAndSecuritySettings() {
       </div>
     </div>
   )
-  
+
   return (
     <div className="space-y-6">
       <div>
@@ -198,19 +254,37 @@ export default function PasswordAndSecuritySettings() {
               <p className="text-sm text-gray-600 mb-3">
                 Add an extra layer of security to your account
               </p>
-              <Button variant="outline" size="sm">
-                Enable 2FA
-              </Button>
+              <div className="flex items-center gap-2">
+                <Button variant="outline" size="sm" onClick={setup2FA} disabled={loading}>Generate Secret</Button>
+                <Input placeholder="6-digit code" className="w-32" value={twoFACode} onChange={e => setTwoFACode(e.target.value)} />
+                <Button size="sm" onClick={verify2FA} disabled={loading || !twoFACode}>Verify</Button>
+              </div>
+              {twoFAQr && (
+                <div className="mt-2 text-sm break-all">
+                  Provisioning URI: {twoFAQr}
+                </div>
+              )}
             </div>
             
             <div className="p-4 border rounded-lg">
-              <h3 className="font-medium mb-2">Login Sessions</h3>
-              <p className="text-sm text-gray-600 mb-3">
-                Manage your active login sessions across devices
-              </p>
-              <Button variant="outline" size="sm">
-                View Sessions
-              </Button>
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="font-medium mb-1">Login Sessions</h3>
+                  <p className="text-sm text-gray-600 mb-3">Manage your active login sessions across devices</p>
+                </div>
+                <Button variant="outline" size="sm" onClick={loadSessions} disabled={sessionsLoading}>
+                  {sessionsLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Refresh'}
+                </Button>
+              </div>
+              <div className="space-y-2">
+                {sessions.length === 0 ? (
+                  <p className="text-sm text-gray-500">No sessions to display</p>
+                ) : (
+                  sessions.map((s) => (
+                    <div key={s.sessionId} className="text-sm text-gray-700 border rounded p-2">Session: {s.sessionId}</div>
+                  ))
+                )}
+              </div>
             </div>
           </div>
         </CardContent>

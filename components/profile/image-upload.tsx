@@ -4,7 +4,6 @@ import type React from "react"
 
 import { useState, useRef } from "react"
 import { Button } from "@/components/ui/button"
-import { supabase } from "@/lib/supabase/client"
 import { Camera, Loader2 } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 
@@ -48,29 +47,36 @@ export function ImageUpload({
         throw new Error("Image size should be less than 5MB.")
       }
 
-      const fileExt = file.name.split(".").pop()
-      const fileName = `${userId}/${Date.now()}.${fileExt}`
-      const bucket = type === "avatar" ? "avatars" : "covers"
+      const formData = new FormData()
+      formData.append("files", file)
+      formData.append("pathPrefix", `users/${userId}/${type}`)
 
-      // Delete old image if exists
+      const res = await fetch(`/api/upload`, {
+        method: "POST",
+        body: formData,
+      })
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}))
+        throw new Error(err.error || "Upload failed")
+      }
+
+      const data = await res.json()
+      const uploaded = data.files?.[0]
+      if (!uploaded?.url) throw new Error("Upload failed")
+
+      // Optionally delete old image via API if needed
       if (currentImageUrl) {
-        const oldPath = currentImageUrl.split("/").pop()
-        if (oldPath) {
-          await supabase.storage.from(bucket).remove([`${userId}/${oldPath}`])
-        }
+        try {
+          await fetch(`/api/upload/delete`, {
+            method: "DELETE",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ urls: [currentImageUrl] }),
+          })
+        } catch {}
       }
 
-      // Upload new image
-      const { error: uploadError } = await supabase.storage.from(bucket).upload(fileName, file)
-
-      if (uploadError) {
-        throw uploadError
-      }
-
-      // Get public URL
-      const { data } = supabase.storage.from(bucket).getPublicUrl(fileName)
-
-      onUploadComplete(data.publicUrl)
+      onUploadComplete(uploaded.url)
     } catch (error) {
       console.error("Error uploading image:", error)
       alert(error instanceof Error ? error.message : "Error uploading image")

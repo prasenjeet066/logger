@@ -3,24 +3,35 @@ import { connectDB } from "@/lib/mongodb/connection"
 import { User } from "@/lib/mongodb/models/User"
 import { signUpSchema } from "@/lib/validations/auth"
 import { z } from "zod"
+import { validatePassword } from "@/lib/security/password-policy"
+import { rateLimit } from "@/lib/security/rate-limiter"
 
 export async function POST(request: NextRequest) {
   try {
+    const xfwd = request.headers.get('x-forwarded-for') || ''
+    const ip = xfwd.split(',')[0]?.trim() || 'unknown'
+    await rateLimit('signup', ip)
+
     await connectDB()
 
     const body = await request.json()
     const validatedData = signUpSchema.parse(body)
 
+    const passwordCheck = validatePassword(validatedData.password)
+    if (!passwordCheck.valid) {
+      return NextResponse.json({ error: passwordCheck.errors[0] || 'Weak password' }, { status: 400 })
+    }
+
     // Check if user already exists
     const existingUser = await User.findOne({
-      $or: [{ email: validatedData.email }, { username: validatedData.username }],
+      $or: [{ email: validatedData.email.toLowerCase() }, { username: validatedData.username.toLowerCase() }],
     })
 
     if (existingUser) {
-      if (existingUser.email === validatedData.email) {
+      if (existingUser.email === validatedData.email.toLowerCase()) {
         return NextResponse.json({ error: "User with this email already exists" }, { status: 400 })
       }
-      if (existingUser.username === validatedData.username) {
+      if (existingUser.username === validatedData.username.toLowerCase()) {
         return NextResponse.json({ error: "Username is already taken" }, { status: 400 })
       }
     }
@@ -28,8 +39,8 @@ export async function POST(request: NextRequest) {
     // Create new user
     const user = new User({
       ...validatedData,
-      email: validatedData.email,
-      username: validatedData.username,
+      email: validatedData.email.toLowerCase(),
+      username: validatedData.username.toLowerCase(),
       displayName: validatedData.displayName,
       password: validatedData.password,
     })

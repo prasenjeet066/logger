@@ -6,6 +6,7 @@ import { User } from "@/lib/mongodb/models/User"
 import bcrypt from "bcryptjs"
 import { rateLimit } from "@/lib/security/rate-limiter"
 import { validateLoginAttempt } from "@/lib/security/login-security"
+import { SessionManager } from "@/lib/security/session-manager"
 
 export const authOptions = {
   providers: [
@@ -66,6 +67,11 @@ export const authOptions = {
             if (!isSuperVerified) {
               throw new Error("Super user verification failed")
             }
+          }
+
+          // Optional: basic device fingerprint check if provided
+          if (credentials.fingerprint && typeof credentials.fingerprint === 'string') {
+            // For now, accept fingerprint; could cross-check against user.trustedDevices
           }
 
           // Log successful attempt
@@ -226,13 +232,19 @@ export const authOptions = {
   secret: process.env.NEXTAUTH_SECRET,
   debug: process.env.NODE_ENV === "development",
   events: {
-    async signIn({ user, account }) {
-      console.log(`User signed in: ${user.email} via ${account?.provider}`)
-      // Log to audit system
+    async signIn({ token }) {
+      try {
+        if ((token as any)?.sub) {
+          SessionManager.addSession((token as any).sub, (token as any).jti || '')
+        }
+      } catch {}
     },
-    async signOut({ session, token }) {
-      console.log(`User signed out: ${token?.email}`)
-      // Invalidate session in database if needed
+    async signOut({ token }) {
+      try {
+        if ((token as any)?.sub) {
+          SessionManager.removeSession((token as any).sub, (token as any).jti || '')
+        }
+      } catch {}
     }
   }
 } as const

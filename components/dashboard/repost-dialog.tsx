@@ -1,11 +1,8 @@
-"use client"
-
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Card, CardContent } from "@/components/ui/card"
-import { supabase } from "@/lib/supabase/client"
 import { Loader2, X, Quote } from "lucide-react"
 import type { Post } from "@/types/post"
 
@@ -26,16 +23,13 @@ export function RepostDialog({ isOpen, onClose, post, currentUser, onRepost }: R
   const handleSimpleRepost = async () => {
     setIsLoading(true)
     try {
-      const { error } = await supabase.from("posts").insert({
-        user_id: currentUser.id,
-        content: "",
-        repost_of: post.id,
+      const res = await fetch(`/api/posts/${(post as any)._id || (post as any).id}/repost`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
       })
-
-      if (!error) {
-        onRepost()
-        onClose()
-      }
+      if (!res.ok) throw new Error("Failed to repost")
+      onRepost()
+      onClose()
     } catch (error) {
       console.error("Error reposting:", error)
     } finally {
@@ -48,17 +42,19 @@ export function RepostDialog({ isOpen, onClose, post, currentUser, onRepost }: R
 
     setIsLoading(true)
     try {
-      const { error } = await supabase.from("posts").insert({
-        user_id: currentUser.id,
-        content: content.trim(),
-        repost_of: post.id,
+      const res = await fetch(`/api/posts`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          content: content.trim(),
+          isRepost: true,
+          originalPostId: (post as any)._id || (post as any).id,
+        }),
       })
-
-      if (!error) {
-        onRepost()
-        onClose()
-        setContent("")
-      }
+      if (!res.ok) throw new Error("Failed to quote repost")
+      onRepost()
+      onClose()
+      setContent("")
     } catch (error) {
       console.error("Error quote reposting:", error)
     } finally {
@@ -93,8 +89,8 @@ export function RepostDialog({ isOpen, onClose, post, currentUser, onRepost }: R
             <div className="border-t pt-4">
               <div className="flex gap-3 mb-3">
                 <Avatar className="h-10 w-10">
-                  <AvatarImage src={currentUser?.avatar_url || "/placeholder.svg"} />
-                  <AvatarFallback>{currentUser?.display_name?.charAt(0) || "U"}</AvatarFallback>
+                  <AvatarImage src={currentUser?.avatarUrl || "/placeholder.svg"} />
+                  <AvatarFallback>{currentUser?.displayName?.charAt(0) || "U"}</AvatarFallback>
                 </Avatar>
                 <div className="flex-1">
                   <Textarea
@@ -110,15 +106,15 @@ export function RepostDialog({ isOpen, onClose, post, currentUser, onRepost }: R
               <div className="border rounded-lg p-3 bg-gray-50">
                 <div className="flex gap-2">
                   <Avatar className="h-8 w-8">
-                    <AvatarImage src={post.avatar_url || undefined} />
-                    <AvatarFallback>{post.display_name?.charAt(0) || "U"}</AvatarFallback>
+                    <AvatarImage src={(post as any)?.author?.avatarUrl || undefined} />
+                    <AvatarFallback>{((post as any)?.author?.displayName || "U").charAt(0)}</AvatarFallback>
                   </Avatar>
                   <div className="flex-1">
                     <div className="flex items-center gap-1 text-sm">
-                      <span className="font-semibold">{post.display_name}</span>
-                      <span className="text-gray-500">@{post.username}</span>
+                      <span className="font-semibold">{(post as any)?.author?.displayName}</span>
+                      <span className="text-gray-500">@{(post as any)?.author?.username}</span>
                     </div>
-                    <p className="text-sm mt-1">{post.content}</p>
+                    <p className="text-sm mt-1">{(post as any)?.content}</p>
                   </div>
                 </div>
               </div>

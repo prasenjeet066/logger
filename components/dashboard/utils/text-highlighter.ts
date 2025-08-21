@@ -1,22 +1,22 @@
 // utils/text-highlighter.ts
 //import {Link} from 'lucide-react'
 export interface HighlightConfig {
-  hashtags ? : {
-    color ? : string
-    fontWeight ? : string
-    className ? : string
+  hashtags?: {
+    color?: string
+    fontWeight?: string
+    className?: string
   }
-  mentions ? : {
-    color ? : string
-    fontWeight ? : string
-    className ? : string
+  mentions?: {
+    color?: string
+    fontWeight?: string
+    className?: string
   }
-  urls ? : {
-    color ? : string
-    textDecoration ? : string
-    className ? : string
-    target ? : string
-    rel ? : string
+  urls?: {
+    color?: string
+    textDecoration?: string
+    className?: string
+    target?: string
+    rel?: string
   }
 }
 
@@ -73,7 +73,7 @@ export function highlightText(text: string, config: HighlightConfig = {}): strin
 /**
  * Highlights URLs in text
  */
-function highlightUrls(text: string, config: NonNullable < HighlightConfig['urls'] > ): string {
+function highlightUrls(text: string, config: NonNullable<HighlightConfig['urls']>): string {
   const urlRegex = /(https?:\/\/[^\s]+)/g
   
   return text.replace(urlRegex, (match) => {
@@ -97,7 +97,7 @@ function highlightUrls(text: string, config: NonNullable < HighlightConfig['urls
 /**
  * Highlights hashtags in text (supports Bengali and English)
  */
-function highlightHashtags(text: string, config: NonNullable < HighlightConfig['hashtags'] > ): string {
+function highlightHashtags(text: string, config: NonNullable<HighlightConfig['hashtags']>): string {
   // Regex for hashtags: # followed by Bengali characters, English alphanumeric, or underscores
   const hashtagRegex = /#([a-zA-Z0-9_\u0980-\u09FF]+)/g
   
@@ -108,20 +108,22 @@ function highlightHashtags(text: string, config: NonNullable < HighlightConfig['
     })
     
     const attributes = [
-      config.className && `class="${config.className}"`,
+      `href="/explore?tag=${encodeURIComponent(hashtag.toLowerCase())}"`,
+      `data-hashtag="${hashtag.toLowerCase()}"`,
+      `role="link"`,
+      `aria-label="Hashtag ${hashtag}"`,
+      `class="${config.className || ''}"`,
       styles && `style="${styles}"`
     ].filter(Boolean).join(' ')
     
-    return `<span ${attributes}>${match}</span>`
+    return `<a ${attributes}>${match}</a>`
   })
 }
 
 /**
  * Highlights mentions in text
  */
-function highlightMentions(text: string, config: NonNullable < HighlightConfig['mentions'] > ): string {
-  // find --- user --- with mention 
-  
+function highlightMentions(text: string, config: NonNullable<HighlightConfig['mentions']>): string {
   // Regex for mentions: @ followed by alphanumeric characters and underscores
   const mentionRegex = /@([a-zA-Z0-9_]+)/g
   
@@ -131,20 +133,23 @@ function highlightMentions(text: string, config: NonNullable < HighlightConfig['
       'font-weight': config.fontWeight
     })
     
-      const attributes = [
-        config.className && `class="${config.className}"`,
-        styles && `style="${styles}"`
-      ].filter(Boolean).join(' ')
-      
-      return `<span ${attributes}>${match}</span>`
+    const attributes = [
+      `href="/profile/${encodeURIComponent(username.toLowerCase())}"`,
+      `data-mention="${username.toLowerCase()}"`,
+      `role="link"`,
+      `aria-label="Mention ${username}"`,
+      `class="${config.className || ''}"`,
+      styles && `style="${styles}"`
+    ].filter(Boolean).join(' ')
     
+    return `<a ${attributes}>${match}</a>`
   })
 }
 
 /**
  * Builds inline CSS styles from an object
  */
-function buildInlineStyles(styles: Record < string, string | undefined > ): string {
+function buildInlineStyles(styles: Record<string, string | undefined>): string {
   return Object.entries(styles)
     .filter(([_, value]) => value !== undefined)
     .map(([key, value]) => `${key}: ${value}`)
@@ -181,7 +186,7 @@ export function extractUrls(text: string): string[] {
 /**
  * React hook for text highlighting
  */
-export function useTextHighlighter(config ? : HighlightConfig) {
+export function useTextHighlighter(config?: HighlightConfig) {
   const highlight = (text: string) => highlightText(text, config)
   
   const extract = (text: string) => ({

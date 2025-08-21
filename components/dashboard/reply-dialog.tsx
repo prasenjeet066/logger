@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Card, CardContent } from "@/components/ui/card"
-import { supabase } from "@/lib/supabase/client"
 import { Loader2, X } from "lucide-react"
 import type { Post } from "@/types/post"
 
@@ -28,17 +27,20 @@ export function ReplyDialog({ isOpen, onClose, post, currentUser, onReply }: Rep
 
     setIsLoading(true)
     try {
-      const { error } = await supabase.from("posts").insert({
-        user_id: currentUser.id,
-        content: content.trim(),
-        reply_to: post.id,
+      const res = await fetch(`/api/posts`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          content: content.trim(),
+          parentPostId: (post as any)._id || (post as any).id,
+        }),
       })
 
-      if (!error) {
-        onReply()
-        onClose()
-        setContent("")
-      }
+      if (!res.ok) throw new Error("Failed to create reply")
+
+      onReply()
+      onClose()
+      setContent("")
     } catch (error) {
       console.error("Error replying:", error)
     } finally {
@@ -61,15 +63,17 @@ export function ReplyDialog({ isOpen, onClose, post, currentUser, onReply }: Rep
           <div className="border-l-2 border-gray-200 pl-4 mb-4">
             <div className="flex gap-2">
               <Avatar className="h-8 w-8">
-                <AvatarImage src={post.avatar_url || undefined} />
-                <AvatarFallback>{post.display_name?.charAt(0) || "U"}</AvatarFallback>
+                <AvatarImage src={(post as any)?.author?.avatarUrl || undefined} />
+                <AvatarFallback>{((post as any)?.author?.displayName || "U").charAt(0)}</AvatarFallback>
               </Avatar>
               <div className="flex-1">
                 <div className="flex items-center gap-1 text-sm">
-                  <span className="font-semibold">{post.display_name}</span>
-                  <span className="text-gray-500">@{post.username}</span>
+                  <span className="font-semibold">{(post as any)?.author?.displayName}</span>
+                  {(post as any)?.author?.username && (
+                    <span className="text-gray-500">@{(post as any)?.author?.username}</span>
+                  )}
                 </div>
-                <p className="text-sm mt-1">{post.content}</p>
+                <p className="text-sm mt-1">{(post as any)?.content}</p>
               </div>
             </div>
           </div>
@@ -77,12 +81,12 @@ export function ReplyDialog({ isOpen, onClose, post, currentUser, onReply }: Rep
           {/* Reply Form */}
           <div className="flex gap-3">
             <Avatar className="h-10 w-10">
-              <AvatarImage src={currentUser?.avatar_url || "/placeholder.svg"} />
-              <AvatarFallback>{currentUser?.display_name?.charAt(0) || "U"}</AvatarFallback>
+              <AvatarImage src={currentUser?.avatarUrl || "/placeholder.svg"} />
+              <AvatarFallback>{currentUser?.displayName?.charAt(0) || "U"}</AvatarFallback>
             </Avatar>
             <div className="flex-1">
               <Textarea
-                placeholder={`Reply to @${post.username}...`}
+                placeholder={`Reply...`}
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
                 className="min-h-[120px] resize-none"

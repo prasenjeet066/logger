@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { signIn } from "next-auth/react" // Import signIn from next-auth/react
@@ -18,6 +18,8 @@ export default function SignInPage() {
   const [formData, setFormData] = useState<SignInData>({
     email: "",
     password: "",
+    totpCode: "",
+    fingerprint: "",
   })
   const [errors, setErrors] = useState<Partial<SignInData>>({})
   const [isLoading, setIsLoading] = useState(false)
@@ -25,6 +27,22 @@ export default function SignInPage() {
   const [rememberMe, setRememberMe] = useState(false)
   const router = useRouter()
   const [state, setState] = useState(0)
+
+  useEffect(() => {
+    // Basic fingerprint: userAgent + screen + tz + lang + platform + cookies
+    try {
+      const userAgent = navigator.userAgent
+      const screenResolution = `${window.screen.width}x${window.screen.height}`
+      const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone || ''
+      const language = navigator.language
+      const platform = navigator.platform
+      const cookiesEnabled = navigator.cookieEnabled
+      const raw = [userAgent, screenResolution, timezone, language, platform, String(cookiesEnabled)].join('|')
+      // Hash-like simple encoder
+      const fp = btoa(unescape(encodeURIComponent(raw))).slice(0, 128)
+      setFormData(prev => ({ ...prev, fingerprint: fp }))
+    } catch {}
+  }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -39,13 +57,14 @@ export default function SignInPage() {
         redirect: true, // Prevent NextAuth from redirecting automatically
         email: validatedData.email,
         password: validatedData.password,
+        totpCode: validatedData.totpCode,
+        fingerprint: validatedData.fingerprint,
         rememberMe: rememberMe.toString(), // Pass remember me preference
       })
 
       if (result?.error) {
         setMessage(result.error)
       } else if (result?.ok) {
-        // Store remember me preference in localStorage for session management
         if (rememberMe) {
           localStorage.setItem('rememberMe', 'true')
         } else {
@@ -77,13 +96,11 @@ export default function SignInPage() {
     setIsLoading(true)
     setMessage("")
     try {
-      // Store remember me preference for Google sign-in as well
       if (rememberMe) {
         localStorage.setItem('rememberMe', 'true')
       } else {
         localStorage.removeItem('rememberMe')
       }
-      
       await signIn("google", {
         callbackUrl: `${window.location.origin}/dashboard`,
       })
@@ -109,7 +126,6 @@ export default function SignInPage() {
           <CardTitle className="text-2xl font-semibold">Welcome Back</CardTitle>
         </CardHeader>
         <CardContent>
-          
           <form onSubmit={handleSubmit} className="space-y-4">
             {state == 0 ? (
             <div className="space-y-2">
@@ -144,7 +160,22 @@ export default function SignInPage() {
                   <AlertDescription>{errors.password}</AlertDescription>
                 </Alert>}
               </div>
-              
+
+              <div className="space-y-2">
+                <Label htmlFor="totp">2FA Code (if enabled)</Label>
+                <Input
+                  id="totp"
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  className='rounded-full'
+                  value={formData.totpCode || ''}
+                  onChange={handleChange("totpCode")}
+                  placeholder="6-digit code"
+                  disabled={isLoading}
+                />
+              </div>
+
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
                   <Checkbox
@@ -168,13 +199,11 @@ export default function SignInPage() {
               </div>
             </>
             ) : <></>}
-            
             {message && (
               <Alert>
                 <AlertDescription>{message}</AlertDescription>
               </Alert>
             )}
-
             {state === 1 ? (
               <Button type="submit" className="w-full rounded-full" disabled={isLoading}>
                 {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
@@ -191,7 +220,6 @@ export default function SignInPage() {
               </Button>
             )}
           </form>
-          
           <div className="relative mt-3">
             <div className="absolute inset-0 flex items-center">
               <span className="w-full border-t" />
@@ -200,7 +228,6 @@ export default function SignInPage() {
               <span className="bg-white px-2 text-gray-500">Or</span>
             </div>
           </div>
-          
           <div className="pt-4">
             <Button
               type="button"
@@ -230,7 +257,6 @@ export default function SignInPage() {
               Sign in with Google
             </Button>
           </div>
-
           <div className="mt-6 text-center">
             <p className="text-sm text-gray-600">
               Don't have an account?{" "}
