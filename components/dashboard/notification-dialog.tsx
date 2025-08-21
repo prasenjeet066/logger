@@ -4,7 +4,6 @@ import { useEffect, useState } from "react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Card, CardContent } from "@/components/ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { supabase } from "@/lib/supabase/client"
 import { Heart, UserPlus, MessageCircle } from "lucide-react"
 import { formatDistanceToNow } from "date-fns"
 import { bn } from "date-fns/locale"
@@ -16,14 +15,14 @@ interface NotificationDialogProps {
 
 interface Notification {
   id: string
-  type: "like" | "follow" | "mention"
+  type: "like" | "follow" | "mention" | "reply" | "repost"
   created_at: string
   from_user: {
     id: string
     username: string
     display_name: string
     avatar_url: string | null
-  }
+  } | null
   post?: {
     id: string
     content: string
@@ -38,114 +37,21 @@ export function NotificationDialog({ open, onOpenChange }: NotificationDialogPro
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const { data: userData } = await supabase.auth.getUser()
-        if (userData.user) {
-          setCurrentUser(userData.user)
-
-          // Fetch notifications (likes and follows)
-          const [likesData, followsData, mentionsData] = await Promise.all([
-            // Likes on user's posts
-            supabase
-              .from("likes")
-              .select(`
-                id,
-                created_at,
-                user_id,
-                post_id,
-                profiles!inner(id, username, display_name, avatar_url),
-                posts!inner(id, content, user_id)
-              `)
-              .eq("posts.user_id", userData.user.id)
-              .neq("user_id", userData.user.id)
-              .order("created_at", { ascending: false })
-              .limit(10),
-
-            // New followers
-            supabase
-              .from("follows")
-              .select(`
-                id,
-                created_at,
-                follower_id,
-                profiles!inner(id, username, display_name, avatar_url)
-              `)
-              .eq("following_id", userData.user.id)
-              .order("created_at", { ascending: false })
-              .limit(10),
-
-            // Mentions
-            supabase
-              .from("mentions")
-              .select(`
-                id,
-                created_at,
-                post_id,
-                posts!inner(id, content, user_id, profiles!inner(id, username, display_name, avatar_url))
-              `)
-              .eq("mentioned_user_id", userData.user.id)
-              .order("created_at", { ascending: false })
-              .limit(10),
-          ])
-
-          const allNotifications: Notification[] = []
-
-          // Process likes
-          likesData.data?.forEach((like) => {
-            allNotifications.push({
-              id: `like_${like.id}`,
-              type: "like",
-              created_at: like.created_at,
-              from_user: {
-                id: like.profiles.id,
-                username: like.profiles.username,
-                display_name: like.profiles.display_name,
-                avatar_url: like.profiles.avatar_url,
-              },
-              post: {
-                id: like.posts.id,
-                content: like.posts.content,
-              },
-            })
-          })
-
-          // Process follows
-          followsData.data?.forEach((follow) => {
-            allNotifications.push({
-              id: `follow_${follow.id}`,
-              type: "follow",
-              created_at: follow.created_at,
-              from_user: {
-                id: follow.profiles.id,
-                username: follow.profiles.username,
-                display_name: follow.profiles.display_name,
-                avatar_url: follow.profiles.avatar_url,
-              },
-            })
-          })
-
-          // Process mentions
-          mentionsData.data?.forEach((mention) => {
-            allNotifications.push({
-              id: `mention_${mention.id}`,
-              type: "mention",
-              created_at: mention.created_at,
-              from_user: {
-                id: mention.posts.profiles.id,
-                username: mention.posts.profiles.username,
-                display_name: mention.posts.profiles.display_name,
-                avatar_url: mention.posts.profiles.avatar_url,
-              },
-              post: {
-                id: mention.posts.id,
-                content: mention.posts.content,
-              },
-            })
-          })
-
-          // Sort by date
-          allNotifications.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
-          setNotifications(allNotifications.slice(0, 15))
+        const userRes = await fetch('/api/users/current')
+        if (!userRes.ok) {
+          setIsLoading(false)
+          return
         }
+        const user = await userRes.json()
+        setCurrentUser(user)
+
+        const notifRes = await fetch('/api/notifications')
+        if (!notifRes.ok) {
+          setIsLoading(false)
+          return
+        }
+        const data = await notifRes.json()
+        setNotifications(data)
       } catch (error) {
         console.error("Error fetching notifications:", error)
       } finally {
@@ -174,11 +80,15 @@ export function NotificationDialog({ open, onOpenChange }: NotificationDialogPro
   const getNotificationText = (notification: Notification) => {
     switch (notification.type) {
       case "like":
-        return `${notification.from_user.display_name} আপনার পোস্ট পছন্দ করেছেন`
+        return `${notification.from_user?.display_name ?? 'কেউ একজন'} আপনার পোস্ট পছন্দ করেছেন`
       case "follow":
-        return `${notification.from_user.display_name} আপনাকে অনুসরণ করতে শুরু করেছেন`
+        return `${notification.from_user?.display_name ?? 'কেউ একজন'} আপনাকে অনুসরণ করতে শুরু করেছেন`
       case "mention":
-        return `${notification.from_user.display_name} আপনাকে একটি পোস্টে উল্লেখ করেছেন`
+        return `${notification.from_user?.display_name ?? 'কেউ একজন'} আপনাকে একটি পোস্টে উল্লেখ করেছেন`
+      case "reply":
+        return `${notification.from_user?.display_name ?? 'কেউ একজন'} আপনার পোস্টে উত্তর দিয়েছেন`
+      case "repost":
+        return `${notification.from_user?.display_name ?? 'কেউ একজন'} আপনার পোস্টটি রিপোস্ট করেছেন`
       default:
         return ""
     }
@@ -209,15 +119,17 @@ export function NotificationDialog({ open, onOpenChange }: NotificationDialogPro
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
                         <Avatar className="w-6 h-6 lg:w-8 lg:h-8 flex-shrink-0">
-                          <AvatarImage src={notification.from_user.avatar_url || undefined} />
+                          <AvatarImage src={notification.from_user?.avatar_url || undefined} />
                           <AvatarFallback className="text-xs lg:text-sm">
-                            {notification.from_user.display_name?.charAt(0)?.toUpperCase() || "ব"}
+                            {notification.from_user?.display_name?.charAt(0)?.toUpperCase() || "ব"}
                           </AvatarFallback>
                         </Avatar>
                         <div className="flex-1 min-w-0">
                           <p className="text-xs lg:text-sm">
-                            <span className="font-semibold">{notification.from_user.display_name}</span>
-                            <span className="text-gray-500"> @{notification.from_user.username}</span>
+                            <span className="font-semibold">{notification.from_user?.display_name ?? 'Anyone'}</span>
+                            {notification.from_user?.username && (
+                              <span className="text-gray-500"> @{notification.from_user.username}</span>
+                            )}
                           </p>
                           <p className="text-xs text-gray-500">
                             {formatDistanceToNow(new Date(notification.created_at), { addSuffix: true, locale: bn })}

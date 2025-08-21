@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation"
-import { createServerClient } from "@/lib/supabase/server"
+import { getServerSession } from "next-auth/next"
+import { authOptions } from "@/lib/auth/auth-config"
 import { ReplyDetailContent } from "@/components/reply/reply-detail-content"
 
 interface ReplyPageProps {
@@ -9,15 +10,11 @@ interface ReplyPageProps {
 }
 
 export default async function ReplyPage({ params }: ReplyPageProps) {
-  const supabase = createServerClient()
+  const session = await getServerSession(authOptions)
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  if (!user) {
+  if (!session?.user) {
     redirect("/auth/sign-in")
   }
 
-  return <ReplyDetailContent replyId={params.id} userId={user.id} />
+  return <ReplyDetailContent replyId={params.id} userId={(session.user as any).id} />
 }
