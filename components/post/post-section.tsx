@@ -18,7 +18,6 @@ import DOMPurify from "dompurify"
 import { useRouter, usePathname } from "next/navigation"
 import type { Post } from "@/types/post"
 import { useSession } from "next-auth/react"
-import { loadModule } from 'cld3-asm'
 
 interface PostCardProps {
   post: Post
@@ -97,25 +96,6 @@ export function PostSection({ post, onLike, onRepost, onReply, isMobile = false 
   const shouldTrim = post.content.length > MAX_LENGTH
   const displayContent = shouldTrim && showTrim === "trim" ? smartTruncate(post.content, MAX_LENGTH) : post.content
 
-  async function detectLanguage(text: string): Promise<string | null> {
-    try {
-      const cldFactory = await loadModule() // Load the WebAssembly module
-      const cld = cldFactory.create() // Create a CLD3 instance
-      const result = cld.findLanguage(text) // Detect the language
-      
-      if (result && result.isReliable) {
-        return result.language
-      } else if (result) {
-        return result.language
-      } else {
-        return null // Fallback when detection fails
-      }
-    } catch (error) {
-      console.error("Error loading or using CLD3:", error)
-      return null
-    }
-  }
-  
   // Function to check mentions
   const checkTrueMentions = useCallback((username: string) => {
     setMentions(prev => {
@@ -275,9 +255,9 @@ export function PostSection({ post, onLike, onRepost, onReply, isMobile = false 
   useEffect(() => {
     const detect = async () => {
       if (post.content.length) {
-        const lang = await detectLanguage(post.content)
-        console.log(lang)
-        setPostLang(lang || 'en')
+        // Simple language detection: assume English if no language code is found
+        // This is a placeholder and might need a more robust solution
+        setPostLang('en')
       }
     }
     detect()
