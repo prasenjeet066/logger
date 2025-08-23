@@ -6,6 +6,9 @@ import Notification from "@/lib/mongodb/models/Notification"
 import { User } from "@/lib/mongodb/models/User"
 import { Post } from "@/lib/mongodb/models/Post"
 
+// Force dynamic rendering to prevent static generation issues
+export const dynamic = 'force-dynamic'
+
 export async function GET() {
   try {
     const session = await getServerSession(authOptions)

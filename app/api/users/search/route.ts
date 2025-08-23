@@ -5,6 +5,9 @@ import connectDB from "@/lib/mongodb/connection"
 import { User } from "@/lib/mongodb/models/User"
 import { Follow } from "@/lib/mongodb/models/Follow"
 
+// Force dynamic rendering to prevent static generation issues
+export const dynamic = 'force-dynamic'
+
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)

@@ -8,6 +8,9 @@ import { User } from "@/lib/mongodb/models/User"
 import { Like } from "@/lib/mongodb/models/Like"
 import { Follow } from "@/lib/mongodb/models/Follow"
 
+// Force dynamic rendering to prevent static generation issues
+export const dynamic = 'force-dynamic'
+
 // Timeline Algorithm Configuration
 interface AlgorithmConfig {
   recencyWeight: number

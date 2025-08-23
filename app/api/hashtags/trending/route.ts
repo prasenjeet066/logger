@@ -2,6 +2,9 @@ import { type NextRequest, NextResponse } from "next/server"
 import connectDB from "@/lib/mongodb/connection"
 import { PostHashtag } from "@/lib/mongodb/models/PostHashtag"
 
+// Force dynamic rendering to prevent static generation issues
+export const dynamic = 'force-dynamic'
+
 export async function GET(request: NextRequest) {
   try {
     await connectDB()
