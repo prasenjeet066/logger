@@ -86,8 +86,21 @@ export function ProfileContent({ username }: ProfileContentProps) {
   useEffect(() => {
     const fetchData = async () => {
       try {
+        // Always fetch current user first if session exists
         if (session?.user) {
-          dispatch(fetchCurrentUser())
+          try {
+            await dispatch(fetchCurrentUser()).unwrap()
+          } catch (error) {
+            console.error('Error fetching current user, retrying...', error)
+            // Retry once after a short delay
+            setTimeout(async () => {
+              try {
+                await dispatch(fetchCurrentUser()).unwrap()
+              } catch (retryError) {
+                console.error('Retry failed for current user:', retryError)
+              }
+            }, 1000)
+          }
         }
         
         dispatch(clearProfile())
@@ -130,7 +143,14 @@ export function ProfileContent({ username }: ProfileContentProps) {
   }, [dispatch, username, profileData, botData])
   
   const handleFollow = async () => {
-    if (profileType === 'bot' || !session?.user || !profileData) return
+    if (profileType === 'bot' || !session?.user || !profileData) {
+      // Redirect to sign-in if not logged in
+      if (!session?.user) {
+        router.push('/auth/sign-in')
+        return
+      }
+      return
+    }
     
     try {
       await dispatch(followUser(profileData.username)).unwrap()
@@ -140,7 +160,10 @@ export function ProfileContent({ username }: ProfileContentProps) {
   }
   
   const handleLike = async (postId: string, isLiked: boolean) => {
-    if (!session?.user) return
+    if (!session?.user) {
+      router.push('/auth/sign-in')
+      return
+    }
     
     try {
       await dispatch(likePost(postId)).unwrap()
@@ -150,7 +173,10 @@ export function ProfileContent({ username }: ProfileContentProps) {
   }
   
   const handleRepost = async (postId: string, isReposted: boolean) => {
-    if (!session?.user) return
+    if (!session?.user) {
+      router.push('/auth/sign-in')
+      return
+    }
     
     try {
       await dispatch(repostPost(postId)).unwrap()
@@ -168,7 +194,7 @@ export function ProfileContent({ username }: ProfileContentProps) {
     }
   }
   
-  const isLoading = profileLoading || postsLoading
+  const isLoading = profileLoading || postsLoading || (session?.user && !currentUser)
   
   if (isLoading && !profileData && !botData) {
     return (
@@ -180,7 +206,28 @@ export function ProfileContent({ username }: ProfileContentProps) {
   
   // Get current profile data based on type with null safety
   const currentProfile = profileType === 'user' ? profileData : botData
-  const isOwnProfile = profileType === 'user' && profileData && currentUser && profileData._id === currentUser._id
+  
+  // Enhanced own profile logic with fallback
+  const isOwnProfile = profileType === 'user' && 
+    profileData && 
+    session?.user && (
+      // Primary check: compare IDs
+      (currentUser && profileData._id === currentUser._id) ||
+      // Fallback check: compare usernames
+      (session?.user && (session.user as any)?.username === profileData.username)
+    )
+
+  // Debug logging for own profile logic
+  console.log('Profile Debug:', {
+    profileType,
+    profileDataId: profileData?._id,
+    currentUserId: currentUser?._id,
+    sessionUsername: (session?.user as any)?.username,
+    profileUsername: profileData?.username,
+    sessionUser: session?.user,
+    isOwnProfile,
+    username
+  })
   
   const renderTabContent = (tabPosts: any[], emptyMessage: string, type?: string) => {
     // Ensure tabPosts is an array
@@ -335,6 +382,20 @@ export function ProfileContent({ username }: ProfileContentProps) {
   
   return (
     <div className="min-h-screen bg-gray-50 font-english">
+      {/* Debug Panel - Remove in production */}
+      {process.env.NODE_ENV === 'development' && (
+        <div className="fixed top-4 right-4 bg-black text-white p-4 rounded-lg text-xs z-50 max-w-xs">
+          <h3 className="font-bold mb-2">Debug Info</h3>
+          <div>Session: {session?.user ? 'Yes' : 'No'}</div>
+          <div>Current User: {currentUser ? 'Loaded' : 'Not loaded'}</div>
+          <div>Profile Data: {profileData ? 'Loaded' : 'Not loaded'}</div>
+          <div>Is Own Profile: {isOwnProfile ? 'Yes' : 'No'}</div>
+          <div>Username: {username}</div>
+          <div>Session Username: {(session?.user as any)?.username}</div>
+          <div>Profile Username: {profileData?.username}</div>
+        </div>
+      )}
+      
       <Header profile={currentProfile} handleSignOut={handleSignOut} />
       
       <div className="flex">

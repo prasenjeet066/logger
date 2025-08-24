@@ -7,6 +7,7 @@ import bcrypt from "bcryptjs"
 import { rateLimit } from "@/lib/security/rate-limiter"
 import { validateLoginAttempt } from "@/lib/security/login-security"
 import { SessionManager } from "@/lib/security/session-manager"
+import { authenticator } from 'otplib'
 
 export const authOptions = {
   providers: [
@@ -53,12 +54,16 @@ export const authOptions = {
             throw new Error("Invalid credentials")
           }
 
-          // 2FA Verification
-          if (user.enable2FA) {
+          // 2FA Verification - only if totpCode is provided
+          if (user.enable2FA && credentials.totpCode) {
             const is2FAValid = await verify2FA(user, credentials)
             if (!is2FAValid) {
               throw new Error("Invalid 2FA code")
             }
+          } else if (user.enable2FA && !credentials.totpCode) {
+            // If 2FA is enabled but no code provided, this should not happen
+            // as the user should be redirected to 2FA page
+            throw new Error("2FA verification required")
           }
 
           // Super user additional verification
@@ -303,8 +308,13 @@ function generateUsername(email: string): string {
 }
 
 function verifyTOTP(secret: string, code: string): boolean {
-  // Implement TOTP verification using libraries like 'otplib'
-  return true // Placeholder
+  try {
+    // Verify the TOTP code
+    return authenticator.verify({ token: code, secret: secret })
+  } catch (error) {
+    console.error('TOTP verification error:', error)
+    return false
+  }
 }
 
 function verifyFingerprint(userId: string, fingerprint: string): boolean {

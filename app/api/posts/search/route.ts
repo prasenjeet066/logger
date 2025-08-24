@@ -6,12 +6,12 @@ import { Post } from "@/lib/mongodb/models/Post"
 import { User } from "@/lib/mongodb/models/User"
 import { Like } from "@/lib/mongodb/models/Like"
 
+export const dynamic = 'force-dynamic'
+
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
-    if (!session?.user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-    }
+    let currentUser = null
 
     const { searchParams } = new URL(request.url)
     const query = searchParams.get("q")
@@ -22,9 +22,9 @@ export async function GET(request: NextRequest) {
 
     await connectDB()
 
-    const currentUser = await User.findOne({ email: session.user.email })
-    if (!currentUser) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 })
+    // Allow public access, but get current user if logged in
+    if (session?.user) {
+      currentUser = await User.findOne({ email: session.user.email })
     }
 
     // Search posts by content
@@ -40,13 +40,16 @@ export async function GET(request: NextRequest) {
     const authors = await User.find({ _id: { $in: authorIds } }).lean()
     const authorsMap = new Map(authors.map((a) => [a._id.toString(), a]))
 
-    // Get like status for current user
-    const postIds = posts.map((p) => p._id.toString())
-    const likes = await Like.find({
-      userId: currentUser._id.toString(),
-      postId: { $in: postIds },
-    }).lean()
-    const likedPostIds = new Set(likes.map((l) => l.postId))
+    // Get like status for current user (only if logged in)
+    let likedPostIds = new Set<string>()
+    if (currentUser) {
+      const postIds = posts.map((p) => p._id.toString())
+      const likes = await Like.find({
+        userId: currentUser._id.toString(),
+        postId: { $in: postIds },
+      }).lean()
+      likedPostIds = new Set(likes.map((l) => l.postId))
+    }
 
     const formattedPosts = posts.map((post) => {
       const author = authorsMap.get(post.authorId)
