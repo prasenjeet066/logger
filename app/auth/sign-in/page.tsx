@@ -18,7 +18,6 @@ export default function SignInPage() {
   const [formData, setFormData] = useState<SignInData>({
     email: "",
     password: "",
-    totpCode: "",
     fingerprint: "",
   })
   const [errors, setErrors] = useState<Partial<SignInData>>({})
@@ -53,13 +52,43 @@ export default function SignInPage() {
     try {
       const validatedData = signInSchema.parse(formData)
 
+      // First, verify credentials and check if 2FA is required
+      const verifyResponse = await fetch('/api/auth/verify-credentials', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: validatedData.email,
+          password: validatedData.password,
+        }),
+      })
+
+      const verifyData = await verifyResponse.json()
+
+      if (!verifyResponse.ok) {
+        setMessage(verifyData.error || "Authentication failed")
+        return
+      }
+
+      if (verifyData.requires2FA) {
+        // Redirect to 2FA page with credentials
+        const params = new URLSearchParams({
+          email: validatedData.email,
+          password: validatedData.password,
+          rememberMe: rememberMe.toString(),
+        })
+        router.push(`/auth/2fa?${params.toString()}`)
+        return
+      }
+
+      // If no 2FA required, proceed with normal sign-in
       const result = await signIn("credentials", {
-        redirect: true, // Prevent NextAuth from redirecting automatically
+        redirect: false,
         email: validatedData.email,
         password: validatedData.password,
-        totpCode: validatedData.totpCode,
         fingerprint: validatedData.fingerprint,
-        rememberMe: rememberMe.toString(), // Pass remember me preference
+        rememberMe: rememberMe.toString(),
       })
 
       if (result?.error) {
@@ -161,20 +190,7 @@ export default function SignInPage() {
                 </Alert>}
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="totp">2FA Code (if enabled)</Label>
-                <Input
-                  id="totp"
-                  type="text"
-                  inputMode="numeric"
-                  pattern="[0-9]*"
-                  className='rounded-full'
-                  value={formData.totpCode || ''}
-                  onChange={handleChange("totpCode")}
-                  placeholder="6-digit code"
-                  disabled={isLoading}
-                />
-              </div>
+
 
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">

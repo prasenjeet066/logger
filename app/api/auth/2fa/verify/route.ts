@@ -3,10 +3,15 @@ import { getServerSession } from "next-auth/next"
 import { authOptions } from "@/lib/auth/auth-config"
 import { connectDB } from "@/lib/mongodb/connection"
 import { User } from "@/lib/mongodb/models/User"
+import { authenticator } from 'otplib'
 
-function verifyTotpMock(secret: string, code: string): boolean {
-  // Replace with real TOTP verify logic
-  return Boolean(secret) && code?.length === 6
+function verifyTotp(secret: string, code: string): boolean {
+  try {
+    return authenticator.verify({ token: code, secret: secret })
+  } catch (error) {
+    console.error('TOTP verification error:', error)
+    return false
+  }
 }
 
 export async function POST(request: NextRequest) {
@@ -32,7 +37,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: '2FA not set up' }, { status: 400 })
     }
 
-    const ok = verifyTotpMock(method.value, code)
+    const ok = verifyTotp(method.value, code)
     if (!ok) {
       return NextResponse.json({ error: 'Invalid code' }, { status: 400 })
     }

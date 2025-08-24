@@ -13,7 +13,6 @@ export const signUpSchema = z.object({
 export const signInSchema = z.object({
   email: z.string().email("Invalid email address"),
   password: z.string().min(1, "Password is required"),
-  totpCode: z.string().optional(),
   fingerprint: z.string().optional(),
 })
 
