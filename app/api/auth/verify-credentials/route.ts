@@ -1,11 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { getServerSession } from "next-auth/next"
-import { authOptions } from "@/lib/auth/auth-config"
 import { connectDB } from "@/lib/mongodb/connection"
 import { User } from "@/lib/mongodb/models/User"
 import bcrypt from "bcryptjs"
-import { rateLimit } from "@/lib/security/rate-limiter"
-import { validateLoginAttempt } from "@/lib/security/login-security"
 
 export const dynamic = 'force-dynamic'
 
@@ -17,21 +13,16 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Email and password are required" }, { status: 400 })
     }
 
-    const xfwd = request.headers.get("x-forwarded-for") as string | undefined
-    const clientIP = (xfwd?.split(",")[0]?.trim()) || request.ip || "unknown"
-    
+    console.log('Verify credentials attempt for:', email)
+
     try {
-      // Rate limiting check
-      await rateLimit(email, clientIP)
-      
       await connectDB()
       const user = await User.findOne({ 
         email: email.toLowerCase() 
       }).select('+password +enable2FA +obj2FA +superAccess')
       
       if (!user) {
-        // Log failed attempt
-        await validateLoginAttempt(email, false, clientIP)
+        console.log('User not found:', email)
         return NextResponse.json({ error: "Invalid credentials" }, { status: 401 })
       }
 
@@ -46,18 +37,17 @@ export async function POST(request: NextRequest) {
       const isPasswordValid = await bcrypt.compare(password, user.password)
       
       if (!isPasswordValid) {
-        await validateLoginAttempt(email, false, clientIP)
+        console.log('Invalid password for user:', email)
         return NextResponse.json({ error: "Invalid credentials" }, { status: 401 })
       }
 
-      // Log successful attempt
-      await validateLoginAttempt(email, true, clientIP)
-      
+      console.log('Password valid for user:', email)
+
       // Update last login attempt
       await User.findByIdAndUpdate(user._id, {
         $set: { 
           lastLoginAt: new Date(),
-          lastLoginIP: clientIP 
+          lastLoginIP: request.ip || 'unknown'
         },
         $unset: { 
           loginAttempts: 1, 
@@ -67,12 +57,14 @@ export async function POST(request: NextRequest) {
 
       // Check if 2FA is enabled
       if (user.enable2FA) {
+        console.log('2FA required for user:', email)
         return NextResponse.json({ 
           requires2FA: true,
           message: "2FA verification required"
         })
       }
 
+      console.log('Authentication successful for user:', email)
       // If no 2FA, return success
       return NextResponse.json({ 
         requires2FA: false,

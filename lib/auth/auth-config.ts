@@ -4,9 +4,6 @@ import GoogleProvider from "next-auth/providers/google"
 import { connectDB } from "@/lib/mongodb/connection"
 import { User } from "@/lib/mongodb/models/User"
 import bcrypt from "bcryptjs"
-import { rateLimit } from "@/lib/security/rate-limiter"
-import { validateLoginAttempt } from "@/lib/security/login-security"
-import { SessionManager } from "@/lib/security/session-manager"
 import { authenticator } from 'otplib'
 
 export const authOptions = {
@@ -28,17 +25,12 @@ export const authOptions = {
         const clientIP = (xfwd?.split(",")[0]?.trim()) || (req as any)?.ip || "unknown"
         
         try {
-          // Rate limiting check
-          await rateLimit(credentials.email, clientIP)
-          
           await connectDB()
           const user = await User.findOne({ 
             email: credentials.email.toLowerCase() 
           }).select('+password +enable2FA +obj2FA +superAccess')
           
           if (!user) {
-            // Log failed attempt
-            await validateLoginAttempt(credentials.email, false, clientIP)
             throw new Error("Invalid credentials")
           }
 
@@ -50,7 +42,6 @@ export const authOptions = {
           const isPasswordValid = await bcrypt.compare(credentials.password, user.password)
           
           if (!isPasswordValid) {
-            await validateLoginAttempt(credentials.email, false, clientIP)
             throw new Error("Invalid credentials")
           }
 
@@ -79,9 +70,6 @@ export const authOptions = {
             // For now, accept fingerprint; could cross-check against user.trustedDevices
           }
 
-          // Log successful attempt
-          await validateLoginAttempt(credentials.email, true, clientIP)
-          
           // Update last login
           await User.findByIdAndUpdate(user._id, {
             $set: { 
