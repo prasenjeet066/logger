@@ -7,6 +7,14 @@ import { User } from "@/lib/mongodb/models/User";
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
+    console.log('Current user API - Session:', {
+      hasSession: !!session,
+      hasUser: !!session?.user,
+      userEmail: session?.user?.email,
+      userId: (session?.user as any)?.id,
+      username: (session?.user as any)?.username
+    });
+    
     if (!session?.user?.email) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
@@ -15,6 +23,13 @@ export async function GET(request: NextRequest) {
 
     // Find the user by email
     const user = await User.findOne({ email: session.user.email }).lean();
+    console.log('Current user API - Found user:', {
+      found: !!user,
+      userId: user?._id?.toString(),
+      username: user?.username,
+      email: user?.email
+    });
+    
     if (!user) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }

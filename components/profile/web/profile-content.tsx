@@ -196,7 +196,20 @@ export function WebProfileContent({ username }: ProfileContentProps) {
     )
   }
   
-  const isOwnProfile = profileData._id === currentUser?._id
+  // Enhanced own profile logic with fallback
+  const isOwnProfile = profileData._id === currentUser?._id && session?.user || 
+    (session?.user && (session.user as any)?.username === profileData.username)
+
+  // Debug logging for own profile logic
+  console.log('Web Profile Debug:', {
+    profileDataId: profileData?._id,
+    currentUserId: currentUser?._id,
+    sessionUsername: (session?.user as any)?.username,
+    profileUsername: profileData?.username,
+    sessionUser: session?.user,
+    isOwnProfile,
+    username
+  })
   
   const renderTabContent = (tabPosts: Post[], emptyMessage: string) => (
     <div>

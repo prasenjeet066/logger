@@ -12,10 +12,25 @@ export async function GET(request: NextRequest, { params }: { params: { username
     await connectDB()
 
     const session = await getServerSession(authOptions)
+    console.log('Profile API - Session:', {
+      hasSession: !!session,
+      hasUser: !!session?.user,
+      userEmail: session?.user?.email,
+      userId: (session?.user as any)?.id,
+      username: (session?.user as any)?.username,
+      requestedUsername: params.username
+    });
+    
     let currentUserId: string | null = null
     if (session?.user?.email) {
       const currentUser = await User.findOne({ email: session.user.email }).select("_id").lean()
       currentUserId = currentUser?._id.toString() || null
+      console.log('Profile API - Current user:', {
+        found: !!currentUser,
+        currentUserId,
+        requestedUsername: params.username,
+        isOwnProfile: currentUserId && params.username === (session?.user as any)?.username
+      });
     }
 
     const user = await User.findOne({ username: params.username }).lean()
