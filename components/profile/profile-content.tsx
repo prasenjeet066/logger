@@ -143,7 +143,14 @@ export function ProfileContent({ username }: ProfileContentProps) {
   }, [dispatch, username, profileData, botData])
   
   const handleFollow = async () => {
-    if (profileType === 'bot' || !session?.user || !profileData) return
+    if (profileType === 'bot' || !session?.user || !profileData) {
+      // Redirect to sign-in if not logged in
+      if (!session?.user) {
+        router.push('/auth/sign-in')
+        return
+      }
+      return
+    }
     
     try {
       await dispatch(followUser(profileData.username)).unwrap()
@@ -153,7 +160,10 @@ export function ProfileContent({ username }: ProfileContentProps) {
   }
   
   const handleLike = async (postId: string, isLiked: boolean) => {
-    if (!session?.user) return
+    if (!session?.user) {
+      router.push('/auth/sign-in')
+      return
+    }
     
     try {
       await dispatch(likePost(postId)).unwrap()
@@ -163,7 +173,10 @@ export function ProfileContent({ username }: ProfileContentProps) {
   }
   
   const handleRepost = async (postId: string, isReposted: boolean) => {
-    if (!session?.user) return
+    if (!session?.user) {
+      router.push('/auth/sign-in')
+      return
+    }
     
     try {
       await dispatch(repostPost(postId)).unwrap()

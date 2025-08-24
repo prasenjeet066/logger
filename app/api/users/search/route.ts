@@ -8,9 +8,7 @@ import { Follow } from "@/lib/mongodb/models/Follow"
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
-    if (!session?.user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-    }
+    let currentUser = null
 
     const { searchParams } = new URL(request.url)
     const query = searchParams.get("q")
@@ -21,9 +19,9 @@ export async function GET(request: NextRequest) {
 
     await connectDB()
 
-    const currentUser = await User.findOne({ email: session.user.email })
-    if (!currentUser) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 })
+    // Allow public access, but get current user if logged in
+    if (session?.user) {
+      currentUser = await User.findOne({ email: session.user.email })
     }
 
     // Search users by username or display name
@@ -37,14 +35,17 @@ export async function GET(request: NextRequest) {
       .limit(20)
       .lean()
 
-    // Get follow status for each user
-    const userIds = users.map((u) => u._id.toString())
-    const followingData = await Follow.find({
-      followerId: currentUser._id.toString(),
-      followingId: { $in: userIds },
-    }).lean()
+    // Get follow status for each user (only if logged in)
+    let followingSet = new Set<string>()
+    if (currentUser) {
+      const userIds = users.map((u) => u._id.toString())
+      const followingData = await Follow.find({
+        followerId: currentUser._id.toString(),
+        followingId: { $in: userIds },
+      }).lean()
 
-    const followingSet = new Set(followingData.map((f) => f.followingId))
+      followingSet = new Set(followingData.map((f) => f.followingId))
+    }
 
     const usersWithFollowStatus = users.map((user) => ({
       _id: user._id.toString(),

@@ -10,15 +10,17 @@ import { Bot } from "@/lib/mongodb/models/Bot";
 export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
   try {
     const session = await getServerSession(authOptions)
-    if (!session?.user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-    }
+    let currentUser = null
+    let currentUserId = null
 
     await connectDB()
 
-    const currentUser = await User.findOne({ email: session.user.email })
-    if (!currentUser) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 })
+    // Allow public access, but get current user if logged in
+    if (session?.user) {
+      currentUser = await User.findOne({ email: session.user.email })
+      if (currentUser) {
+        currentUserId = currentUser._id.toString()
+      }
     }
 
     // Find the post and populate author information
@@ -34,11 +36,15 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
       return NextResponse.json({ error: "Author not found" }, { status: 404 })
     }
 
-    // Check if current user liked this post
-    const isLiked = await Like.findOne({
-      userId: currentUser._id.toString(),
-      postId: params.id,
-    }).lean()
+    // Check if current user liked this post (only if logged in)
+    let isLiked = false
+    if (currentUserId) {
+      const likeRecord = await Like.findOne({
+        userId: currentUserId,
+        postId: params.id,
+      }).lean()
+      isLiked = !!likeRecord
+    }
 
     // If it's a repost, get the original post
     let originalPost = null
@@ -57,8 +63,10 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
         }
       }
     }
-    if(post.authorId !== currentUser._id.toString()){
-    if (post.visibility=='public' || typeof post.visibility === undefined) {
+    // Check visibility - only restrict access if post is private and viewer is not the author
+    if (post.visibility === 'private' && post.authorId !== currentUserId) {
+      return NextResponse.json({ error: "Post is private" }, { status: 403 })
+    }
       
     
     // Format the response
@@ -92,39 +100,6 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
     }
 
     return NextResponse.json(formattedPost)
-    };
-    }else{
-      const formattedPost = {
-      ...post,
-      _id: post._id.toString(),
-      content: post.content,
-      authorId: post.authorId,
-      author: {
-        _id: author._id.toString(),
-        username: author.username,
-        displayName: author.displayName,
-        avatarUrl: author.avatarUrl,
-        isVerified: author.isVerified || false,
-      },
-      mediaUrls: post.mediaUrls || [],
-      mediaType: post.mediaType,
-      likesCount: post.likesCount || 0,
-      repostsCount: post.repostsCount || 0,
-      repliesCount: post.repliesCount || 0,
-      isRepost: post.isRepost || false,
-      originalPostId: post.originalPostId,
-      originalPost: originalPost,
-      parentPostId: post.parentPostId,
-      hashtags: post.hashtags || [],
-      mentions: post.mentions || [],
-      isPinned: post.isPinned || false,
-      createdAt: post.createdAt,
-      updatedAt: post.updatedAt,
-      isLiked: !!isLiked,
-    }
-
-    return NextResponse.json(formattedPost)
-    }
   } catch (error) {
     console.error("Error fetching post:", error)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })

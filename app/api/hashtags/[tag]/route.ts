@@ -9,17 +9,17 @@ import { Like } from "@/lib/mongodb/models/Like"
 export async function GET(request: NextRequest, { params }: { params: { tag: string } }) {
   try {
     const session = await getServerSession(authOptions)
-    if (!session?.user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-    }
+    let currentUser = null
 
     const tag = decodeURIComponent(params.tag || '').toLowerCase()
     if (!tag) return NextResponse.json([], { status: 200 })
 
     await connectDB()
 
-    const currentUser = await User.findOne({ email: (session.user as any).email }).lean()
-    if (!currentUser) return NextResponse.json({ error: 'User not found' }, { status: 404 })
+    // Allow public access, but get current user if logged in
+    if (session?.user) {
+      currentUser = await User.findOne({ email: (session.user as any).email }).lean()
+    }
 
     const posts = await Post.find({ hashtags: tag })
       .sort({ createdAt: -1 })
@@ -30,9 +30,13 @@ export async function GET(request: NextRequest, { params }: { params: { tag: str
     const authors = await User.find({ _id: { $in: authorIds } }).select('_id username displayName avatarUrl isVerified').lean()
     const authorMap = new Map(authors.map(a => [a._id.toString(), a]))
 
-    const postIds = posts.map(p => p._id.toString())
-    const likes = await Like.find({ userId: currentUser._id.toString(), postId: { $in: postIds } }).select('postId').lean()
-    const likedSet = new Set(likes.map(l => l.postId.toString()))
+    // Get like status for current user (only if logged in)
+    let likedSet = new Set<string>()
+    if (currentUser) {
+      const postIds = posts.map(p => p._id.toString())
+      const likes = await Like.find({ userId: currentUser._id.toString(), postId: { $in: postIds } }).select('postId').lean()
+      likedSet = new Set(likes.map(l => l.postId.toString()))
+    }
 
     const result = posts.map(post => ({
       _id: post._id.toString(),

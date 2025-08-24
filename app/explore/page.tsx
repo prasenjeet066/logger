@@ -9,9 +9,10 @@ export default async function ExplorePage({ searchParams }) {
   
   const q = searchParams.q || null;
 
-  if (!session?.user) {
-    redirect("/auth/sign-in")
-  }
+  // Allow public access to explore page
+  // if (!session?.user) {
+  //   redirect("/auth/sign-in")
+  // }
   
   return <ExploreContent params={q} />
 }

@@ -102,7 +102,12 @@ export function WebProfileContent({ username }: ProfileContentProps) {
   }, [fetchProfileData])
   
   const handleFollow = async () => {
-    if (!profileData || !session?.user) return
+    if (!profileData) return
+    
+    if (!session?.user) {
+      router.push('/auth/sign-in')
+      return
+    }
     
     try {
       const response = await fetch(`/api/users/${profileData.username}/follow`, {
@@ -126,7 +131,10 @@ export function WebProfileContent({ username }: ProfileContentProps) {
   }
   
   const handleLike = async (postId: string, isLiked: boolean) => {
-    if (!session?.user) return
+    if (!session?.user) {
+      router.push('/auth/sign-in')
+      return
+    }
     
     try {
       const response = await fetch(`/api/posts/${postId}/like`, {
@@ -152,7 +160,10 @@ export function WebProfileContent({ username }: ProfileContentProps) {
   }
   
   const handleRepost = async (postId: string, isReposted: boolean) => {
-    if (!session?.user) return
+    if (!session?.user) {
+      router.push('/auth/sign-in')
+      return
+    }
     
     try {
       const response = await fetch(`/api/posts/${postId}/repost`, {
