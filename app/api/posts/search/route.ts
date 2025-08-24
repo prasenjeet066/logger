@@ -6,6 +6,8 @@ import { Post } from "@/lib/mongodb/models/Post"
 import { User } from "@/lib/mongodb/models/User"
 import { Like } from "@/lib/mongodb/models/Like"
 
+export const dynamic = 'force-dynamic'
+
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)

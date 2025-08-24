@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { useState, useEffect } from "react"
+import { useState, useEffect, Suspense } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { signIn } from "next-auth/react"
@@ -12,7 +12,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Loader2, Shield, ArrowLeft } from "lucide-react"
 
-export default function TwoFactorAuthPage() {
+function TwoFactorAuthContent() {
   const [totpCode, setTotpCode] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const [message, setMessage] = useState("")
@@ -217,5 +217,23 @@ export default function TwoFactorAuthPage() {
         </CardContent>
       </Card>
     </div>
+  )
+}
+
+export default function TwoFactorAuthPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 px-4">
+        <h1 className='logo-font text-sm'>logger</h1>
+        <Card className="w-full max-w-md border-none shadow-none bg-gray-50">
+          <CardContent className="text-center py-8">
+            <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
+            <p>Loading...</p>
+          </CardContent>
+        </Card>
+      </div>
+    }>
+      <TwoFactorAuthContent />
+    </Suspense>
   )
 }

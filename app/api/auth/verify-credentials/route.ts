@@ -7,6 +7,8 @@ import bcrypt from "bcryptjs"
 import { rateLimit } from "@/lib/security/rate-limiter"
 import { validateLoginAttempt } from "@/lib/security/login-security"
 
+export const dynamic = 'force-dynamic'
+
 export async function POST(request: NextRequest) {
   try {
     const { email, password } = await request.json()

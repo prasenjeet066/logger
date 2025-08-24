@@ -7,6 +7,8 @@ import { Post } from "@/lib/mongodb/models/Post"
 import { Follow } from "@/lib/mongodb/models/Follow" // Import Follow model
 import { Like } from "@/lib/mongodb/models/Like" // Import Like model
 
+export const dynamic = 'force-dynamic'
+
 export async function GET(request: NextRequest, { params }: { params: { username: string } }) {
   try {
     await connectDB()
