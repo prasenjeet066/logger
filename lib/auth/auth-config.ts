@@ -232,9 +232,9 @@ export const authOptions = {
   },
   jwt: {
     maxAge: 30 * 24 * 60 * 60, // 30 days
-    secret: process.env.NEXTAUTH_SECRET,
+    secret: 'mF0lRa8bX7N5kYhd4fAqzv1H2j2GtPpC5s9hI7V8wUQ=',
   },
-  secret: process.env.NEXTAUTH_SECRET,
+  secret: 'mF0lRa8bX7N5kYhd4fAqzv1H2j2GtPpC5s9hI7V8wUQ=',
   debug: process.env.NODE_ENV === "development",
   events: {
     async signIn({ token }) {
