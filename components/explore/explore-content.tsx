@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback } from "react"
 import { useSession } from "next-auth/react"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Search, Settings, MoreHorizontal, UserPlus, ArrowLeft } from "lucide-react"
+import { Search, Settings, MoreHorizontal, UserPlus, ArrowLeft, X } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { VerificationBadge } from "@/components/badge/verification-badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -62,6 +62,7 @@ export function ExploreContent({params}) {
   const [activeTab, setActiveTab] = useState("top")
   const [showSettings, setShowSettings] = useState(false) // New state for settings
   const [currentUser, setCurrentUser] = useState<any>(null) // Keeping this as any for now based on previous context
+  const [savedSearches, setSavedSearches] = useState<string[]>([])
   const router = useRouter()
 
   const tabs = [
@@ -72,11 +73,20 @@ export function ExploreContent({params}) {
     { id: "lists", label: "Lists" },
   ]
   
+  const defaultTopics = [
+    "#technology", "#design", "#javascript", "#ai", "#music", "#sports", "#news"
+  ]
+  
   const formatNumber = (num: number): string => {
     if (num >= 1000000) return (num / 1000000).toFixed(1) + "M"
     if (num >= 1000) return (num / 1000).toFixed(1) + "K"
     return num.toString()
   }
+
+  useEffect(() => {
+    const stored = typeof window !== 'undefined' ? localStorage.getItem('savedSearches') : null
+    if (stored) setSavedSearches(JSON.parse(stored))
+  }, [])
 
   useEffect(() => {
     if (session?.user) {
@@ -193,6 +203,23 @@ export function ExploreContent({params}) {
     setSearchQuery(query)
   }
 
+  const handleSaveSearch = (query: string) => {
+    if (!query.trim()) return
+    const next = Array.from(new Set([query, ...savedSearches])).slice(0, 10)
+    setSavedSearches(next)
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('savedSearches', JSON.stringify(next))
+    }
+  }
+
+  const handleRemoveSaved = (query: string) => {
+    const next = savedSearches.filter(s => s !== query)
+    setSavedSearches(next)
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('savedSearches', JSON.stringify(next))
+    }
+  }
+
   const handleFollow = async (userId: string, isFollowing: boolean) => {
     if (!session?.user) return
 
@@ -300,8 +327,13 @@ export function ExploreContent({params}) {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search"
-              className="w-full pl-12 pr-4 py-3 bg-gray-50 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black placeholder-gray-500"
+              className="w-full pl-12 pr-24 py-3 bg-gray-50 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black placeholder-gray-500"
             />
+            <div className="absolute right-2 top-1/2 -translate-y-1/2 flex gap-2">
+              <Button size="sm" variant="outline" className="rounded-full h-8 px-3" onClick={() => handleSaveSearch(searchQuery)}>
+                Save
+              </Button>
+            </div>
           </div>
           <Button variant="ghost" size="icon" onClick={() => setShowSettings(!showSettings)} className="ml-4">
             <Settings className="w-5 h-5" />
@@ -517,6 +549,40 @@ export function ExploreContent({params}) {
             ) : (
               // Default explore content when no search query
               <div className="space-y-6 p-4">
+                {/* Topics */}
+                <div className="bg-gray-50 rounded-2xl p-4">
+                  <h2 className="text-xl font-semibold mb-3">Topics</h2>
+                  <div className="flex flex-wrap gap-2">
+                    {defaultTopics.map((topic) => (
+                      <button
+                        key={topic}
+                        onClick={() => handleSearch(topic)}
+                        className="px-3 py-1.5 rounded-full border border-gray-300 bg-white hover:bg-gray-100 text-sm"
+                      >
+                        {topic}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Saved Searches */}
+                {savedSearches.length > 0 && (
+                  <div className="bg-gray-50 rounded-2xl p-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <h2 className="text-xl font-semibold">Saved searches</h2>
+                      <Button variant="ghost" size="sm" className="text-sm" onClick={() => { setSavedSearches([]); if (typeof window !== 'undefined') localStorage.removeItem('savedSearches') }}>Clear all</Button>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {savedSearches.map((q) => (
+                        <div key={q} className="flex items-center gap-1 px-3 py-1.5 rounded-full border border-gray-300 bg-white text-sm">
+                          <button onClick={() => handleSearch(q)} className="hover:underline">{q}</button>
+                          <button onClick={() => handleRemoveSaved(q)} className="ml-1 text-gray-400 hover:text-gray-600"><X className="w-3.5 h-3.5" /></button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 {/* What's happening (Trending) Section */}
                 <div className="bg-gray-50 rounded-2xl p-4">
                   <h2 className="text-xl font-semibold mb-4">What's happening</h2>
@@ -625,6 +691,23 @@ export function ExploreContent({params}) {
               Show more
             </Button>
           </div>
+          {/* Saved searches */}
+          {savedSearches.length > 0 && (
+            <div className="bg-gray-50 rounded-2xl p-4">
+              <div className="flex items-center justify-between mb-3">
+                <h2 className="text-xl font-semibold">Saved searches</h2>
+                <Button variant="ghost" size="sm" className="text-sm" onClick={() => { setSavedSearches([]); if (typeof window !== 'undefined') localStorage.removeItem('savedSearches') }}>Clear all</Button>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {savedSearches.map((q) => (
+                  <div key={q} className="flex items-center gap-1 px-3 py-1.5 rounded-full border border-gray-300 bg-white text-sm">
+                    <button onClick={() => handleSearch(q)} className="hover:underline">{q}</button>
+                    <button onClick={() => handleRemoveSaved(q)} className="ml-1 text-gray-400 hover:text-gray-600"><X className="w-3.5 h-3.5" /></button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
           {/* Who to Follow */}
           <div className="bg-gray-50 rounded-2xl p-4">
             <h2 className="text-xl font-semibold mb-4">Who to follow</h2>
