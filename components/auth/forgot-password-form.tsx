@@ -42,56 +42,63 @@ export function ForgotPasswordForm() {
 
   if (isSubmitted) {
     return (
-      <Card className="w-full max-w-md mx-auto">
-        <CardHeader className="text-center">
-          <CardTitle>Check your email</CardTitle>
-          <CardDescription>We've sent a password reset link to {email}</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="text-center">
-            <Link href="/auth/sign-in">
-              <Button variant="outline" className="w-full bg-transparent">
-                Back to sign in
-              </Button>
-            </Link>
-          </div>
-        </CardContent>
-      </Card>
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 px-4">
+        <h1 className='logo-font text-sm'>logger</h1>
+        <Card className="w-full max-w-md border-none shadow-none bg-gray-50">
+          <CardHeader className="text-center">
+            <CardTitle className="text-2xl font-semibold">Check your email</CardTitle>
+            <CardDescription>We've sent a password reset link to {email}</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="text-center">
+              <Link href="/auth/sign-in">
+                <Button variant="outline" className="w-full bg-transparent rounded-full" disabled={isLoading}>
+                  Back to sign in
+                </Button>
+              </Link>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     )
   }
 
   return (
-    <Card className="w-full max-w-md mx-auto">
-      <CardHeader className="text-center">
-        <CardTitle>Reset your password</CardTitle>
-        <CardDescription>Enter your email address and we'll send you a reset link</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
-            <Input
-              id="email"
-              type="email"
-              placeholder="Enter your email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              disabled={isLoading}
-            />
-          </div>
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 px-4">
+      <h1 className='logo-font text-sm'>logger</h1>
+      <Card className="w-full max-w-md border-none shadow-none bg-gray-50">
+        <CardHeader className="text-center">
+          <CardTitle className="text-2xl font-semibold">Reset your password</CardTitle>
+          <CardDescription>Enter your email address and we'll send you a reset link</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="Enter your email"
+                className='rounded-full'
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                disabled={isLoading}
+              />
+            </div>
 
-          <Button type="submit" className="w-full" disabled={isLoading}>
-            {isLoading ? "Sending..." : "Send reset link"}
-          </Button>
+            <Button type="submit" className="w-full rounded-full" disabled={isLoading}>
+              {isLoading ? "Sending..." : "Send reset link"}
+            </Button>
 
-          <div className="text-center">
-            <Link href="/auth/sign-in" className="text-sm text-blue-600 hover:underline">
-              Back to sign in
-            </Link>
-          </div>
-        </form>
-      </CardContent>
-    </Card>
+            <div className="text-center">
+              <Link href="/auth/sign-in" className="text-sm text-blue-600 hover:underline">
+                Back to sign in
+              </Link>
+            </div>
+          </form>
+        </CardContent>
+      </Card>
+    </div>
   )
 }

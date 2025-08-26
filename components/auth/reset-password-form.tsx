@@ -118,8 +118,9 @@ export function ResetPasswordForm() {
 
   if (isSuccess) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-        <Card className="w-full max-w-md">
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 px-4">
+        <h1 className='logo-font text-sm'>logger</h1>
+        <Card className="w-full max-w-md border-none shadow-none bg-gray-50">
           <CardHeader className="space-y-1 text-center">
             <div className="mx-auto w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mb-4">
               <CheckCircle className="h-6 w-6 text-green-600" />
@@ -130,7 +131,7 @@ export function ResetPasswordForm() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Button onClick={() => router.push("/auth/sign-in")} className="w-full">
+            <Button onClick={() => router.push("/auth/sign-in")} className="w-full rounded-full">
               Go to Sign In
             </Button>
           </CardContent>
@@ -141,14 +142,15 @@ export function ResetPasswordForm() {
 
   if (!isValidSession && error) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-        <Card className="w-full max-w-md">
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 px-4">
+        <h1 className='logo-font text-sm'>logger</h1>
+        <Card className="w-full max-w-md border-none shadow-none bg-gray-50">
           <CardHeader className="space-y-1 text-center">
             <CardTitle className="text-2xl">Invalid Reset Link</CardTitle>
             <CardDescription className="text-red-600">{error}</CardDescription>
           </CardHeader>
           <CardContent>
-            <Button onClick={() => router.push("/auth/forgot-password")} className="w-full">
+            <Button onClick={() => router.push("/auth/forgot-password")} className="w-full rounded-full">
               Request New Reset Link
             </Button>
           </CardContent>
@@ -158,8 +160,9 @@ export function ResetPasswordForm() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <Card className="w-full max-w-md">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 px-4">
+      <h1 className='logo-font text-sm'>logger</h1>
+      <Card className="w-full max-w-md border-none shadow-none bg-gray-50">
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl text-center">Set New Password</CardTitle>
           <CardDescription className="text-center">Choose a strong password for your account.</CardDescription>
@@ -177,7 +180,7 @@ export function ResetPasswordForm() {
                   onChange={(e) => setPassword(e.target.value)}
                   required
                   disabled={isLoading}
-                  className="pr-10"
+                  className="pr-10 rounded-full"
                 />
                 <button
                   type="button"
@@ -237,7 +240,7 @@ export function ResetPasswordForm() {
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   required
                   disabled={isLoading}
-                  className="pr-10"
+                  className="pr-10 rounded-full"
                 />
                 <button
                   type="button"
@@ -262,7 +265,7 @@ export function ResetPasswordForm() {
 
             <Button
               type="submit"
-              className="w-full"
+              className="w-full rounded-full"
               disabled={
                 isLoading ||
                 !password ||

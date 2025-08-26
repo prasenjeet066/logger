@@ -8,6 +8,7 @@ import { rateLimit } from "@/lib/security/rate-limiter"
 import { validateLoginAttempt } from "@/lib/security/login-security"
 import { SessionManager } from "@/lib/security/session-manager"
 import { authenticator } from 'otplib'
+import { NEXTAUTH_SECRET } from '@/lib/auth/secret'
 
 export const authOptions = {
   providers: [
@@ -232,9 +233,9 @@ export const authOptions = {
   },
   jwt: {
     maxAge: 30 * 24 * 60 * 60, // 30 days
-    secret: 'mF0lRa8bX7N5kYhd4fAqzv1H2j2GtPpC5s9hI7V8wUQ=',
+    secret: NEXTAUTH_SECRET,
   },
-  secret: 'mF0lRa8bX7N5kYhd4fAqzv1H2j2GtPpC5s9hI7V8wUQ=',
+  secret: NEXTAUTH_SECRET,
   debug: process.env.NODE_ENV === "development",
   events: {
     async signIn({ token }) {
