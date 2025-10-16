@@ -119,7 +119,7 @@ export function ResetPasswordForm() {
   if (isSuccess) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 px-4">
-        <h1 className='logo-font text-sm'>logger</h1>
+        <h1 className='logo-font text-sm'>blue.ai</h1>
         <Card className="w-full max-w-md border-none shadow-none bg-gray-50">
           <CardHeader className="space-y-1 text-center">
             <div className="mx-auto w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mb-4">
@@ -143,7 +143,7 @@ export function ResetPasswordForm() {
   if (!isValidSession && error) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 px-4">
-        <h1 className='logo-font text-sm'>logger</h1>
+        <h1 className='logo-font text-sm'>blue.ai</h1>
         <Card className="w-full max-w-md border-none shadow-none bg-gray-50">
           <CardHeader className="space-y-1 text-center">
             <CardTitle className="text-2xl">Invalid Reset Link</CardTitle>
@@ -161,7 +161,7 @@ export function ResetPasswordForm() {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 px-4">
-      <h1 className='logo-font text-sm'>logger</h1>
+      <h1 className='logo-font text-sm'>blue.ai</h1>
       <Card className="w-full max-w-md border-none shadow-none bg-gray-50">
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl text-center">Set New Password</CardTitle>

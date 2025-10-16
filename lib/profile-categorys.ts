@@ -33,7 +33,7 @@ const profile_categories = [
   { name: "Radio Host" },
   { name: "TV Host" },
   { name: "Journalist" },
-  { name: "Blogger" },
+  { name: "Bblue.ai" },
   { name: "Podcaster" },
   { name: "Entrepreneur" },
   { name: "Chef" },

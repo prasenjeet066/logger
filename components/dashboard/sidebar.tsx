@@ -78,7 +78,7 @@ export function Sidebar({ isExpand = true, profile, onSignOut, newSidebar, conte
       {/* Close button for mobile */}
       {isMobile && (
         <div className="lg:hidden flex justify-between items-center mb-4 pb-2 border-b">
-          <h1 className="text-xl logo-font">logger</h1>
+          <h1 className="text-xl logo-font">blue.ai</h1>
           <Button variant="ghost" size="icon" onClick={() => window.dispatchEvent(new Event("closeSidebar"))}>
             <X className="h-5 w-5" />
           </Button>
@@ -87,7 +87,7 @@ export function Sidebar({ isExpand = true, profile, onSignOut, newSidebar, conte
 
       {!isMobile && (
         <div className="hidden lg:block mb-6">
-          <h1 className="text-2xl logo-font">logger</h1>
+          <h1 className="text-2xl logo-font">blue.ai</h1>
         </div>
       )}
 

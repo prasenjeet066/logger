@@ -7,7 +7,7 @@ import { authenticator } from 'otplib'
 
 function generateTotpSecret(email: string) {
   const secret = authenticator.generateSecret()
-  const otpauth = authenticator.keyuri(email, 'logger', secret)
+  const otpauth = authenticator.keyuri(email, 'blue.ai', secret)
   return { secret, otpauth }
 }
 

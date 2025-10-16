@@ -113,7 +113,7 @@ function TwoFactorAuthContent() {
   if (isLocked) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 px-4">
-        <h1 className='logo-font text-sm'>logger</h1>
+        <h1 className='logo-font text-sm'>blue.ai</h1>
         <Card className="w-full max-w-md border-none shadow-none bg-gray-50">
           <CardHeader className="text-center">
             <CardTitle className="text-2xl font-semibold flex items-center justify-center gap-2">
@@ -144,7 +144,7 @@ function TwoFactorAuthContent() {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 px-4">
-      <h1 className='logo-font text-sm'>logger</h1>
+      <h1 className='logo-font text-sm'>blue.ai</h1>
       <Card className="w-full max-w-md border-none shadow-none bg-gray-50">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl font-semibold flex items-center justify-center gap-2">
@@ -224,7 +224,7 @@ export default function TwoFactorAuthPage() {
   return (
     <Suspense fallback={
       <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 px-4">
-        <h1 className='logo-font text-sm'>logger</h1>
+        <h1 className='logo-font text-sm'>blue.ai</h1>
         <Card className="w-full max-w-md border-none shadow-none bg-gray-50">
           <CardContent className="text-center py-8">
             <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />

@@ -122,7 +122,7 @@ export function Header({ profile, sidebarExpand, setSidebarExpand, onCreatePost 
             <Menu className='h-4 w-4'/>
           </Button>
           <Link href="/" className="hover:opacity-80 transition-opacity">
-            <h1 className="text-xl  logo-font">logger</h1>
+            <h1 className="text-xl  logo-font">blue.ai</h1>
           </Link>
         </div>
 
