@@ -116,8 +116,12 @@
 /* Logo font - keep this separate and unchanged */
 .logo-font {
   font-family: "logofont";
-  color: #240DFF !important;
+  color: #207EFF !important;
   
+}
+.logo-font::after{
+  content: ".ai";
+  color: #000000C9;
 }
 
 /* Video player styles */
