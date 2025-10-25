@@ -165,11 +165,11 @@ export function Timeline(userId: string, typesOfAlg: string) {
   
   return (
     <div className={`space-y-0 ${!isMobile && 'flex flex-col gap-2'}`}>
-      <div className={`flex flex-row  gap-4 items-center   w-full my-4 ${isMobile ? "justify-between px-4":"justify-start"}`}>
+      <div className={`flex flex-row  gap-4 items-center   w-full my-4 ${isMobile ? "justify-between border-b  px-4":"justify-start"}`}>
         {algorithmLevels.map((lavel) => (
   <Button
     key={lavel.alg}
-    className={currentAlg === lavel.alg ? 'bg-indigo-600 text-white max-h-8 rounded-full px-4 text-xs' : 'border text-gray-800 rounded-full bg-white text-gray-800  max-h-8 text-xs'}
+    className={currentAlg === lavel.alg ? 'text-indigo-600  max-h-8 rounded-full px-4 text-xs' : 'border text-gray-800 rounded-full bg-white text-gray-200  max-h-8 text-xs'}
     onClick={() => {
       if (currentAlg !== lavel.alg) {
         setCurrentAlg(lavel.alg)
