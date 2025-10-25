@@ -12,7 +12,7 @@ export default function NotFound() {
         <div>
           </div>
           </div>
-          <h1 className='logo-font text-md divide-y p-4 text-gray-600'>blue.ai</h1>
+          <h1 className='logo-font text-md divide-y p-4 text-gray-600'>blue</h1>
           </div>
   )
 }

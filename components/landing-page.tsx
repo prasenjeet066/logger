@@ -49,7 +49,7 @@ export const LandingPage = () => {
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.2, duration: 0.6 }}
           >
-            blue.ai
+            blue
           </motion.h1>
           
           <motion.nav
@@ -235,7 +235,7 @@ export const LandingPage = () => {
       <footer className="border-t border-gray-200 bg-white/80">
         <div className="container mx-auto px-4 max-w-6xl py-8 flex flex-col sm:flex-row items-center justify-between">
           <div className="flex items-center gap-2">
-            <span className="logo-font text-sm">blue.ai</span>
+            <span className="logo-font text-sm">blue</span>
             <span className="text-xs text-gray-500">© {new Date().getFullYear()}</span>
           </div>
           <div className="flex items-center gap-4 mt-3 sm:mt-0">
