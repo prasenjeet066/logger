@@ -74,7 +74,7 @@ export function Sidebar({ isExpand = true, profile, onSignOut, newSidebar, conte
   }
 
   return (
-    <div className={isMobile ? "h-full w-auto flex flex-col p-3 z-50" : "h-auto flex flex-col p-3 z-50 bg-white rounded-lg"}>
+    <div className={isMobile ? "h-full w-full flex flex-col p-3 z-50" : "h-auto flex flex-col p-3 z-50 bg-white rounded-lg"}>
       {/* Close button for mobile */}
       {isMobile && (
         <div className="lg:hidden flex justify-between items-center mb-4 pb-2 border-b">
