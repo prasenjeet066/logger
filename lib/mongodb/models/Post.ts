@@ -5,7 +5,7 @@ export interface IPost extends Document {
   content: string
   authorId: string
   mediaUrls?: string[]
-  mediaType?: "image" | "video" | "gif" 
+  mediaType?: "image" | "video" | "gif" | null  // Allow null
   likesCount: number
   repostsCount: number
   repliesCount: number
@@ -31,7 +31,7 @@ const postSchema = new Schema<IPost>(
     content: {
       type: String,
       required: true,
-      maxlength: 380, // Updated to match your frontend limit
+      maxlength: 380,
       trim: true
     },
     authorId: {
@@ -45,8 +45,8 @@ const postSchema = new Schema<IPost>(
     },
     mediaType: {
       type: String,
-      enum: ["image", "video", "gif"],
-      default: [],
+      enum: ["image", "video", "gif", null],  // Added null to enum
+      default: null,  // Changed from [] to null
     },
     likesCount: {
       type: Number,
