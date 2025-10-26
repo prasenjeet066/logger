@@ -273,16 +273,7 @@ export default function CreatePostPage({ user }: CreatePostPageProps) {
   }, [uploadedFiles]);
 
   // Trigger fact-check when content or images change
-  useEffect(() => {
-    const timeoutId = setTimeout(async () => {
-      if (content.trim() || uploadedFiles.length > 0) {
-        const imageFiles = await getImageFilesForFactCheck();
-        await performFactCheck(content, imageFiles);
-      }
-    }, 2000); // Debounce for 2 seconds
 
-    return () => clearTimeout(timeoutId);
-  }, [content, uploadedFiles, performFactCheck, getImageFilesForFactCheck]);
 
   const handlePost = async () => {
     if (!content.trim() && totalMediaCount === 0 && !poll.show) {
@@ -563,8 +554,8 @@ export default function CreatePostPage({ user }: CreatePostPageProps) {
   }, [uploadedFiles, dispatch])
   
   return (
-    <div className="min-h-screen bg-white">
-      <div className="sticky top-0 z-50 bg-white border-b border-gray-200">
+    <div className="min-h-screen bg-gray-50">
+      <div className="sticky top-0 z-50">
         <div className="max-w-2xl mx-auto px-4 py-3 flex justify-between items-center">
           <Button variant="ghost" size="icon" onClick={() => router.back()}>
             <X className="h-5 w-5" />
@@ -580,7 +571,7 @@ export default function CreatePostPage({ user }: CreatePostPageProps) {
         </div>
       </div>
 
-      <div className="max-w-2xl mx-auto p-4">
+      <div className="max-w-2xl mx-auto p-4 bg-white">
         <div className="flex items-center gap-3 mb-4">
           <Avatar className="h-12 w-12">
             <AvatarImage src={session?.user?.avatarUrl || "https://placehold.co/48x48/aabbcc/ffffff?text=U"} />

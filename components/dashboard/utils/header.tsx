@@ -12,7 +12,7 @@ import type { IUser } from "@/lib/mongodb/models/User" // Import IUser type
 
 export const Header = ({profile,handleSignOut}) => {
   return (
-    <div className="lg:hidden sticky top-0 border-none bg-white bg-white/50 z-30 backdrop-blur-md px-4 py-2">
+    <div className="lg:hidden sticky top-0  bg-gray-50 z-30  px-4 py-2">
         <div className="flex items-center justify-between">
           <Sheet>
               <SheetTrigger asChild>
