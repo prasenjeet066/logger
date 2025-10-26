@@ -7,7 +7,6 @@ import Counter from '@/components/ui/counter'
 import { useState, useCallback, useMemo, useRef, useEffect } from "react"
 import { formatDistanceToNow } from "date-fns"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { getImageRatioFromSrc, getHeightFromWidth } from "@/lib/ration-lib"
 import { Button } from "@/components/ui/button"
 import { Heart, Loader2, MessageCircle, Languages, Repeat2, Share, Pin, AlertCircle } from "lucide-react"
 import Link from "next/link"
@@ -18,7 +17,6 @@ import DOMPurify from "dompurify"
 import { useRouter, usePathname } from "next/navigation"
 import type { Post } from "@/types/post"
 import { useSession } from "next-auth/react"
-import { loadModule } from 'cld3-asm'
 
 interface PostCardProps {
   post: Post
@@ -46,7 +44,6 @@ const extractFirstUrl = (text: string): string | null => {
 const smartTruncate = (text: string, maxLength: number): string => {
   if (text.length <= maxLength) return text
   
-  // Try to break at sentence boundary
   const sentences = text.match(/[^.!?]+[.!?]+/g)
   if (sentences) {
     let truncated = ""
@@ -57,7 +54,6 @@ const smartTruncate = (text: string, maxLength: number): string => {
     if (truncated.length > 0) return truncated.trim() + "..."
   }
   
-  // Fallback to word boundary
   const words = text.split(" ")
   let truncated = ""
   for (const word of words) {
@@ -82,6 +78,7 @@ export function PostSection({ post, onLike, onRepost, onReply, isMobile = false 
     targetLang: "bn",
     error: null,
   })
+  const [isClient, setIsClient] = useState(false)
   
   const router = useRouter()
   const pathname = usePathname()
@@ -90,31 +87,15 @@ export function PostSection({ post, onLike, onRepost, onReply, isMobile = false 
   const postUrl = useMemo(() => extractFirstUrl(post.content), [post.content])
   const hasMedia = useMemo(() => post.mediaUrls && post.mediaUrls.length > 0, [post.mediaUrls])
   const isPostPage = useMemo(() => pathname.startsWith("/post"), [pathname])
-  const imageRef = useRef<HTMLImageElement>(null)
-  const [imageH, setH] = useState(0)
-  const [postLang, setPostLang] = useState('en')
+  
   const MAX_LENGTH = 100
   const shouldTrim = post.content.length > MAX_LENGTH
   const displayContent = shouldTrim && showTrim === "trim" ? smartTruncate(post.content, MAX_LENGTH) : post.content
 
-  async function detectLanguage(text: string): Promise<string | null> {
-    try {
-      const cldFactory = await loadModule() // Load the WebAssembly module
-      const cld = cldFactory.create() // Create a CLD3 instance
-      const result = cld.findLanguage(text) // Detect the language
-      
-      if (result && result.isReliable) {
-        return result.language
-      } else if (result) {
-        return result.language
-      } else {
-        return null // Fallback when detection fails
-      }
-    } catch (error) {
-      console.error("Error loading or using CLD3:", error)
-      return null
-    }
-  }
+  // Set client flag after mount to avoid hydration issues
+  useEffect(() => {
+    setIsClient(true)
+  }, [])
   
   // Function to check mentions
   const checkTrueMentions = useCallback((username: string) => {
@@ -163,7 +144,6 @@ export function PostSection({ post, onLike, onRepost, onReply, isMobile = false 
   const formatContent = useCallback((content: string) => {
     const urlRegex = /(https?:\/\/[^\s]+)/g
     
-    // Sanitize content first
     const sanitizedContent = DOMPurify.sanitize(content, {
       ALLOWED_TAGS: [],
       ALLOWED_ATTR: [],
@@ -272,17 +252,6 @@ export function PostSection({ post, onLike, onRepost, onReply, isMobile = false 
     }
   }, [post._id, currentUserId, onReply])
 
-  useEffect(() => {
-    const detect = async () => {
-      if (post.content.length) {
-        const lang = await detectLanguage(post.content)
-        console.log(lang)
-        setPostLang(lang || 'en')
-      }
-    }
-    detect()
-  }, [post])
-
   // Enhanced media rendering with loading states
   const renderMedia = useCallback(
     (mediaUrls: string[] | null, mediaType: string | null) => {
@@ -317,7 +286,7 @@ export function PostSection({ post, onLike, onRepost, onReply, isMobile = false 
                 <img
                   src={url || "/placeholder.svg"}
                   alt={`GIF media ${index + 1}`}
-                  className="w-full max-h-48 aspect-3/3 object-cover cursor-pointer hover:opacity-90 rounded transition-opacity"
+                  className="w-full max-h-48 aspect-square object-cover cursor-pointer hover:opacity-90 rounded transition-opacity"
                   onClick={(e) => handleMediaClick(url, e)}
                   loading="lazy"
                   onError={(e) => {
@@ -335,24 +304,15 @@ export function PostSection({ post, onLike, onRepost, onReply, isMobile = false 
         )
       }
       
-      if (imageRef.current && mediaUrls[0]) {
-        getImageRatioFromSrc(mediaUrls[0]).then((ratio) => {
-          const height = getHeightFromWidth(imageRef.current?.style.width || "100%", ratio)
-          setH(height)
-        })
-      }
-      
       // Default: images
       return (
         <div className={`mt-3 grid gap-2 ${mediaUrls.length === 1 ? "grid-cols-1" : "grid-cols-2"}`}>
           {mediaUrls.slice(0, 4).map((url, index) => (
-            <div key={index} className="relative group">
-              <Image
-                ref={imageRef}
+            <div key={index} className="relative group aspect-square">
+              <img
                 src={url || "/placeholder.svg"}
-                placeholder="blur"
                 alt={`Post media ${index + 1}`}
-                className={`w-full ${imageH ? `h-[${imageH}px]` : "h-32 lg:h-48"} object-cover cursor-pointer hover:opacity-90 rounded transition-opacity`}
+                className="w-full h-full object-cover cursor-pointer hover:opacity-90 rounded transition-opacity"
                 onClick={(e) => handleMediaClick(url, e)}
                 loading="lazy"
                 onError={(e) => {
@@ -371,7 +331,7 @@ export function PostSection({ post, onLike, onRepost, onReply, isMobile = false 
         </div>
       )
     },
-    [imageH],
+    [],
   )
   
   // Enhanced post click handler
@@ -391,6 +351,7 @@ export function PostSection({ post, onLike, onRepost, onReply, isMobile = false 
       className={isMobile ? "border-b hover:bg-gray-50 transition-colors h-auto cursor-pointer" : "space-y-2 hover:bg-gray-50 transition-colors cursor-pointer h-auto rounded-md border-2 border-gray-50"}
       onClick={handlePostClick}
       aria-label={`Post by ${post.author.displayName}`}
+      suppressHydrationWarning
     >
       <div className="p-4">
         {/* Repost header */}
@@ -461,8 +422,8 @@ export function PostSection({ post, onLike, onRepost, onReply, isMobile = false 
                 <div className="flex flex-row items-center gap-1 -mt-2">
                   <span className="text-gray-500 text-[10px]">@{post.author.username}</span>
                   <span className="text-gray-500 text-[10px]">·</span>
-                  <time className="text-gray-500 text-[10px]" dateTime={post.createdAt}>
-                    {formatDistanceToNow(new Date(post.createdAt), { addSuffix: true })}
+                  <time className="text-gray-500 text-[10px]" dateTime={post.createdAt} suppressHydrationWarning>
+                    {isClient && formatDistanceToNow(new Date(post.createdAt), { addSuffix: true })}
                   </time>
                 </div>
               </div>
@@ -473,7 +434,7 @@ export function PostSection({ post, onLike, onRepost, onReply, isMobile = false 
           {post.content && (
             <div className="mt-2">
               <div
-                className={`text-gray-900 whitespace-pre-wrap text-sm lg:text-base leading-relaxed ${postLang === 'bn' ? "font-bengali" : ""}`}
+                className="text-gray-900 whitespace-pre-wrap text-sm lg:text-base leading-relaxed"
                 dangerouslySetInnerHTML={{ __html: formatContent(contentToDisplay) }}
               />
 
@@ -532,11 +493,10 @@ export function PostSection({ post, onLike, onRepost, onReply, isMobile = false 
           )}
 
           {/* Media */}
-          
-          {post.mediaType!==null && renderMedia(post.mediaUrls, post.mediaType)}
+          {post.mediaType !== null && renderMedia(post.mediaUrls, post.mediaType)}
           
           {post.watch && (
-            <span className="text-xs text-gray-600 flex flex-row items-center">
+            <span className="text-xs text-gray-600 flex flex-row items-center" suppressHydrationWarning>
               <Counter
                 value={post.watch || 0}
                 gap={0}
@@ -559,8 +519,7 @@ export function PostSection({ post, onLike, onRepost, onReply, isMobile = false 
               }}
               aria-label={`Reply to post. ${post.repliesCount || 0} replies`}
             >
-                 <Icon prefix='far' name='comment-alt' className='h-4 w-4 mr-1'/>
-            
+              <Icon prefix='far' name='comment-alt' className='h-4 w-4 mr-1'/>
               <Counter
                 value={post.repliesCount || 0}
                 gap={0}
@@ -588,8 +547,7 @@ export function PostSection({ post, onLike, onRepost, onReply, isMobile = false 
               {repostLoading ? (
                 <Loader2 className="h-4 w-4 mr-1 animate-spin" />
               ) : (
-              
-               <Icon prefix={`${post.isReposted ? "fad" : "far"}`} name='repeat' className='h-4 w-4 mr-1'/>
+                <Icon prefix={`${post.isReposted ? "fad" : "far"}`} name='repeat' className='h-4 w-4 mr-1'/>
               )}
               <Counter
                 value={post.repostsCount || 0}
@@ -629,7 +587,7 @@ export function PostSection({ post, onLike, onRepost, onReply, isMobile = false 
               onClick={(e) => e.stopPropagation()}
               aria-label="Share post"
             >
-             <Icon prefix='far' name='bookmark' className='h-4 w-4 mr-1'/>
+              <Icon prefix='far' name='bookmark' className='h-4 w-4 mr-1'/>
               <span className="text-xs lg:text-sm">Save</span>
             </Button>
 
