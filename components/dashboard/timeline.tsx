@@ -1,30 +1,11 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { Button } from "@/components/ui/button"
+import { Spinner } from "@/components/loader/spinner"
 import { PostCard } from "./post-card"
 import { useMobile } from "@/hooks/use-mobile"
-import { Spinner } from "@/components/loader/spinner"
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 
-// Get user's personalized timeline
-/*
-const timeline = await getPersonalizedTimeline(
-  userId,
-  'algorithmic', // or 'chronological'
-  50, // limit
-  0,  // skip
-  { engagementWeight: 0.4 } // optional config override
-)
-
-// Get trending posts
-const trending = await getTrendingPosts(20, 24) // 20 posts from last 24 hours
-
-// Custom sorting
-const sortedPosts = await sortPostsAlgorithmically(
-  posts,
-  'algorithmic',
-  userId
-)*/
 interface Post {
   _id: string
   content: string
@@ -55,34 +36,27 @@ interface Post {
   repostedBy ? : string
 }
 
-export function Timeline(userId: string, typesOfAlg: string) {
+export function Timeline({ userId, typesOfAlg }: { userId: string;typesOfAlg: string }) {
   const [posts, setPosts] = useState < Post[] > ([])
   const [loading, setLoading] = useState(true)
   const [loadingPost, setLoadingPost] = useState(true)
   const [error, setError] = useState < string | null > (null)
+  const [currentAlg, setCurrentAlg] = useState(typesOfAlg || "algorithmic")
   
-  const [currentAlg, setCurrentAlg] = useState('algorithmic');
   const isMobile = useMobile()
+  
   useEffect(() => {
-    ['chronological', 'algorithmic', 'trending'].map((al) => {
-      if (al === typesOfAlg) {
-        setCurrentAlg(al)
-      }
-    })
     fetchPosts()
-  }, [currentAlg, typesOfAlg])
+  }, [currentAlg])
   
   const fetchPosts = async () => {
     try {
       setLoadingPost(true)
+      const response = await fetch(`/api/alg?algorithm=${currentAlg}`)
+      if (!response.ok) throw new Error("Failed to fetch posts")
       
-      const timeline = await fetch(`/api/alg?algorithm=${currentAlg}`)
-      if (timeline.ok) {
-        
-        const timelinePost = await timeline.json()
-        setPosts(timelinePost.posts)
-      }
-      
+      const timelineData = await response.json()
+      setPosts(timelineData.posts)
     } catch (err) {
       setError(err instanceof Error ? err.message : "An error occurred")
     } finally {
@@ -93,50 +67,41 @@ export function Timeline(userId: string, typesOfAlg: string) {
   
   const handleLike = async (postId: string, isLiked: boolean) => {
     try {
-      const response = await fetch(`/api/posts/${postId}/like`, {
-        method: "POST",
-      })
-      if (!response.ok) {
-        throw new Error("Failed to toggle like")
-      }
-      const result = await response.json()
-      setPosts((prevPosts) =>
-        prevPosts.map((post) =>
-          post._id === postId ? { ...post, isLiked: result.liked, likesCount: post.likesCount + (result.liked ? 1 : -1) } :
-          post,
+      const res = await fetch(`/api/posts/${postId}/like`, { method: "POST" })
+      if (!res.ok) throw new Error("Failed to toggle like")
+      const result = await res.json()
+      
+      setPosts((prev) =>
+        prev.map((p) =>
+          p._id === postId ?
+          {
+            ...p,
+            isLiked: result.liked,
+            likesCount: p.likesCount + (result.liked ? 1 : -1),
+          } :
+          p,
         ),
       )
     } catch (error) {
       console.error("Error toggling like:", error)
     }
   }
-  const algorithmLevels = [
-  {
-    name: 'For You',
-    alg: 'algorithmic',
-  },
-  {
-    name: 'Trending',
-    alg: 'trending'
-    
-  },
-  {
-    name: 'Most Recently',
-    alg: 'chronological'
-  }]
+  
   const handleRepost = async (postId: string, isReposted: boolean) => {
     try {
-      const response = await fetch(`/api/posts/${postId}/repost`, {
-        method: "POST",
-      })
-      if (!response.ok) {
-        throw new Error("Failed to toggle repost")
-      }
-      const result = await response.json()
-      setPosts((prevPosts) =>
-        prevPosts.map((post) =>
-          post._id === postId ? { ...post, isReposted: result.reposted, repostsCount: post.repostsCount + (result.reposted ? 1 : -1) } :
-          post,
+      const res = await fetch(`/api/posts/${postId}/repost`, { method: "POST" })
+      if (!res.ok) throw new Error("Failed to toggle repost")
+      const result = await res.json()
+      
+      setPosts((prev) =>
+        prev.map((p) =>
+          p._id === postId ?
+          {
+            ...p,
+            isReposted: result.reposted,
+            repostsCount: p.repostsCount + (result.reposted ? 1 : -1),
+          } :
+          p,
         ),
       )
     } catch (error) {
@@ -144,13 +109,10 @@ export function Timeline(userId: string, typesOfAlg: string) {
     }
   }
   
-  // No longer need handlePostUpdate or handleNewPost here as PostCard handles its own state updates
-  // and Timeline fetches all posts.
-  
   if (loading) {
     return (
       <div className="flex justify-center items-center py-8">
-        <Spinner withLabel={false}/>
+        <Spinner withLabel={false} />
       </div>
     )
   }
@@ -159,51 +121,58 @@ export function Timeline(userId: string, typesOfAlg: string) {
     return <div className="text-center py-8 text-red-500">Error: {error}</div>
   }
   
-  if (posts.length === 0) {
-    return <div className="text-center py-8 text-muted-foreground">No posts yet. Be the first to post!</div>
-  }
+  const algorithmTabs = [
+    { name: "For You", alg: "algorithmic" },
+    { name: "Trending", alg: "trending" },
+    { name: "Most Recent", alg: "chronological" },
+  ]
   
   return (
-    <div className={`space-y-0 ${!isMobile && 'flex flex-col gap-2'}`}>
-      <div className={`flex flex-row  gap-4 items-center  pb-4  w-full my-4 ${isMobile ? "justify-between border-b  px-4":"justify-start"}`}>
-        {algorithmLevels.map((lavel) => (
-  <Button
-    key={lavel.alg}
-    className={currentAlg === lavel.alg ? 'text-indigo-600 border-b border-4 border-indigo-400 p-2 max-h-8  px-4 text-xs' : 'text-gray-800  max-h-8 text-xs'}
-    onClick={() => {
-      if (currentAlg !== lavel.alg) {
-        setCurrentAlg(lavel.alg)
-      }
-    }}
-  >
-    {lavel.name}
-  </Button>
-))}
-        
-      </div>
-      {loadingPost === true ? (
-        <>
-          <div className="flex justify-center items-center py-8">
-        <Spinner />
-      </div>
-        </>
-      ) : (
-      <>
-    
-      <div>
+    <div className="w-full">
+      <Tabs
+        value={currentAlg}
+        onValueChange={(val) => setCurrentAlg(val)}
+        className="w-full"
+      >
+        <TabsList
+          className={`w-full flex ${isMobile ? "justify-between px-4 border-b" : "justify-start gap-4 mb-4"}`}
+        >
+          {algorithmTabs.map((tab) => (
+            <TabsTrigger
+              key={tab.alg}
+              value={tab.alg}
+              className="text-xs sm:text-sm data-[state=active]:border-b-2 data-[state=active]:border-indigo-500 data-[state=active]:text-indigo-600"
+            >
+              {tab.name}
+            </TabsTrigger>
+          ))}
+        </TabsList>
 
-      {posts.map((post) => (
-        <PostCard
-          key={post._id}
-          post={post}
-          onLike={handleLike}
-          onRepost={handleRepost}
-          // onReply is not directly handled by Timeline, but by PostCard itself
-        />
-      ))}
-      </div>
-      </>
-    )}
+        {algorithmTabs.map((tab) => (
+          <TabsContent key={tab.alg} value={tab.alg}>
+            {loadingPost ? (
+              <div className="flex justify-center items-center py-8">
+                <Spinner />
+              </div>
+            ) : posts.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                No posts yet. Be the first to post!
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {posts.map((post) => (
+                  <PostCard
+                    key={post._id}
+                    post={post}
+                    onLike={handleLike}
+                    onRepost={handleRepost}
+                  />
+                ))}
+              </div>
+            )}
+          </TabsContent>
+        ))}
+      </Tabs>
     </div>
   )
 }
