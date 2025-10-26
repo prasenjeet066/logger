@@ -135,7 +135,7 @@ export function Timeline({ userId, typesOfAlg }: { userId: string;typesOfAlg: st
         <TabsList
           className={`flex w-full ${
             isMobile ? "justify-between px-3 border-b" : "justify-center gap-2 mb-6"
-          } bg-muted/30 p-1 rounded-full`}
+          } bg-muted/30 p-1`}
         >
           {algorithmTabs.map((tab) => (
             <TabsTrigger

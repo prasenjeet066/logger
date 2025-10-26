@@ -532,7 +532,8 @@ export function PostSection({ post, onLike, onRepost, onReply, isMobile = false 
           )}
 
           {/* Media */}
-          {renderMedia(post.mediaUrls, post.mediaType)}
+          
+          {post.mediaType!==null && renderMedia(post.mediaUrls, post.mediaType)}
           
           {post.watch && (
             <span className="text-xs text-gray-600 flex flex-row items-center">

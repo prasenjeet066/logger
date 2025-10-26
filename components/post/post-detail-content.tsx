@@ -453,7 +453,7 @@ export function PostDetailContent({
             }}
           >
             <ListFilter className="w-4 h-4" />
-            {algorithmState !== "forceView" ? algorithmState : ""}
+            
           </span>
         </div>
 
