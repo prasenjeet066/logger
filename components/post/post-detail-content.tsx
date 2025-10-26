@@ -389,8 +389,7 @@ export function PostDetailContent({
 
   // Main UI
   return (
-    
-    <EB>
+
     <div className="min-h-screen bg-white">
       <div className="max-w-2xl mx-auto border-x min-h-screen">
         {/* Header */}
@@ -422,7 +421,7 @@ export function PostDetailContent({
             </div>
           </div>
         )}
-
+<EB>
         {/* Main Post */}
         <PostSection
           post={post}
@@ -432,7 +431,7 @@ export function PostDetailContent({
           onRepost={handleRepost}
           onReply={() => handleReplyCreated()}
         />
-
+</EB>
         {/* Reply Input */}
         {!commentState.replyingTo && renderReplyInput()}
 
@@ -496,6 +495,6 @@ export function PostDetailContent({
           )}
         </div>
       </div>
-    </div></EB>
+    </div>
   )
 }
