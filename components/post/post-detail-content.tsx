@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react"
 import { useRouter } from "next/navigation"
 import Image from "next/image"
-
+import EB from '@/components/ErrorBoundary'
 import { ReplyCard } from "@/components/reply/reply-card"
 import { Spinner } from "@/components/loader/spinner"
 import { PostSection } from "@/components/post/post-section"
@@ -389,10 +389,12 @@ export function PostDetailContent({
 
   // Main UI
   return (
+    
+    <EB>
     <div className="min-h-screen bg-white">
       <div className="max-w-2xl mx-auto border-x min-h-screen">
         {/* Header */}
-        <div className="sticky top-0 bg-white/80 backdrop-blur-md px-4 py-3 z-50 flex items-center gap-4">
+        <div className="sticky top-0 bg-gray-50 px-4 py-3 z-50 flex items-center gap-4">
           <Button variant="ghost" size="icon" onClick={() => router.back()}>
             <ArrowLeft className="h-5 w-5" />
           </Button>
@@ -494,6 +496,6 @@ export function PostDetailContent({
           )}
         </div>
       </div>
-    </div>
+    </div></EB>
   )
 }
