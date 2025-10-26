@@ -46,7 +46,7 @@ const postSchema = new Schema<IPost>(
     mediaType: {
       type: String,
       enum: ["image", "video", "gif"],
-      default: null,
+      default: [],
     },
     likesCount: {
       type: Number,

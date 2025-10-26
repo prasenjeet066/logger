@@ -4,7 +4,7 @@ export const createPostSchema = z.object({
   content: z.string().min(1, "Content is required").max(280, "Content must be less than 280 characters"),
   replyTo: z.string().optional(),
   mediaUrls: z.array(z.string()).optional(),
-  mediaType: z.enum(["image", "video", "gif"]).or(z.null()).optional(),
+//  mediaType: z.enum(["image", "video", "gif"]).or(z.null()).optional(),
 })
 
 export const updateProfileSchema = z.object({
