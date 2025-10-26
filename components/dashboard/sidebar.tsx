@@ -79,9 +79,7 @@ export function Sidebar({ isExpand = true, profile, onSignOut, newSidebar, conte
       {isMobile && (
         <div className="lg:hidden flex justify-between items-center mb-4 pb-2 border-b">
           <h1 className="text-xl logo-font">blue</h1>
-          <Button variant="ghost" size="icon" onClick={() => window.dispatchEvent(new Event("closeSidebar"))}>
-            <X className="h-5 w-5" />
-          </Button>
+          
         </div>
       )}
 
@@ -127,7 +125,7 @@ export function Sidebar({ isExpand = true, profile, onSignOut, newSidebar, conte
           <Link href="/create">
             <Button className="w-full justify-center mt-4 py-3  bg-indigo-600 text-white">
               <Plus className=" h-5 w-5" />
-              <span>{safeT("createPost", "Create New Log")}</span>
+              <span>{safeT("createPost", "Create New")}</span>
             </Button>
           </Link>
           

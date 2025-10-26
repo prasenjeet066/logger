@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { motion, AnimatePresence } from "framer-motion"
 import { Spinner } from "@/components/loader/spinner"
 import { PostCard } from "./post-card"
 import { useMobile } from "@/hooks/use-mobile"
@@ -45,6 +46,12 @@ export function Timeline({ userId, typesOfAlg }: { userId: string;typesOfAlg: st
   
   const isMobile = useMobile()
   
+  const algorithmTabs = [
+    { name: "For You", alg: "algorithmic" },
+    { name: "Trending", alg: "trending" },
+    { name: "Most Recent", alg: "chronological" },
+  ]
+  
   useEffect(() => {
     fetchPosts()
   }, [currentAlg])
@@ -74,11 +81,7 @@ export function Timeline({ userId, typesOfAlg }: { userId: string;typesOfAlg: st
       setPosts((prev) =>
         prev.map((p) =>
           p._id === postId ?
-          {
-            ...p,
-            isLiked: result.liked,
-            likesCount: p.likesCount + (result.liked ? 1 : -1),
-          } :
+          { ...p, isLiked: result.liked, likesCount: p.likesCount + (result.liked ? 1 : -1) } :
           p,
         ),
       )
@@ -121,12 +124,6 @@ export function Timeline({ userId, typesOfAlg }: { userId: string;typesOfAlg: st
     return <div className="text-center py-8 text-red-500">Error: {error}</div>
   }
   
-  const algorithmTabs = [
-    { name: "For You", alg: "algorithmic" },
-    { name: "Trending", alg: "trending" },
-    { name: "Most Recent", alg: "chronological" },
-  ]
-  
   return (
     <div className="w-full">
       <Tabs
@@ -134,44 +131,58 @@ export function Timeline({ userId, typesOfAlg }: { userId: string;typesOfAlg: st
         onValueChange={(val) => setCurrentAlg(val)}
         className="w-full"
       >
+        {/* Tab Buttons */}
         <TabsList
-          className={`w-full flex ${isMobile ? "justify-between px-4 border-b" : "justify-start gap-4 mb-4"}`}
+          className={`flex w-full ${
+            isMobile ? "justify-between px-3 border-b" : "justify-center gap-2 mb-6"
+          } bg-muted/30 p-1 rounded-full`}
         >
           {algorithmTabs.map((tab) => (
             <TabsTrigger
               key={tab.alg}
               value={tab.alg}
-              className="text-xs sm:text-sm data-[state=active]:border-b-2 data-[state=active]:border-indigo-500 data-[state=active]:text-indigo-600"
+              className={`relative flex-1 rounded-full text-xs sm:text-sm py-2 px-3 font-medium transition-all
+                data-[state=active]:bg-indigo-600 data-[state=active]:text-white
+                data-[state=inactive]:text-gray-600 hover:bg-indigo-100`}
             >
               {tab.name}
             </TabsTrigger>
           ))}
         </TabsList>
 
-        {algorithmTabs.map((tab) => (
-          <TabsContent key={tab.alg} value={tab.alg}>
-            {loadingPost ? (
-              <div className="flex justify-center items-center py-8">
-                <Spinner />
-              </div>
-            ) : posts.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground">
-                No posts yet. Be the first to post!
-              </div>
-            ) : (
-              <div className="space-y-2">
-                {posts.map((post) => (
-                  <PostCard
-                    key={post._id}
-                    post={post}
-                    onLike={handleLike}
-                    onRepost={handleRepost}
-                  />
-                ))}
-              </div>
-            )}
+        {/* Tab Content with Animation */}
+        <AnimatePresence mode="wait">
+          <TabsContent key={currentAlg} value={currentAlg}>
+            <motion.div
+              key={currentAlg}
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.25, ease: "easeOut" }}
+            >
+              {loadingPost ? (
+                <div className="flex justify-center items-center py-8">
+                  <Spinner />
+                </div>
+              ) : posts.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  No posts yet. Be the first to post!
+                </div>
+              ) : (
+                <div className="flex flex-col gap-2">
+                  {posts.map((post) => (
+                    <PostCard
+                      key={post._id}
+                      post={post}
+                      onLike={handleLike}
+                      onRepost={handleRepost}
+                    />
+                  ))}
+                </div>
+              )}
+            </motion.div>
           </TabsContent>
-        ))}
+        </AnimatePresence>
       </Tabs>
     </div>
   )
